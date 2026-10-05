@@ -53,5 +53,5 @@ app.post("/api/puntia/diagnose",async(req,res)=>{
   }catch(e){console.error(e);res.status(500).json({error:"No se pudo analizar la imagen."});}
 });
 
-app.get("*",(_req,res)=>res.sendFile(path.join(__dirname,"public","index.html")));
+app.get(/.*/,(_req,res)=>res.sendFile(path.join(__dirname,"public","index.html")));
 app.listen(PORT,()=>console.log("PuntIA: http://localhost:"+PORT));
