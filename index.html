@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#f8448f">
+<title>PuntIA — Asistente creativo de crochet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Quicksand:wght@600;700;800&family=Fredoka:wght@600;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+:root{
+ --bg:#fbf6f2;--card:#fff;--pink:#f8448f;--pink2:#ff75ab;--pink-soft:#fdeaf2;
+ --purple:#7b5cfb;--blue:#4f8bf9;--text:#27223b;--muted:#79718b;
+ --border:#f0e6ed;--shadow:0 10px 28px rgba(188,140,166,.08);
+ --r:24px
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Nunito,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+body.dark{--bg:#17121d;--card:#241c2d;--text:#f8effa;--muted:#b8acc3;--border:#3b3044;--pink-soft:#3b2432}
+body.dark .nav-group,body.dark .progress-widget,body.dark .badges-widget,body.dark .assistant-card,
+body.dark .chat-card,body.dark .pattern-card,body.dark .library-card,body.dark .diag-card,
+body.dark .tutorial-card,body.dark .projects-card,body.dark .voice-interactive-bar,
+body.dark .stats-card-widget,body.dark .ia-status-banner,body.dark .search-bar,body.dark .round-btn,
+body.dark .profile-pill,body.dark .chat-text-input,body.dark .action-row-btn{background:var(--card);color:var(--text);border-color:var(--border)}
+body.dark .chat-msg.bot .chat-msg-bubble{background:#30273a;color:#fff}
+body.dark .chat-msg.user .chat-msg-bubble{background:#243553;color:#e8f0ff}
+body{background-image:radial-gradient(circle at 10% 20%,rgba(255,230,240,.75) 0,transparent 40%),radial-gradient(circle at 90% 80%,rgba(235,227,255,.75) 0,transparent 40%)}
+button,input{font:inherit}.topbar{display:flex;align-items:center;justify-content:space-between;padding:16px 28px;gap:20px}
+.brand-logo{display:flex;align-items:center;gap:12px;text-decoration:none;color:inherit}.brand-logo-icon{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#ffd3e4,#fed6a3);display:grid;place-items:center}
+.brand-title{font:800 28px Quicksand}.brand-title span{color:var(--pink)}.brand-sub{font-size:11.5px;font-weight:700;color:var(--muted)}
+.search-wrap{flex:1;max-width:650px;position:relative}.search{width:100%;padding:12px 18px 12px 46px;border:1.5px solid var(--border);border-radius:30px;outline:0;background:#fff}
+.search:focus{border-color:var(--pink);box-shadow:0 0 12px #f8448f33}.search-icon{position:absolute;left:16px;top:50%;transform:translateY(-50%);color:#a49bb5}
+.actions{display:flex;align-items:center;gap:12px}.round{width:42px;height:42px;border-radius:50%;border:1.5px solid var(--border);background:#fff;display:grid;place-items:center;cursor:pointer;color:#5d5470}.profile{display:flex;align-items:center;gap:9px;background:#fff;border:1.5px solid var(--border);padding:5px 14px 5px 6px;border-radius:30px;cursor:pointer}.avatar{width:34px;height:34px;border-radius:50%;background:#ffdfea;display:grid;place-items:center}.profile-name{font-size:13.5px;font-weight:800}.profile-badge{font-size:11px;color:var(--muted)}
+.layout{display:flex;padding:0 24px 28px;gap:22px}.sidebar{width:245px;flex-shrink:0;display:flex;flex-direction:column;gap:16px}.nav,.widget,.card{background:#fff;border:1.5px solid #f6ecf3;border-radius:var(--r);box-shadow:var(--shadow)}
+.nav{padding:12px}.nav-item{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:14px;color:#635b75;font-size:14px;font-weight:800;cursor:pointer;text-decoration:none}.nav-item:hover{background:#fdf5f9;color:var(--pink)}.nav-item.active{background:linear-gradient(90deg,#ff4d97,#ff6fa9);color:#fff;box-shadow:0 6px 16px #f8448f59}
+.widget{padding:18px}.widget-title{font-size:14.5px;font-weight:900;margin-bottom:14px}.progress{display:flex;gap:15px;align-items:center}.donut{width:76px;height:76px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(#02cbb3 65%,#f3ecf2 0)}.donut:after{content:"";width:58px;height:58px;border-radius:50%;background:#fff;position:absolute}.donut span{z-index:1;font-weight:900}.checks{font-size:12px;font-weight:800;color:var(--muted);display:grid;gap:6px}.badges{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.badge{background:#faf6f9;border:1px dashed var(--border);border-radius:12px;padding:9px 3px;text-align:center;font-size:10px;font-weight:800}
+.main{flex:1;max-width:1400px;display:flex;flex-direction:column;gap:20px}.top-grid{display:grid;grid-template-columns:310px 1.25fr 1.05fr;gap:20px}
+.card{padding:18px}.assistant-stage{height:290px;border-radius:18px;background:radial-gradient(circle at 50% 40%,#ffedf5,#f6daeb);display:grid;place-items:end center;position:relative;overflow:hidden}.puppet{width:230px;height:270px;animation:breathe 3.5s ease-in-out infinite;cursor:pointer}.speech{position:absolute;right:14px;top:14px;z-index:2;max-width:180px;background:#fff;border:1px solid #ffe2ee;border-radius:18px 18px 4px;padding:10px 13px;box-shadow:0 6px 18px #bc729933}.speech b{font-size:13px}.speech p{font-size:11.5px;color:#6d6480;font-weight:700;margin-top:3px}.assistant-badge{text-align:center;background:#fff;border:1px solid var(--border);border-radius:30px;padding:8px;margin-top:12px;font-size:12px;font-weight:800}
+@keyframes breathe{50%{transform:translateY(-7px) scale(1.02,.98)}}
+.chat{display:flex;flex-direction:column;min-height:420px}.chat-head{display:flex;justify-content:space-between;align-items:center;padding-bottom:12px;border-bottom:1px solid var(--border)}.chat-user{display:flex;gap:9px;align-items:center;font-weight:900}.mini{width:36px;height:36px;border-radius:50%;background:#ffdfea;display:grid;place-items:center}.online{font-size:11px;font-weight:900;color:#05b486;background:#e7faf4;padding:4px 9px;border-radius:20px}.messages{height:245px;overflow:auto;padding:14px 3px;display:flex;flex-direction:column;gap:12px}.msg{max-width:90%;display:flex;gap:8px}.msg.user{align-self:flex-end}.bubble{padding:11px 14px;border-radius:17px;font-size:13.5px;line-height:1.4;background:#f7f3f9}.msg.user .bubble{background:#ebf2ff;color:#173d82}.time{font-size:9.5px;color:#a097b0;margin-top:3px;text-align:right}.chips{display:flex;gap:7px;flex-wrap:wrap;margin:8px 0}.chip,.action{border:1px solid #eedbf3;background:#f4ecf8;color:#6f5195;padding:7px 11px;border-radius:20px;font-size:11.5px;font-weight:800;cursor:pointer}.input-row{display:flex;gap:8px}.chat-input{flex:1;border:1.5px solid var(--border);border-radius:26px;padding:11px 16px;outline:0;background:#fff;color:var(--text)}.send{width:40px;border:0;border-radius:50%;background:var(--purple);color:#fff;cursor:pointer}
+.pattern-title{display:flex;justify-content:space-between;align-items:center;font-weight:900}.steps{display:flex;justify-content:space-between;margin:16px 8px;position:relative}.steps:before{content:"";position:absolute;top:13px;left:12px;right:12px;height:3px;background:#eee4ed}.step{z-index:1;text-align:center;font-size:10px;font-weight:800;color:var(--muted)}.node{width:27px;height:27px;border-radius:50%;background:#fff;border:2px solid #dfd1de;display:grid;place-items:center;margin:auto}.step.done .node{background:var(--pink);color:#fff;border-color:var(--pink)}.step.active .node{background:var(--blue);color:#fff;border-color:var(--blue)}
+.preview{display:grid;grid-template-columns:1.1fr .9fr;gap:12px}.preview-box{background:#fbf5fa;border:1px solid #f4e5f0;border-radius:18px;padding:12px;text-align:center;position:relative}.preview-box img{width:155px;height:155px;object-fit:cover;border-radius:14px;cursor:pointer}.preview-name{display:flex;justify-content:space-between;font-size:12px;font-weight:900;margin-bottom:8px}.preview-sub{color:var(--muted)}.quick{display:grid;gap:7px}.action{border-radius:10px;background:#fff;color:#4b415e;border-color:#f0e2ed;text-align:left}.action:hover{border-color:var(--pink);color:var(--pink)}
+.lower{display:grid;grid-template-columns:1.25fr 1fr 1fr 1fr;gap:20px}.section-title{font-size:15px;font-weight:900;display:flex;gap:8px;align-items:center}.filters{display:flex;gap:6px;margin:10px 0 13px}.filter{border:0;background:#f4ecf2;padding:6px 11px;border-radius:20px;font-size:11px;font-weight:800;cursor:pointer}.filter.active{background:var(--blue);color:#fff}.stitches{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}.stitch{cursor:pointer;text-align:center;font-size:10px;font-weight:900}.stitch-img{height:58px;background:#ffe3ef;border-radius:10px;margin-bottom:5px;display:grid;place-items:center;font-size:24px}
+.diag-img{height:130px;border-radius:16px;background:#f8eef5;display:grid;place-items:center;font-size:48px;position:relative;margin:10px 0}.target{position:absolute;width:48px;height:48px;border:3px solid red;border-radius:50%;animation:pulse 1.5s infinite alternate}@keyframes pulse{to{transform:scale(1.1)}}.alert{font-size:11.5px;background:#fcf6fa;border-radius:12px;padding:10px;font-weight:700}.projects{display:grid;gap:8px;margin-top:10px}.project{display:flex;justify-content:space-between;align-items:center;padding:6px;cursor:pointer}.project-left{display:flex;gap:9px;align-items:center}.thumb{width:42px;height:42px;border-radius:12px;background:#f6edf4;display:grid;place-items:center;font-size:21px}.project-name{font-size:12px;font-weight:900}.project-status{font-size:10px;color:var(--muted)}
+.tuto{background:linear-gradient(135deg,#ffd9ec,#fed4b3);height:115px;border-radius:14px;margin:10px 0;display:grid;place-items:center}.tuto span{background:#fff;padding:8px 10px;border-radius:14px;font-size:11px;font-weight:900}.full{width:100%;border:0;border-radius:20px;background:linear-gradient(90deg,#ff4d97,#ff6fa9);color:#fff;padding:10px;font-weight:900;cursor:pointer}
+.bottom{display:grid;grid-template-columns:1.1fr 1fr 1.2fr;gap:20px}.bottom>div{background:#fff;border:1.5px solid #f6ecf3;border-radius:24px;padding:16px 20px;box-shadow:var(--shadow);display:flex;align-items:center;justify-content:space-between}.mic{width:58px;height:58px;border:0;border-radius:50%;background:linear-gradient(135deg,#ff4b96,#ff71aa);color:#fff;cursor:pointer}.mic.listening{animation:micpulse 1.2s infinite}@keyframes micpulse{70%{box-shadow:0 0 0 16px #f8448f00}}.stats{gap:20px}.stat{text-align:center}.stat strong{font-size:20px}.stat small{display:block;color:var(--muted);font-weight:800;font-size:10px}.connected{color:#05b486;font-size:11px;font-weight:900}
+.modal{position:fixed;inset:0;background:#1a1124b3;backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;padding:18px;z-index:50}.modal.show{display:flex}.dialog{background:#fff;color:var(--text);border-radius:25px;max-width:620px;width:100%;max-height:90vh;overflow:auto;padding:25px;position:relative}.dark .dialog{background:#241c2d;color:#fff}.close{position:absolute;right:14px;top:14px;border:0;border-radius:50%;width:34px;height:34px;cursor:pointer}.poster{max-width:1280px;padding:14px;background:#130a21;color:#fff}.sheet{background:#0d0617;border-radius:14px;padding:16px;display:grid;gap:12px}.sheet-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.sheet-card{background:#170d28;border:1px solid #6c3599;border-radius:10px;padding:10px}.sheet-head{background:linear-gradient(90deg,#6c1f96,#9b39cf);padding:5px 9px;border-radius:6px;font-size:12px;font-weight:900;margin-bottom:8px}.table{width:100%;border-collapse:collapse;font-size:10px}.table th{background:#3e1b5c;text-align:left;padding:4px}.table td{padding:4px;border-bottom:1px solid #2e1845}.swatches{display:flex;flex-wrap:wrap;gap:7px}.swatch{display:flex;align-items:center;gap:5px;font-size:10px}.swatch i{width:16px;height:16px;border-radius:50%;border:1px solid #fff}
+.toast{position:fixed;right:18px;bottom:18px;background:#27223b;color:#fff;padding:12px 16px;border-radius:12px;display:none;z-index:100;font-size:12px;font-weight:800}
+@media(max-width:1200px){.top-grid{grid-template-columns:1fr}.lower{grid-template-columns:1fr 1fr}.bottom{grid-template-columns:1fr}.sidebar{display:none}}
+@media(max-width:700px){.topbar{padding:12px;flex-wrap:wrap}.search-wrap{order:3;flex-basis:100%;max-width:none}.profile-info{display:none}.layout{padding:0 12px 18px}.lower{grid-template-columns:1fr}.preview{grid-template-columns:1fr}.stitches{grid-template-columns:repeat(2,1fr)}.sheet-grid{grid-template-columns:1fr}.dialog{padding:18px}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <a class="brand-logo" href="#" aria-label="PuntIA">
+    <div class="brand-logo-icon">🧶</div>
+    <div><div class="brand-title">Punt<span>IA</span></div><div class="brand-sub">Tu asistente creativo de crochet</div></div>
+  </a>
+  <div class="search-wrap"><i data-lucide="search" class="search-icon"></i><input id="mainSearch" class="search" placeholder="Pide cualquier amigurumi..."></div>
+  <div class="actions">
+    <button class="round" id="themeBtn" title="Cambiar tema"><i data-lucide="sun"></i></button>
+    <div class="profile"><div class="avatar">👤</div><div class="profile-info"><div class="profile-name">Brayan Colin</div><div class="profile-badge">Nivel Intermedio</div></div></div>
+  </div>
+</header>
+
+<div class="layout">
+<aside class="sidebar">
+  <nav class="nav">
+    <a class="nav-item active"><i data-lucide="home"></i>Inicio</a>
+    <a class="nav-item" data-action="chat"><i data-lucide="message-circle"></i>Chat con PuntIA</a>
+    <a class="nav-item" data-action="create"><i data-lucide="sparkles"></i>Crear patrón</a>
+    <a class="nav-item" data-scroll="library"><i data-lucide="book-open"></i>Biblioteca</a>
+    <a class="nav-item" data-scroll="diagnosis"><i data-lucide="camera"></i>Diagnóstico visual</a>
+    <a class="nav-item" data-scroll="tutorials"><i data-lucide="graduation-cap"></i>Tutoriales</a>
+    <a class="nav-item" data-scroll="projects"><i data-lucide="folder"></i>Mis proyectos</a>
+  </nav>
+  <div class="widget"><div class="widget-title">Mi progreso</div><div class="progress"><div class="donut"><span>65%</span></div><div class="checks"><span>✓ Principiante</span><span>✓ Básico</span><span>● Intermedio</span><span>🔒 Avanzado</span></div></div></div>
+  <div class="widget"><div class="widget-title">Logros</div><div class="badges"><div class="badge">⭐<br>Primer proyecto</div><div class="badge">🧶<br>10 puntos</div><div class="badge">🏆<br>5 patrones</div></div></div>
+</aside>
+
+<main class="main">
+<div class="top-grid">
+<section class="card">
+  <div class="assistant-stage" id="assistantStage">
+    <div class="speech"><b>¡Hola! Soy PuntIA 💖</b><p id="speechText">Pídeme cualquier amigurumi y crearé su patrón.</p></div>
+    <div class="puppet" id="puppet"><svg viewBox="0 0 240 280" width="100%" height="100%">
+      <circle cx="120" cy="40" r="18" fill="#ffd643"/><path d="M75 185C75 150 165 150 165 185L180 245C180 255 60 255 60 245Z" fill="#f8448f"/>
+      <ellipse cx="120" cy="130" rx="55" ry="46" fill="#fff0f4"/><ellipse cx="90" cy="126" rx="13" ry="17" fill="#24192b"/><ellipse cx="150" cy="126" rx="13" ry="17" fill="#24192b"/>
+      <circle id="pupilL" cx="87" cy="122" r="5" fill="#fff"/><circle id="pupilR" cx="147" cy="122" r="5" fill="#fff"/>
+      <path d="M45 115C40 40 200 40 195 115C195 130 45 130 45 115Z" fill="#f8448f"/><path d="M112 145Q120 154 128 145" fill="#e84e7f" stroke="#24192b" stroke-width="2.5"/>
+      <circle cx="65" cy="245" r="22" fill="#5093e0"/><circle cx="175" cy="248" r="24" fill="#ff7da9"/>
+    </svg></div>
+  </div>
+  <div class="assistant-badge">🧶 Motor editorial preparado</div>
+</section>
+
+<section class="card chat" id="chatSection">
+  <div class="chat-head"><div class="chat-user"><div class="mini">🧶</div>Chat con PuntIA</div><span class="online">● En línea</span></div>
+  <div class="messages" id="messages"></div>
+  <div class="chips">
+    <button class="chip" data-prompt="Luna, una brujita gótica de 20 cm">🧙‍♀️ Brujita Luna</button>
+    <button class="chip" data-prompt="Dragón esmeralda de 25 cm">🐉 Dragón Verde</button>
+    <button class="chip" data-prompt="Ajolote astronauta kawaii de 18 cm">🚀 Ajolote Galáctico</button>
+  </div>
+  <form class="input-row" id="chatForm"><input id="chatInput" class="chat-input" placeholder="Pide cualquier amigurumi..." autocomplete="off"><button class="send" aria-label="Enviar"><i data-lucide="send"></i></button></form>
+</section>
+
+<section class="card">
+  <div class="pattern-title"><span>✨ Patrón editorial generado</span><span id="modelStatus">Listo</span></div>
+  <div class="steps">
+    <div class="step done"><div class="node">1</div>Idea</div><div class="step done"><div class="node">2</div>Análisis</div><div class="step active"><div class="node">3</div>Patrón</div><div class="step"><div class="node">4</div>Lámina</div><div class="step"><div class="node">5</div>Listo</div>
+  </div>
+  <div class="preview">
+    <div class="preview-box"><div class="preview-name"><span id="modelName">Luna: Brujita de los sueños</span><span class="preview-sub" id="modelMeta">20 cm</span></div><img id="previewImage" alt="Vista del amigurumi" src=""></div>
+    <div class="quick">
+      <button class="action" id="posterBtn">⛶ Ver lámina completa</button>
+      <button class="action" id="regenBtn">✨ Regenerar variación</button>
+      <button class="action" id="materialsBtn">📦 Materiales</button>
+      <button class="action" id="downloadBtn">⬇ Descargar PNG</button>
+    </div>
+  </div>
+</section>
+</div>
+
+<div class="lower">
+<section class="card" id="library"><div class="section-title">🔖 Biblioteca de puntos</div><div class="filters"><button class="filter active" data-filter="todos">Todos</button><button class="filter" data-filter="basico">Básico</button><button class="filter" data-filter="intermedio">Intermedio</button></div><div class="stitches" id="stitches"></div></section>
+<section class="card" id="diagnosis">
+<div class="section-title">📷 Diagnóstico visual</div>
+<div class="diag-img" id="diagPreview">🧶<div class="target"></div></div>
+<div class="alert">🔍 <b>Modo diagnóstico:</b> selecciona una fotografía de tu tejido. PuntIA podrá señalar posibles errores, explicar por qué y sugerir cómo corregirlos.</div>
+<input id="diagFile" type="file" accept="image/*" capture="environment" style="display:none">
+<button class="full" id="scanBtn" style="margin-top:10px">📷 Subir y analizar</button>
+<div id="diagResult" style="margin-top:10px;font-size:12px;line-height:1.5"></div>
+</section>
+<section class="card" id="tutorials"><div class="section-title">🧭 Tutorial interactivo</div><div class="tuto"><span>¡Pídeme cualquier personaje!</span></div><button class="full" id="tutorialBtn">Ver lámina</button></section>
+<section class="card" id="projects"><div class="section-title">📁 Proyectos <button id="newProject" class="round" style="margin-left:auto;width:30px;height:30px;background:var(--pink);color:#fff;border:0">+</button></div><div class="projects" id="projectsList"></div></section>
+</div>
+
+<div class="bottom">
+<div><button class="mic" id="micBtn"><i data-lucide="mic"></i></button><span id="voiceHint">Pídeme un amigurumi por voz...</span></div>
+<div class="stats"><div class="stat"><strong id="statStitches">28</strong><small>Puntos aprendidos</small></div><div class="stat"><strong id="statSheets">12</strong><small>Láminas creadas</small></div><div class="stat"><strong id="statPdf">5</strong><small>PDF listos</small></div></div>
+<div><div><b>Motor IA Editorial</b><div class="connected" id="backendStatus">● Comprobando backend…</div></div><span>🔐</span></div>
+</div>
+</main>
+</div>
+
+<div class="modal" id="modal"><div class="dialog" id="dialog"><button class="close" id="closeModal">×</button><div id="modalBody"></div></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+lucide.createIcons();
+
+const state={
+  name:"Luna: Brujita de los sueños",height:"20 cm",difficulty:"Intermedio",
+  collection:"Sombras y Encanto",petName:"Gatito Sombra",
+  colors:[["Morado","#7e3bb0"],["Negro","#1f1d24"],["Naranja","#f97925"],["Piel","#fcdbc0"]],
+  head:[[1,"6 pb en AM",6],[2,"6 aum",12],[3,"(1 pb, 1 aum) x 6",18],[4,"(2 pb, 1 aum) x 6",24],[5,"(3 pb, 1 aum) x 6",30],["6-10","30 pb",30],[11,"(3 pb, 1 dis) x 6",24],[12,"(2 pb, 1 dis) x 6",18],[13,"(1 pb, 1 dis) x 6",12],[14,"6 dis",6]],
+  body:[[1,"6 pb en AM",6],[2,"6 aum",12],[3,"(1 pb, 1 aum) x 6",18],["4-6","18 pb",18],[7,"(2 pb, 1 aum) x 6",24],["8-10","24 pb",24],[11,"(2 pb, 1 dis) x 6",18],["12-14","18 pb",18]]
+};
+
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
+function toast(t){const e=$("#toast");e.textContent=t;e.style.display="block";clearTimeout(toast.t);toast.t=setTimeout(()=>e.style.display="none",2800)}
+function say(t){$("#speechText").textContent=t;if("speechSynthesis"in window){speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang="es-MX";u.rate=1.05;u.pitch=1.25;speechSynthesis.speak(u)}}
+function openModal(html,poster=false){$("#dialog").className="dialog"+(poster?" poster":"");$("#modalBody").innerHTML=html;$("#modal").classList.add("show");lucide.createIcons()}
+function closeModal(){$("#modal").classList.remove("show")}
+$("#closeModal").onclick=closeModal;$("#modal").onclick=e=>{if(e.target===$("#modal"))closeModal()};
+
+function fallbackImage(name){
+ const c=document.createElement("canvas");c.width=600;c.height=600;const x=c.getContext("2d");
+ const g=x.createRadialGradient(300,270,30,300,300,300);g.addColorStop(0,state.colors[0][1]);g.addColorStop(1,"#12091d");x.fillStyle=g;x.fillRect(0,0,600,600);
+ x.fillStyle=state.colors[0][1];x.beginPath();x.arc(300,335,145,0,Math.PI*2);x.fill();
+ x.fillStyle="#20182b";x.beginPath();x.arc(250,315,22,0,Math.PI*2);x.arc(350,315,22,0,Math.PI*2);x.fill();
+ x.fillStyle="#fff";x.beginPath();x.arc(244,309,7,0,Math.PI*2);x.arc(344,309,7,0,Math.PI*2);x.fill();
+ x.fillStyle=state.colors[1]?.[1]||"#ff69a4";x.beginPath();x.moveTo(220,220);x.lineTo(300,80);x.lineTo(380,220);x.closePath();x.fill();
+ x.fillStyle="#ffd1eb";x.font="bold 28px Nunito";x.textAlign="center";x.fillText(name.slice(0,35),300,545);
+ return c.toDataURL("image/png")
+}
+function applyLocal(prompt){
+ const p=prompt.toLowerCase();
+ state.name=prompt;state.height=(prompt.match(/\b\d+\s*cm\b/i)||["20 cm"])[0];
+ state.collection="Criaturas Fantásticas";state.difficulty="Intermedio";state.petName="Mascota compañera";
+ state.colors=[["Principal","#44a868"],["Secundario","#f5a236"],["Base","#fed8b8"],["Detalles","#2b233a"]];
+ if(p.includes("bruja")||p.includes("luna")){state.name="Luna: Brujita de los sueños";state.collection="Sombras y Encanto";state.petName="Gatito Sombra";state.colors=[["Morado","#7e3bb0"],["Negro","#1f1d24"],["Naranja","#f97925"],["Piel","#fcdbc0"]]}
+ if(p.includes("dragón")||p.includes("dragon")){state.name="Drakko: Dragón esmeralda";state.collection="Reino Mágico";state.petName="Huevito de dragón";state.colors=[["Esmeralda","#3fa362"],["Oro","#fabc28"],["Naranja","#ff7429"],["Crema","#fed8b8"]]}
+ if(p.includes("ajolote")||p.includes("astronauta")){state.name="Axol: Ajolote estelar";state.collection="Galaxia Kawaii";state.petName="Mini nave";state.colors=[["Rosa","#ff77aa"],["Cian","#47d2f5"],["Blanco","#fff"],["Morado","#7b5cfb"]]}
+ $("#modelName").textContent=state.name;$("#modelMeta").textContent=`${state.height} • ${state.difficulty}`;$("#previewImage").src=fallbackImage(state.name)
+}
+function renderMessages(){
+ const saved=JSON.parse(localStorage.getItem("puntia_messages")||"[]");$("#messages").innerHTML="";
+ if(!saved.length) addMessage("bot","¡Hola! Soy PuntIA. Dime qué amigurumi quieres crear y prepararé una propuesta de patrón.");
+ saved.forEach(m=>addMessage(m.role,m.text,false))
+}
+function addMessage(role,text,save=true){
+ const d=document.createElement("div");d.className="msg "+(role==="user"?"user":"bot");d.innerHTML=`<div class="bubble">${esc(text)}<div class="time">${new Date().toLocaleTimeString("es-MX",{hour:"2-digit",minute:"2-digit"})}</div></div>`;$("#messages").appendChild(d);$("#messages").scrollTop=$("#messages").scrollHeight;
+ if(save){const a=JSON.parse(localStorage.getItem("puntia_messages")||"[]");a.push({role,text});localStorage.setItem("puntia_messages",JSON.stringify(a.slice(-30)))}
+}
+async function requestBackend(prompt){
+  const res=await fetch("/api/puntia/generate-pattern",{
+    method:"POST",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({prompt})
+  });
+  const data=await res.json().catch(()=>({}));
+  if(!res.ok)throw new Error(data.error||"Backend no disponible");
+  return data;
+}
+async function diagnoseImage(file){
+  if(!file)return;
+  const result=$("#diagResult");
+  result.innerHTML='<div class="alert">⏳ Analizando la fotografía…</div>';
+  const reader=new FileReader();
+  reader.onload=async()=>{
+    const dataUrl=reader.result;
+    $("#diagPreview").innerHTML=`<img src="${dataUrl}" alt="Pieza para diagnóstico" style="max-width:100%;max-height:160px;border-radius:14px;object-fit:contain"><div class="target"></div>`;
+    try{
+      const res=await fetch("/api/puntia/diagnose",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({image:dataUrl})});
+      const data=await res.json().catch(()=>({}));
+      if(!res.ok)throw new Error(data.error||"No se pudo analizar la imagen");
+      result.innerHTML=`<div class="alert"><b>Resultado del diagnóstico</b><br>${esc(data.analysis||"No se obtuvo un análisis.")}</div>`;
+      addMessage("bot","Analicé la fotografía. Revisa el diagnóstico visual para ver qué encontré y cómo corregirlo.");
+    }catch(err){
+      result.innerHTML=`<div class="alert">⚠️ ${esc(err.message)}<br><small>El análisis requiere que el backend esté ejecutándose y tenga OPENAI_API_KEY configurada.</small></div>`;
+    }
+  };
+  reader.readAsDataURL(file);
+}async function create(prompt){
+ if(!prompt)return;
+ addMessage("user",prompt);$("#modelStatus").textContent="Generando…";say("Estoy preparando tu patrón.");
+ try{
+   const data=await requestBackend(prompt);
+   if(data && data.pattern){
+     Object.assign(state,data.pattern);
+     $("#modelName").textContent=state.name||prompt;
+     $("#modelMeta").textContent=`${state.height||"20 cm"} • ${state.difficulty||"Intermedio"}`;
+     if(data.imageUrl)$("#previewImage").src=data.imageUrl;
+     else $("#previewImage").src=fallbackImage(state.name||prompt);
+     addMessage("bot","Patrón generado y validado por el motor PuntIA.");
+     say(`Listo. Preparé el patrón para ${state.name||prompt}.`);
+   }else throw new Error("Respuesta inválida");
+ }catch(e){
+   applyLocal(prompt);
+   addMessage("bot","El servidor de IA todavía no está conectado. Generé una vista local de respaldo para que puedas seguir probando la interfaz.");
+   say("Generé una versión local de respaldo. Cuando conectes el backend, usaré IA real.");
+ }
+ $("#modelStatus").textContent="Listo";
+}
+$("#chatForm").onsubmit=e=>{e.preventDefault();const v=$("#chatInput").value.trim();$("#chatInput").value="";create(v)}
+document.querySelectorAll(".chip").forEach(b=>b.onclick=()=>create(b.dataset.prompt));
+$("#mainSearch").onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();create(e.target.value.trim());e.target.value=""}}
+$("#puppet").onclick=()=>say("¡Pídeme cualquier amigurumi y lo convertiremos en un patrón!");
+
+$("#themeBtn").onclick=()=>{document.body.classList.toggle("dark");localStorage.setItem("puntia_dark",document.body.classList.contains("dark"))};
+if(localStorage.getItem("puntia_dark")==="true")document.body.classList.add("dark");
+
+const stitches=[["Cadena","basico","🔗"],["Punto bajo","basico","🧶"],["Aumento","basico","➕"],["Disminución","basico","➖"],["Medio punto alto","intermedio","🪡"],["Punto alto","intermedio","〰️"],["Anillo mágico","basico","⭕"],["Punto deslizado","basico","↔️"]];
+function renderStitches(filter="todos"){$("#stitches").innerHTML=stitches.filter(s=>filter==="todos"||s[1]===filter).map(s=>`<div class="stitch" data-name="${esc(s[0])}"><div class="stitch-img">${s[2]}</div>${esc(s[0])}</div>`).join("")}
+renderStitches();document.querySelectorAll(".filter").forEach(b=>b.onclick=()=>{document.querySelectorAll(".filter").forEach(x=>x.classList.remove("active"));b.classList.add("active");renderStitches(b.dataset.filter)});
+$("#stitches").onclick=e=>{const s=e.target.closest(".stitch");if(s)openModal(`<h2>Punto ${esc(s.dataset.name)}</h2><p style="margin-top:10px">Mantén tensión uniforme y comprueba el número de puntos al finalizar cada vuelta.</p>`)}
+
+function rows(arr){return arr.map(r=>`<tr><td>${esc(r[0])}</td><td>${esc(r[1])}</td><td>${r[2]}</td></tr>`).join("")}
+function poster(){
+ openModal(`<div class="sheet">
+ <h1 style="font:800 28px Fredoka;color:#ff5ba5">PuntIA</h1>
+ <div class="sheet-grid">
+  <div class="sheet-card"><div class="sheet-head">PERSONAJE</div><b>${esc(state.name)}</b><p>${esc(state.collection)} · ${esc(state.height)} · ${esc(state.difficulty)}</p></div>
+  <div class="sheet-card"><div class="sheet-head">PALETA</div><div class="swatches">${state.colors.map(c=>`<span class="swatch"><i style="background:${esc(c[1])}"></i>${esc(c[0])}</span>`).join("")}</div></div>
+  <div class="sheet-card"><div class="sheet-head">MATERIALES</div><p>Algodón 4 hebras<br>Ganchillo 2.5–3 mm<br>Relleno siliconado<br>Ojos de seguridad según escala</p></div>
+  <div class="sheet-card"><div class="sheet-head">ABREVIATURAS</div><p>AM = anillo mágico<br>pb = punto bajo<br>aum = aumento<br>dis = disminución</p></div>
+ </div>
+ <div class="sheet-grid">
+  <div class="sheet-card"><div class="sheet-head">CABEZA</div><table class="table"><thead><tr><th>Vta</th><th>Instrucción</th><th>Pts</th></tr></thead><tbody>${rows(state.head)}</tbody></table></div>
+  <div class="sheet-card"><div class="sheet-head">CUERPO</div><table class="table"><thead><tr><th>Vta</th><th>Instrucción</th><th>Pts</th></tr></thead><tbody>${rows(state.body)}</tbody></table></div>
+  <div class="sheet-card"><div class="sheet-head">MASCOTA</div><p><b>${esc(state.petName)}</b></p><p style="margin-top:8px">1: 6 pb AM<br>2: 6 aum (12)<br>3–5: 12 pb<br>6: 4 dis<br>7: cerrar</p></div>
+  <div class="sheet-card"><div class="sheet-head">ENSAMBLAJE</div><p>1. Unir cabeza y cuerpo.<br>2. Coser brazos simétricamente.<br>3. Fijar accesorios.<br>4. Revisar tensión y relleno.<br>5. Bordar detalles.</p></div>
+ </div>
+ <div style="display:flex;gap:8px;justify-content:flex-end"><button class="full" id="closePoster" style="width:auto;padding:9px 18px">Cerrar</button></div>
+ </div>`,true);
+ $("#closePoster").onclick=closeModal
+}
+$("#posterBtn").onclick=poster;$("#tutorialBtn").onclick=poster;$("#materialsBtn").onclick=()=>openModal("<h2>Materiales</h2><p style='margin-top:10px'>Algodón 4 hebras, ganchillo 2.5–3 mm, relleno siliconado, marcador, aguja lanera y ojos de seguridad adecuados al tamaño.</p>");
+$("#regenBtn").onclick=()=>create(state.name);$("#scanBtn").onclick=()=>$("#diagFile").click();
+$("#diagFile").onchange=e=>diagnoseImage(e.target.files[0]);
+$("#posterBtn").onclick=poster;
+
+$("#downloadBtn").onclick=()=>{
+ const img=$("#previewImage");
+ const a=document.createElement("a");a.download=`PuntIA-${state.name.replace(/[^\wáéíóúñ]+/gi,"_")}.png`;a.href=img.src;a.click();toast("Imagen descargada")
+};
+
+$("#newProject").onclick=()=>{const n=prompt("Nombre del proyecto");if(n){const p=JSON.parse(localStorage.getItem("puntia_projects")||"[]");p.unshift({name:n,emoji:"🧶",date:new Date().toISOString()});localStorage.setItem("puntia_projects",JSON.stringify(p.slice(0,20)));renderProjects();create(n)}};
+function renderProjects(){const p=JSON.parse(localStorage.getItem("puntia_projects")||"[]");const defaults=[{name:"Brujita Luna",emoji:"🧙‍♀️"},{name:"Dragón verde",emoji:"🐉"},{name:"Ajolote galáctico",emoji:"🚀"}];const all=[...p,...defaults];$("#projectsList").innerHTML=all.slice(0,6).map(x=>`<div class="project" data-name="${esc(x.name)}"><div class="project-left"><div class="thumb">${x.emoji||"🧶"}</div><div><div class="project-name">${esc(x.name)}</div><div class="project-status">Proyecto guardado</div></div></div>›</div>`).join("")}
+renderProjects();$("#projectsList").onclick=e=>{const p=e.target.closest(".project");if(p)create(p.dataset.name)};
+
+document.querySelectorAll("[data-scroll]").forEach(a=>a.onclick=()=>document.getElementById(a.dataset.scroll).scrollIntoView({behavior:"smooth"}));
+document.querySelector("[data-action='chat']").onclick=()=>$("#chatInput").focus();
+document.querySelector("[data-action='create']").onclick=()=>{const n=prompt("¿Qué amigurumi deseas crear?");if(n)create(n)};
+
+let recognition=null,listening=false;
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+if(SR){recognition=new SR();recognition.lang="es-MX";recognition.continuous=false;recognition.interimResults=false;recognition.onstart=()=>{listening=true;$("#micBtn").classList.add("listening");$("#voiceHint").textContent="Escuchando…"};recognition.onresult=e=>create(e.results[0][0].transcript);recognition.onend=()=>{listening=false;$("#micBtn").classList.remove("listening");$("#voiceHint").textContent="Pídeme un amigurumi por voz..."};recognition.onerror=()=>{listening=false;$("#micBtn").classList.remove("listening");toast("No se pudo acceder al micrófono")}}
+$("#micBtn").onclick=()=>{if(!recognition)return toast("Tu navegador no soporta reconocimiento de voz");listening?recognition.stop():recognition.start()};
+document.addEventListener("keydown",e=>{if(e.code==="Space"&&!["INPUT","TEXTAREA","BUTTON"].includes(document.activeElement.tagName)){e.preventDefault();$("#micBtn").click()}});
+
+renderMessages();applyLocal("Luna la brujita de los sueños");
+(async()=>{
+  try{
+    const r=await fetch("/api/health");
+    $("#backendStatus").textContent=r.ok?"● Backend conectado":"● Backend no disponible";
+    $("#backendStatus").style.color=r.ok?"#05b486":"#d97706";
+  }catch{
+    $("#backendStatus").textContent="● Modo local";
+    $("#backendStatus").style.color="#d97706";
+  }
+})();
+</script>
+</body>
+</html>
