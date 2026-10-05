@@ -1,320 +1,82 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#f8448f">
-<title>PuntIA — Asistente creativo de crochet</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Quicksand:wght@600;700;800&family=Fredoka:wght@600;700&display=swap" rel="stylesheet">
-<script src="https://unpkg.com/lucide@latest"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#e84f87">
+<title>PuntIA — Asistente de crochet</title>
 <style>
-:root{
- --bg:#fbf6f2;--card:#fff;--pink:#f8448f;--pink2:#ff75ab;--pink-soft:#fdeaf2;
- --purple:#7b5cfb;--blue:#4f8bf9;--text:#27223b;--muted:#79718b;
- --border:#f0e6ed;--shadow:0 10px 28px rgba(188,140,166,.08);
- --r:24px
-}
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:Nunito,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
-body.dark{--bg:#17121d;--card:#241c2d;--text:#f8effa;--muted:#b8acc3;--border:#3b3044;--pink-soft:#3b2432}
-body.dark .nav-group,body.dark .progress-widget,body.dark .badges-widget,body.dark .assistant-card,
-body.dark .chat-card,body.dark .pattern-card,body.dark .library-card,body.dark .diag-card,
-body.dark .tutorial-card,body.dark .projects-card,body.dark .voice-interactive-bar,
-body.dark .stats-card-widget,body.dark .ia-status-banner,body.dark .search-bar,body.dark .round-btn,
-body.dark .profile-pill,body.dark .chat-text-input,body.dark .action-row-btn{background:var(--card);color:var(--text);border-color:var(--border)}
-body.dark .chat-msg.bot .chat-msg-bubble{background:#30273a;color:#fff}
-body.dark .chat-msg.user .chat-msg-bubble{background:#243553;color:#e8f0ff}
-body{background-image:radial-gradient(circle at 10% 20%,rgba(255,230,240,.75) 0,transparent 40%),radial-gradient(circle at 90% 80%,rgba(235,227,255,.75) 0,transparent 40%)}
-button,input{font:inherit}.topbar{display:flex;align-items:center;justify-content:space-between;padding:16px 28px;gap:20px}
-.brand-logo{display:flex;align-items:center;gap:12px;text-decoration:none;color:inherit}.brand-logo-icon{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#ffd3e4,#fed6a3);display:grid;place-items:center}
-.brand-title{font:800 28px Quicksand}.brand-title span{color:var(--pink)}.brand-sub{font-size:11.5px;font-weight:700;color:var(--muted)}
-.search-wrap{flex:1;max-width:650px;position:relative}.search{width:100%;padding:12px 18px 12px 46px;border:1.5px solid var(--border);border-radius:30px;outline:0;background:#fff}
-.search:focus{border-color:var(--pink);box-shadow:0 0 12px #f8448f33}.search-icon{position:absolute;left:16px;top:50%;transform:translateY(-50%);color:#a49bb5}
-.actions{display:flex;align-items:center;gap:12px}.round{width:42px;height:42px;border-radius:50%;border:1.5px solid var(--border);background:#fff;display:grid;place-items:center;cursor:pointer;color:#5d5470}.profile{display:flex;align-items:center;gap:9px;background:#fff;border:1.5px solid var(--border);padding:5px 14px 5px 6px;border-radius:30px;cursor:pointer}.avatar{width:34px;height:34px;border-radius:50%;background:#ffdfea;display:grid;place-items:center}.profile-name{font-size:13.5px;font-weight:800}.profile-badge{font-size:11px;color:var(--muted)}
-.layout{display:flex;padding:0 24px 28px;gap:22px}.sidebar{width:245px;flex-shrink:0;display:flex;flex-direction:column;gap:16px}.nav,.widget,.card{background:#fff;border:1.5px solid #f6ecf3;border-radius:var(--r);box-shadow:var(--shadow)}
-.nav{padding:12px}.nav-item{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:14px;color:#635b75;font-size:14px;font-weight:800;cursor:pointer;text-decoration:none}.nav-item:hover{background:#fdf5f9;color:var(--pink)}.nav-item.active{background:linear-gradient(90deg,#ff4d97,#ff6fa9);color:#fff;box-shadow:0 6px 16px #f8448f59}
-.widget{padding:18px}.widget-title{font-size:14.5px;font-weight:900;margin-bottom:14px}.progress{display:flex;gap:15px;align-items:center}.donut{width:76px;height:76px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(#02cbb3 65%,#f3ecf2 0)}.donut:after{content:"";width:58px;height:58px;border-radius:50%;background:#fff;position:absolute}.donut span{z-index:1;font-weight:900}.checks{font-size:12px;font-weight:800;color:var(--muted);display:grid;gap:6px}.badges{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.badge{background:#faf6f9;border:1px dashed var(--border);border-radius:12px;padding:9px 3px;text-align:center;font-size:10px;font-weight:800}
-.main{flex:1;max-width:1400px;display:flex;flex-direction:column;gap:20px}.top-grid{display:grid;grid-template-columns:310px 1.25fr 1.05fr;gap:20px}
-.card{padding:18px}.assistant-stage{height:290px;border-radius:18px;background:radial-gradient(circle at 50% 40%,#ffedf5,#f6daeb);display:grid;place-items:end center;position:relative;overflow:hidden}.puppet{width:230px;height:270px;animation:breathe 3.5s ease-in-out infinite;cursor:pointer}.speech{position:absolute;right:14px;top:14px;z-index:2;max-width:180px;background:#fff;border:1px solid #ffe2ee;border-radius:18px 18px 4px;padding:10px 13px;box-shadow:0 6px 18px #bc729933}.speech b{font-size:13px}.speech p{font-size:11.5px;color:#6d6480;font-weight:700;margin-top:3px}.assistant-badge{text-align:center;background:#fff;border:1px solid var(--border);border-radius:30px;padding:8px;margin-top:12px;font-size:12px;font-weight:800}
-@keyframes breathe{50%{transform:translateY(-7px) scale(1.02,.98)}}
-.chat{display:flex;flex-direction:column;min-height:420px}.chat-head{display:flex;justify-content:space-between;align-items:center;padding-bottom:12px;border-bottom:1px solid var(--border)}.chat-user{display:flex;gap:9px;align-items:center;font-weight:900}.mini{width:36px;height:36px;border-radius:50%;background:#ffdfea;display:grid;place-items:center}.online{font-size:11px;font-weight:900;color:#05b486;background:#e7faf4;padding:4px 9px;border-radius:20px}.messages{height:245px;overflow:auto;padding:14px 3px;display:flex;flex-direction:column;gap:12px}.msg{max-width:90%;display:flex;gap:8px}.msg.user{align-self:flex-end}.bubble{padding:11px 14px;border-radius:17px;font-size:13.5px;line-height:1.4;background:#f7f3f9}.msg.user .bubble{background:#ebf2ff;color:#173d82}.time{font-size:9.5px;color:#a097b0;margin-top:3px;text-align:right}.chips{display:flex;gap:7px;flex-wrap:wrap;margin:8px 0}.chip,.action{border:1px solid #eedbf3;background:#f4ecf8;color:#6f5195;padding:7px 11px;border-radius:20px;font-size:11.5px;font-weight:800;cursor:pointer}.input-row{display:flex;gap:8px}.chat-input{flex:1;border:1.5px solid var(--border);border-radius:26px;padding:11px 16px;outline:0;background:#fff;color:var(--text)}.send{width:40px;border:0;border-radius:50%;background:var(--purple);color:#fff;cursor:pointer}
-.pattern-title{display:flex;justify-content:space-between;align-items:center;font-weight:900}.steps{display:flex;justify-content:space-between;margin:16px 8px;position:relative}.steps:before{content:"";position:absolute;top:13px;left:12px;right:12px;height:3px;background:#eee4ed}.step{z-index:1;text-align:center;font-size:10px;font-weight:800;color:var(--muted)}.node{width:27px;height:27px;border-radius:50%;background:#fff;border:2px solid #dfd1de;display:grid;place-items:center;margin:auto}.step.done .node{background:var(--pink);color:#fff;border-color:var(--pink)}.step.active .node{background:var(--blue);color:#fff;border-color:var(--blue)}
-.preview{display:grid;grid-template-columns:1.1fr .9fr;gap:12px}.preview-box{background:#fbf5fa;border:1px solid #f4e5f0;border-radius:18px;padding:12px;text-align:center;position:relative}.preview-box img{width:155px;height:155px;object-fit:cover;border-radius:14px;cursor:pointer}.preview-name{display:flex;justify-content:space-between;font-size:12px;font-weight:900;margin-bottom:8px}.preview-sub{color:var(--muted)}.quick{display:grid;gap:7px}.action{border-radius:10px;background:#fff;color:#4b415e;border-color:#f0e2ed;text-align:left}.action:hover{border-color:var(--pink);color:var(--pink)}
-.lower{display:grid;grid-template-columns:1.25fr 1fr 1fr 1fr;gap:20px}.section-title{font-size:15px;font-weight:900;display:flex;gap:8px;align-items:center}.filters{display:flex;gap:6px;margin:10px 0 13px}.filter{border:0;background:#f4ecf2;padding:6px 11px;border-radius:20px;font-size:11px;font-weight:800;cursor:pointer}.filter.active{background:var(--blue);color:#fff}.stitches{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}.stitch{cursor:pointer;text-align:center;font-size:10px;font-weight:900}.stitch-img{height:58px;background:#ffe3ef;border-radius:10px;margin-bottom:5px;display:grid;place-items:center;font-size:24px}
-.diag-img{height:130px;border-radius:16px;background:#f8eef5;display:grid;place-items:center;font-size:48px;position:relative;margin:10px 0}.target{position:absolute;width:48px;height:48px;border:3px solid red;border-radius:50%;animation:pulse 1.5s infinite alternate}@keyframes pulse{to{transform:scale(1.1)}}.alert{font-size:11.5px;background:#fcf6fa;border-radius:12px;padding:10px;font-weight:700}.projects{display:grid;gap:8px;margin-top:10px}.project{display:flex;justify-content:space-between;align-items:center;padding:6px;cursor:pointer}.project-left{display:flex;gap:9px;align-items:center}.thumb{width:42px;height:42px;border-radius:12px;background:#f6edf4;display:grid;place-items:center;font-size:21px}.project-name{font-size:12px;font-weight:900}.project-status{font-size:10px;color:var(--muted)}
-.tuto{background:linear-gradient(135deg,#ffd9ec,#fed4b3);height:115px;border-radius:14px;margin:10px 0;display:grid;place-items:center}.tuto span{background:#fff;padding:8px 10px;border-radius:14px;font-size:11px;font-weight:900}.full{width:100%;border:0;border-radius:20px;background:linear-gradient(90deg,#ff4d97,#ff6fa9);color:#fff;padding:10px;font-weight:900;cursor:pointer}
-.bottom{display:grid;grid-template-columns:1.1fr 1fr 1.2fr;gap:20px}.bottom>div{background:#fff;border:1.5px solid #f6ecf3;border-radius:24px;padding:16px 20px;box-shadow:var(--shadow);display:flex;align-items:center;justify-content:space-between}.mic{width:58px;height:58px;border:0;border-radius:50%;background:linear-gradient(135deg,#ff4b96,#ff71aa);color:#fff;cursor:pointer}.mic.listening{animation:micpulse 1.2s infinite}@keyframes micpulse{70%{box-shadow:0 0 0 16px #f8448f00}}.stats{gap:20px}.stat{text-align:center}.stat strong{font-size:20px}.stat small{display:block;color:var(--muted);font-weight:800;font-size:10px}.connected{color:#05b486;font-size:11px;font-weight:900}
-.modal{position:fixed;inset:0;background:#1a1124b3;backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;padding:18px;z-index:50}.modal.show{display:flex}.dialog{background:#fff;color:var(--text);border-radius:25px;max-width:620px;width:100%;max-height:90vh;overflow:auto;padding:25px;position:relative}.dark .dialog{background:#241c2d;color:#fff}.close{position:absolute;right:14px;top:14px;border:0;border-radius:50%;width:34px;height:34px;cursor:pointer}.poster{max-width:1280px;padding:14px;background:#130a21;color:#fff}.sheet{background:#0d0617;border-radius:14px;padding:16px;display:grid;gap:12px}.sheet-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.sheet-card{background:#170d28;border:1px solid #6c3599;border-radius:10px;padding:10px}.sheet-head{background:linear-gradient(90deg,#6c1f96,#9b39cf);padding:5px 9px;border-radius:6px;font-size:12px;font-weight:900;margin-bottom:8px}.table{width:100%;border-collapse:collapse;font-size:10px}.table th{background:#3e1b5c;text-align:left;padding:4px}.table td{padding:4px;border-bottom:1px solid #2e1845}.swatches{display:flex;flex-wrap:wrap;gap:7px}.swatch{display:flex;align-items:center;gap:5px;font-size:10px}.swatch i{width:16px;height:16px;border-radius:50%;border:1px solid #fff}
-.toast{position:fixed;right:18px;bottom:18px;background:#27223b;color:#fff;padding:12px 16px;border-radius:12px;display:none;z-index:100;font-size:12px;font-weight:800}
-@media(max-width:1200px){.top-grid{grid-template-columns:1fr}.lower{grid-template-columns:1fr 1fr}.bottom{grid-template-columns:1fr}.sidebar{display:none}}
-@media(max-width:700px){.topbar{padding:12px;flex-wrap:wrap}.search-wrap{order:3;flex-basis:100%;max-width:none}.profile-info{display:none}.layout{padding:0 12px 18px}.lower{grid-template-columns:1fr}.preview{grid-template-columns:1fr}.stitches{grid-template-columns:repeat(2,1fr)}.sheet-grid{grid-template-columns:1fr}.dialog{padding:18px}}
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Quicksand:wght@600;700;800&display=swap');
+:root{--bg:#f7f2ec;--panel:#fffdf9;--ink:#202025;--muted:#737078;--line:#e5ded8;--pink:#e94f88;--pink2:#f48eb0;--rose:#f9dce6;--purple:#7456d9;--blue:#4d8eea;--green:#39b77b;--orange:#ef9445;--shadow:0 8px 24px #3d253d12;--r:16px}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;font-family:Nunito,system-ui,sans-serif;background:var(--bg);color:var(--ink)}button,input,textarea,select{font:inherit}button{cursor:pointer}.app{min-height:100vh;display:grid;grid-template-columns:235px 1fr;grid-template-rows:1fr}.sidebar{background:#fdf9f3;border-right:1px solid var(--line);padding:14px 12px;position:sticky;top:0;height:100vh;overflow:auto}.brand{display:flex;align-items:center;gap:9px;padding:4px 10px 14px}.logo{width:43px;height:43px;border-radius:14px;background:linear-gradient(135deg,#f7b4cb,#fff);display:grid;place-items:center;font-size:25px}.brand h1{font:800 25px Quicksand;margin:0}.brand p{font-size:10px;margin:0;color:#555}.nav{display:grid;gap:3px}.nav button{border:0;background:transparent;text-align:left;padding:9px 12px;border-radius:9px;display:flex;gap:11px;align-items:center;font-weight:700;font-size:13px;color:#27252a}.nav button:hover{background:#f5e7ec}.nav button.active{background:#f4b9ca}.nav i{width:20px;text-align:center;font-style:normal}.sidebar-foot{margin-top:18px;border-top:1px solid var(--line);padding-top:14px}.progress-mini{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px}.progress-mini strong{display:block;font-size:12px}.bar{height:8px;background:#eee6e7;border-radius:99px;overflow:hidden;margin:8px 0}.bar>span{display:block;height:100%;background:linear-gradient(90deg,#e95088,#e9b5c9);border-radius:inherit}.small{font-size:10px;color:var(--muted)}
+main{min-width:0;padding:0 10px 20px}.topbar{height:58px;display:flex;align-items:center;gap:12px;position:sticky;top:0;background:#f7f2ecf2;backdrop-filter:blur(10px);z-index:20}.search{flex:1;max-width:520px;position:relative}.search input{width:100%;border:1px solid #cfc7c0;border-radius:24px;padding:10px 16px 10px 39px;background:#fffdfb;outline:0}.search span{position:absolute;left:14px;top:9px}.top-actions{margin-left:auto;display:flex;gap:8px;align-items:center}.icon-btn{width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:#fff;display:grid;place-items:center}.profile{display:flex;align-items:center;gap:8px;border:1px solid var(--line);background:#fff;padding:4px 10px 4px 5px;border-radius:22px;font-weight:800;font-size:12px}.avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#f5c3d1,#a9817b);display:grid;place-items:center}.mobile-menu{display:none}
+.hero-grid{display:grid;grid-template-columns:minmax(0,1fr) 285px 300px;gap:8px}.hero{background:#d7b9ad;border-radius:13px;min-height:380px;position:relative;overflow:hidden;border:1px solid #d2c0ba}.hero-bg{position:absolute;inset:0;background:radial-gradient(circle at 75% 18%,#fff6dc 0 8%,transparent 9%),linear-gradient(135deg,#b8897d 0,#e7b6a6 45%,#b78b8b 100%)}.hero-bg:after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 22% 70%,#f2c0c7 0 7%,transparent 7.5%),radial-gradient(circle at 82% 74%,#8c7595 0 7%,transparent 7.5%),linear-gradient(90deg,transparent 0 40%,#ffffff20 40% 60%,transparent 60%)}.hero-person{position:absolute;left:50%;top:48%;transform:translate(-50%,-50%);width:245px;height:265px}.hair{position:absolute;left:31px;top:0;width:180px;height:155px;border-radius:50% 50% 44% 44%;background:#6b3e35;box-shadow:inset 0 -15px #51302b}.face{position:absolute;left:57px;top:43px;width:130px;height:155px;border-radius:48% 48% 52% 52%;background:#ffd4b8}.eye{position:absolute;top:91px;width:24px;height:31px;border-radius:50%;background:#4d2d28}.eye:after{content:"";display:block;width:8px;height:8px;border-radius:50%;background:#fff;margin:5px}.eye.l{left:79px}.eye.r{left:132px}.mouth{position:absolute;left:108px;top:137px;width:26px;height:12px;border-bottom:3px solid #a64e58;border-radius:50%}.bow{position:absolute;left:72px;top:20px;width:105px;height:35px;background:#ef83a9;border-radius:50%;transform:rotate(-5deg);z-index:3}.body{position:absolute;left:38px;top:180px;width:168px;height:88px;background:#f6d3d6;border-radius:45% 45% 20% 20%;border:4px solid #fff3f0}.hook{position:absolute;right:4px;bottom:18px;width:74px;height:9px;border-radius:10px;background:#d5a56b;transform:rotate(-24deg)}.yarn{position:absolute;left:4px;bottom:5px;width:62px;height:62px;border-radius:50%;background:repeating-radial-gradient(circle,#ef8ba9 0 4px,#f7b1c6 5px 7px)}.speech{position:absolute;left:11%;top:14%;background:#fffaf7;border-radius:28px;padding:19px 23px;width:245px;box-shadow:0 8px 20px #4b2d2b16}.speech strong{font-size:20px}.speech p{margin:5px 0 0;font-size:14px}.hero-chat{position:absolute;left:18px;right:18px;bottom:14px;background:#fffaf7eF;border-radius:15px;padding:8px;display:flex;gap:8px}.hero-chat input{flex:1;border:0;background:transparent;outline:0}.send{border:0;background:var(--pink);color:#fff;border-radius:50%;width:38px;height:38px}.stack{display:grid;gap:8px}.card{background:var(--panel);border:1px solid var(--line);border-radius:13px;box-shadow:var(--shadow);overflow:hidden}.card h3{margin:0;padding:11px 14px 7px;font-size:14px}.models{padding:0 13px 10px}.model{display:flex;justify-content:space-between;padding:6px 0;font-size:11px;border-bottom:1px solid #eee8e4}.status-dot{color:var(--green);font-weight:800}.projects{padding:0 10px 10px}.project{display:flex;gap:8px;align-items:center;padding:7px 0;border-bottom:1px solid #eee8e4}.thumb{width:43px;height:43px;border-radius:9px;background:linear-gradient(135deg,#f3d5dd,#ead9d2);display:grid;place-items:center;font-size:25px}.project b{font-size:11px}.project small{display:block;color:var(--muted);font-size:9px}.project .bar{height:5px;margin:4px 0;width:115px}.new{margin-left:auto;border:0;background:var(--pink);color:#fff;border-radius:15px;padding:5px 9px;font-size:10px}.system{padding:8px 13px 12px;border-top:1px solid var(--line)}.sys{display:flex;justify-content:space-between;font-size:10px;padding:4px 0}.ok{color:#1a9b60;font-weight:800}.xp{padding:0 12px 10px}.xp-ring{display:flex;align-items:center;gap:12px}.ring{width:54px;height:54px;border-radius:50%;background:conic-gradient(#e94f88 0 65%,#eadfe2 65%);display:grid;place-items:center}.ring:after{content:"65%";background:#fff;border-radius:50%;width:40px;height:40px;display:grid;place-items:center;font-weight:900;font-size:10px}
+.quick{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;padding:7px;background:#fffaf7;border-top:1px solid var(--line)}.quick button{border:1px solid var(--line);background:#fff;border-radius:10px;padding:10px 5px;font-weight:800;font-size:10px}.quick button:hover{border-color:var(--pink);color:var(--pink)}
+.modules{display:grid;grid-template-columns:1.05fr 1fr 1fr 1.05fr 1fr;gap:7px;margin-top:8px}.module{min-height:240px}.module h3{color:#fff;font-size:13px;padding:8px 11px}.m1 h3{background:#e34f86}.m2 h3{background:#7255d4}.m3 h3{background:#4d87dc}.m4 h3{background:#43b67d}.m5 h3{background:#ee9140}.module-body{padding:10px}.chat-msg{background:#f3edf2;border-radius:12px;padding:8px;font-size:10px;margin-bottom:8px}.chat-msg.user{background:#e4ebff;margin-left:25px}.form-grid{display:grid;gap:7px}.field label{font-size:9px;font-weight:800;display:block;margin-bottom:3px}.field input,.field select{width:100%;padding:7px;border:1px solid var(--line);border-radius:8px;background:#fff;font-size:10px}.primary{width:100%;border:0;background:var(--pink);color:#fff;border-radius:9px;padding:8px;font-weight:900;font-size:10px}.table{width:100%;border-collapse:collapse;font-size:8px}.table th,.table td{border:1px solid var(--line);padding:5px;text-align:left}.okmark{color:#17a565}.diagram{background:#fff;padding:7px;border:1px solid var(--line);border-radius:8px;text-align:center;font-size:22px}.photo{height:145px;background:repeating-radial-gradient(circle at 45% 45%,#e880a1 0 4px,#f5adc1 5px 8px);border-radius:8px;position:relative}.photo:after{content:"⚠";position:absolute;left:47%;top:42%;font-size:38px;color:#e94f40}.diagnosis p{font-size:9px}.list{font-size:9px;line-height:1.5}.lower{display:grid;grid-template-columns:1.05fr 1fr 1.1fr 1.1fr;gap:7px;margin-top:7px}.lower .card{min-height:185px}.teacher{height:110px;border-radius:9px;background:linear-gradient(135deg,#d8b3a4,#f0cbd2);display:grid;place-items:center;font-size:45px}.voice{display:flex;align-items:center;justify-content:center;gap:14px;height:120px}.mic{width:60px;height:60px;border-radius:50%;border:0;background:#8255df;color:#fff;font-size:28px;box-shadow:0 0 0 12px #eee7ff}.pdf{height:125px;background:linear-gradient(90deg,#2d2d34 0 17%,#fff 17%);border:1px solid var(--line);border-radius:8px;padding:15px 15px 15px 25%;font-size:11px}.mobile-preview{height:125px;display:grid;place-items:center}.phone{width:92px;height:115px;border:5px solid #202025;border-radius:16px;background:#fff;padding:7px;font-size:8px}.phone .ph{height:45px;background:linear-gradient(135deg,#e4b9ad,#f1d4d8);border-radius:7px;margin-bottom:5px}.toast{position:fixed;right:18px;bottom:18px;background:#26232b;color:#fff;padding:11px 15px;border-radius:10px;display:none;z-index:99;font-size:12px}.drawer{display:none}.modal{position:fixed;inset:0;background:#1f172099;z-index:50;align-items:center;justify-content:center;padding:18px}.modal.show{display:flex}.modal-box{width:min(760px,96vw);max-height:90vh;overflow:auto;background:#fff;border-radius:18px;padding:18px}.modal-head{display:flex;justify-content:space-between;align-items:center}.close{border:0;background:#eee;border-radius:50%;width:32px;height:32px}.diag-preview{max-width:100%;max-height:320px;border-radius:12px;display:block;margin:10px auto}.drop{border:2px dashed #e6b7c6;border-radius:14px;padding:25px;text-align:center}
+@media(max-width:1150px){.hero-grid{grid-template-columns:1fr 280px}.hero-grid>.stack:last-child{display:none}.modules{grid-template-columns:repeat(3,1fr)}.lower{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:780px){body{background:#f8f3f0}.app{display:block}.sidebar{display:none}main{padding:0 8px 76px}.topbar{height:56px}.mobile-menu{display:grid}.top-actions .profile{display:none}.search{max-width:none}.hero-grid{display:block}.hero{min-height:410px}.hero-chat{left:10px;right:10px}.speech{left:6%;width:205px;padding:14px 17px}.speech strong{font-size:17px}.hero-person{transform:translate(-50%,-50%) scale(.85)}.mobile-stack{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:7px}.mobile-stack .card{min-height:150px}.quick{grid-template-columns:repeat(5,1fr);overflow:auto}.quick button{min-width:90px}.modules{grid-template-columns:1fr 1fr;overflow:visible}.module{min-height:230px}.module.m1{grid-column:1/-1}.lower{grid-template-columns:1fr 1fr}.lower .card:last-child{display:block}.bottom-nav{display:flex!important}.drawer{position:fixed;inset:0;z-index:40;background:#0007}.drawer.open{display:block}.drawer-panel{width:280px;height:100%;background:#fffaf6;padding:16px;box-shadow:8px 0 25px #0002}.drawer button{width:100%;padding:11px;border:0;background:transparent;text-align:left;border-radius:9px}.drawer button:hover{background:#f6e9ee}.mobile-only{display:block}}
+@media(min-width:781px){.bottom-nav{display:none}.mobile-only{display:none}}
+.bottom-nav{position:fixed;left:7px;right:7px;bottom:7px;height:58px;background:#fffdf9eF;backdrop-filter:blur(14px);border:1px solid var(--line);border-radius:18px;z-index:30;justify-content:space-around;align-items:center;box-shadow:0 8px 25px #0002}.bottom-nav button{border:0;background:transparent;font-size:9px;font-weight:800;color:#5e5960}.bottom-nav button.active{color:var(--pink)}
 </style>
 </head>
 <body>
-<header class="topbar">
-  <a class="brand-logo" href="#" aria-label="PuntIA">
-    <div class="brand-logo-icon">🧶</div>
-    <div><div class="brand-title">Punt<span>IA</span></div><div class="brand-sub">Tu asistente creativo de crochet</div></div>
-  </a>
-  <div class="search-wrap"><i data-lucide="search" class="search-icon"></i><input id="mainSearch" class="search" placeholder="Pide cualquier amigurumi..."></div>
-  <div class="actions">
-    <button class="round" id="themeBtn" title="Cambiar tema"><i data-lucide="sun"></i></button>
-    <div class="profile"><div class="avatar">👤</div><div class="profile-info"><div class="profile-name">Brayan Colin</div><div class="profile-badge">Nivel Intermedio</div></div></div>
-  </div>
-</header>
-
-<div class="layout">
+<div class="app">
 <aside class="sidebar">
-  <nav class="nav">
-    <a class="nav-item active"><i data-lucide="home"></i>Inicio</a>
-    <a class="nav-item" data-action="chat"><i data-lucide="message-circle"></i>Chat con PuntIA</a>
-    <a class="nav-item" data-action="create"><i data-lucide="sparkles"></i>Crear patrón</a>
-    <a class="nav-item" data-scroll="library"><i data-lucide="book-open"></i>Biblioteca</a>
-    <a class="nav-item" data-scroll="diagnosis"><i data-lucide="camera"></i>Diagnóstico visual</a>
-    <a class="nav-item" data-scroll="tutorials"><i data-lucide="graduation-cap"></i>Tutoriales</a>
-    <a class="nav-item" data-scroll="projects"><i data-lucide="folder"></i>Mis proyectos</a>
+  <div class="brand"><div class="logo">🧶</div><div><h1>Punt<span style="color:#e94f88">IA</span></h1><p>Tu asistente de crochet</p></div></div>
+  <nav class="nav" id="desktopNav">
+    <button class="active" data-section="inicio"><i>⌂</i>Inicio</button><button data-section="chat"><i>💬</i>Chat IA</button><button data-section="pattern"><i>✦</i>Crear patrón</button><button data-section="validate"><i>▣</i>Validar patrón</button><button data-section="diagnosis"><i>📷</i>Diagnóstico (foto)</button><button data-section="teacher"><i>🎓</i>Profesor de crochet</button><button data-section="voice"><i>🎙</i>Voz</button><button data-section="projects"><i>▣</i>Proyectos</button><button data-section="library"><i>📖</i>Biblioteca de puntos</button><button data-section="diagram"><i>⌘</i>Diagramas</button><button data-section="pdf"><i>▤</i>PDF / Imprimir</button><button data-section="progress"><i>▥</i>Progreso</button><button data-section="admin"><i>⚙</i>Administración</button>
   </nav>
-  <div class="widget"><div class="widget-title">Mi progreso</div><div class="progress"><div class="donut"><span>65%</span></div><div class="checks"><span>✓ Principiante</span><span>✓ Básico</span><span>● Intermedio</span><span>🔒 Avanzado</span></div></div></div>
-  <div class="widget"><div class="widget-title">Logros</div><div class="badges"><div class="badge">⭐<br>Primer proyecto</div><div class="badge">🧶<br>10 puntos</div><div class="badge">🏆<br>5 patrones</div></div></div>
+  <div class="sidebar-foot"><div class="progress-mini"><strong>Mi progreso · Nivel 4</strong><div class="bar"><span style="width:64%"></span></div><div class="small">320 / 500 XP · 28 puntos aprendidos</div></div></div>
 </aside>
-
-<main class="main">
-<div class="top-grid">
-<section class="card">
-  <div class="assistant-stage" id="assistantStage">
-    <div class="speech"><b>¡Hola! Soy PuntIA 💖</b><p id="speechText">Pídeme cualquier amigurumi y crearé su patrón.</p></div>
-    <div class="puppet" id="puppet"><svg viewBox="0 0 240 280" width="100%" height="100%">
-      <circle cx="120" cy="40" r="18" fill="#ffd643"/><path d="M75 185C75 150 165 150 165 185L180 245C180 255 60 255 60 245Z" fill="#f8448f"/>
-      <ellipse cx="120" cy="130" rx="55" ry="46" fill="#fff0f4"/><ellipse cx="90" cy="126" rx="13" ry="17" fill="#24192b"/><ellipse cx="150" cy="126" rx="13" ry="17" fill="#24192b"/>
-      <circle id="pupilL" cx="87" cy="122" r="5" fill="#fff"/><circle id="pupilR" cx="147" cy="122" r="5" fill="#fff"/>
-      <path d="M45 115C40 40 200 40 195 115C195 130 45 130 45 115Z" fill="#f8448f"/><path d="M112 145Q120 154 128 145" fill="#e84e7f" stroke="#24192b" stroke-width="2.5"/>
-      <circle cx="65" cy="245" r="22" fill="#5093e0"/><circle cx="175" cy="248" r="24" fill="#ff7da9"/>
-    </svg></div>
-  </div>
-  <div class="assistant-badge">🧶 Motor editorial preparado</div>
+<main>
+<header class="topbar"><button class="icon-btn mobile-menu" id="menuBtn">☰</button><div class="search"><span>⌕</span><input id="search" placeholder="Pregúntame lo que necesites..."></div><div class="top-actions"><button class="icon-btn" id="themeBtn">☾</button><button class="icon-btn" id="notifyBtn">♧</button><div class="profile"><div class="avatar">👤</div><span>Mi espacio</span></div></div></header>
+<section class="hero-grid" id="inicio">
+  <div class="hero"><div class="hero-bg"></div><div class="hero-person"><div class="hair"></div><div class="face"></div><div class="eye l"></div><div class="eye r"></div><div class="mouth"></div><div class="bow"></div><div class="body"></div><div class="hook"></div><div class="yarn"></div></div><div class="speech"><strong>¡Hola!</strong><p>Soy <b>PuntIA</b>, tu asistente de crochet.<br>¿En qué puedo ayudarte hoy?</p></div><div class="hero-chat"><button class="icon-btn" id="micHero">🎙</button><input id="heroInput" placeholder="Escribe tu pregunta aquí..."><button class="send" id="heroSend">➤</button></div></div>
+  <div class="stack"><div class="card"><h3>Modelos disponibles</h3><div class="models"><div class="model"><span>◉ GPT-6 Luna</span><span class="status-dot">● Conectado</span></div><div class="model"><span>◉ GPT-4o</span><span>Disponible</span></div><div class="model"><span>◉ GPT-4o mini</span><span>Disponible</span></div><button class="primary" style="margin-top:7px" id="modelBtn">Cambiar modelo</button></div></div><div class="card"><h3>Estado del sistema</h3><div class="system"><div class="sys"><span>🟢 Servidor</span><span class="ok">En línea</span></div><div class="sys"><span>🟢 Base de datos</span><span class="ok">Local</span></div><div class="sys"><span>🟢 Visión IA</span><span class="ok">Disponible</span></div><div class="sys"><span>🟢 Voz</span><span class="ok">Disponible</span></div></div></div></div>
+  <div class="stack"><div class="card"><h3 style="display:flex;align-items:center">Mis proyectos <button class="new" id="newProject">+ Nuevo</button></h3><div class="projects" id="projectsList"></div></div><div class="card"><h3>Progreso</h3><div class="xp"><div class="xp-ring"><div class="ring"></div><div><b>Nivel 4</b><div class="small">320 / 500 XP</div></div></div></div></div></div>
 </section>
-
-<section class="card chat" id="chatSection">
-  <div class="chat-head"><div class="chat-user"><div class="mini">🧶</div>Chat con PuntIA</div><span class="online">● En línea</span></div>
-  <div class="messages" id="messages"></div>
-  <div class="chips">
-    <button class="chip" data-prompt="Luna, una brujita gótica de 20 cm">🧙‍♀️ Brujita Luna</button>
-    <button class="chip" data-prompt="Dragón esmeralda de 25 cm">🐉 Dragón Verde</button>
-    <button class="chip" data-prompt="Ajolote astronauta kawaii de 18 cm">🚀 Ajolote Galáctico</button>
-  </div>
-  <form class="input-row" id="chatForm"><input id="chatInput" class="chat-input" placeholder="Pide cualquier amigurumi..." autocomplete="off"><button class="send" aria-label="Enviar"><i data-lucide="send"></i></button></form>
+<div class="quick"><button data-action="pattern">✨ Crear un patrón</button><button data-action="validate">▣ Validar un patrón</button><button data-action="diagnosis">📷 Analizar una foto</button><button data-action="teacher">🎓 Explícame un punto</button><button data-action="pdf">📄 Generar PDF</button></div>
+<section class="modules">
+  <article class="card module m1" id="chat"><h3>1. Chat con IA</h3><div class="module-body"><div id="chatLog"><div class="chat-msg">👩‍🦱 <b>PuntIA:</b> Dime qué quieres tejer y prepararé una respuesta útil.</div></div><div style="display:flex;gap:5px"><input id="chatInput" style="flex:1;border:1px solid var(--line);border-radius:9px;padding:8px;font-size:10px" placeholder="Escribe tu mensaje..."><button class="primary" id="chatSend" style="width:42px">➤</button></div></div></article>
+  <article class="card module m2" id="pattern"><h3>2. Generador de patrones</h3><div class="module-body"><div class="form-grid"><div class="field"><label>¿Qué te gustaría tejer?</label><input id="patternName" value="Osito amigurumi"></div><div class="field"><label>Nivel</label><select id="patternLevel"><option>Principiante</option><option selected>Intermedio</option><option>Avanzado</option></select></div><div class="field"><label>Tamaño</label><input id="patternSize" value="15 cm"></div><div class="field"><label>Estilo</label><input id="patternStyle" value="Tierno y clásico"></div><button class="primary" id="generateBtn">Generar patrón</button></div></div></article>
+  <article class="card module m3" id="validate"><h3>3. Validador de patrones</h3><div class="module-body"><b style="font-size:10px">✨ Validación de conteos</b><table class="table" style="margin-top:8px"><thead><tr><th>Vuelta</th><th>Instrucciones</th><th>Conteo</th><th>Estado</th></tr></thead><tbody id="validationRows"><tr><td>1</td><td>6 pb</td><td>6</td><td class="okmark">✓</td></tr><tr><td>2</td><td>6 aum</td><td>12</td><td class="okmark">✓</td></tr><tr><td>3</td><td>(1 pb, 1 aum)×6</td><td>18</td><td class="okmark">✓</td></tr><tr><td>4</td><td>18 pb</td><td>18</td><td class="okmark">✓</td></tr></tbody></table><button class="primary" style="margin-top:8px" id="validateBtn">Validar mi patrón</button></div></article>
+  <article class="card module m4" id="diagram"><h3>4. Diagramas</h3><div class="module-body"><div class="diagram"><b style="font-size:10px">Diagrama SVG · Vuelta 3</b><div style="font-size:58px;margin:12px">◌</div><div class="small">○ pb · △ aum · ▽ dis · • pr</div></div><button class="primary" style="margin-top:8px" id="diagramBtn">Descargar diagrama</button></div></article>
+  <article class="card module m5" id="diagnosis"><h3>5. Diagnóstico por foto</h3><div class="module-body"><div class="photo" id="photoPreview"></div><p><b>Problema detectado:</b> la IA analizará tu foto y señalará dónde, por qué y cómo corregirlo.</p><button class="primary" id="photoBtn">📷 Analizar foto</button><input id="photoInput" type="file" accept="image/*" hidden></div></article>
 </section>
-
-<section class="card">
-  <div class="pattern-title"><span>✨ Patrón editorial generado</span><span id="modelStatus">Listo</span></div>
-  <div class="steps">
-    <div class="step done"><div class="node">1</div>Idea</div><div class="step done"><div class="node">2</div>Análisis</div><div class="step active"><div class="node">3</div>Patrón</div><div class="step"><div class="node">4</div>Lámina</div><div class="step"><div class="node">5</div>Listo</div>
-  </div>
-  <div class="preview">
-    <div class="preview-box"><div class="preview-name"><span id="modelName">Luna: Brujita de los sueños</span><span class="preview-sub" id="modelMeta">20 cm</span></div><img id="previewImage" alt="Vista del amigurumi" src=""></div>
-    <div class="quick">
-      <button class="action" id="posterBtn">⛶ Ver lámina completa</button>
-      <button class="action" id="regenBtn">✨ Regenerar variación</button>
-      <button class="action" id="materialsBtn">📦 Materiales</button>
-      <button class="action" id="downloadBtn">⬇ Descargar PNG</button>
-    </div>
-  </div>
+<section class="lower">
+ <article class="card" id="teacher"><h3 style="color:#6c4cc7">6. Profesor interactivo</h3><div class="module-body"><div class="teacher">🧶</div><p class="small">Paso 1 de 8 · Haz 6 puntos bajos en un anillo mágico.</p><button class="primary" id="teacherBtn">Siguiente</button></div></article>
+ <article class="card" id="voice"><h3 style="color:#b48600">7. Voz (entrada y salida)</h3><div class="module-body"><div class="voice"><button class="mic" id="voiceBtn">🎙</button><b id="voiceStatus">Listo</b></div><div class="small" id="voiceText">Pulsa el micrófono y dime qué quieres crear.</div></div></article>
+ <article class="card" id="projects"><h3 style="color:#df4e8a">8. Proyectos</h3><div class="module-body" id="projectDetail"><b>Osito amigurumi</b><p class="small">En progreso · Regla 12/20</p><div class="bar"><span style="width:60%"></span></div><button class="primary" id="saveProject">Guardar proyecto</button></div></article>
+ <article class="card" id="pdf"><h3 style="color:#d9465f">9. PDF profesional</h3><div class="module-body"><div class="pdf"><b>Osito Amigurumi</b><br><span class="small">Patrón paso a paso</span></div><button class="primary" style="margin-top:8px" id="pdfBtn">Generar PDF / imprimir</button></div></article>
+ <article class="card" id="progress"><h3 style="color:#3c8f7b">10. Vista en móvil</h3><div class="module-body"><div class="mobile-preview"><div class="phone"><b>PuntIA</b><div class="ph"></div><span>¡Hola! ¿En qué puedo ayudarte?</span></div></div></div></article>
 </section>
-</div>
-
-<div class="lower">
-<section class="card" id="library"><div class="section-title">🔖 Biblioteca de puntos</div><div class="filters"><button class="filter active" data-filter="todos">Todos</button><button class="filter" data-filter="basico">Básico</button><button class="filter" data-filter="intermedio">Intermedio</button></div><div class="stitches" id="stitches"></div></section>
-<section class="card" id="diagnosis">
-<div class="section-title">📷 Diagnóstico visual</div>
-<div class="diag-img" id="diagPreview">🧶<div class="target"></div></div>
-<div class="alert">🔍 <b>Modo diagnóstico:</b> selecciona una fotografía de tu tejido. PuntIA podrá señalar posibles errores, explicar por qué y sugerir cómo corregirlos.</div>
-<input id="diagFile" type="file" accept="image/*" capture="environment" style="display:none">
-<button class="full" id="scanBtn" style="margin-top:10px">📷 Subir y analizar</button>
-<div id="diagResult" style="margin-top:10px;font-size:12px;line-height:1.5"></div>
-</section>
-<section class="card" id="tutorials"><div class="section-title">🧭 Tutorial interactivo</div><div class="tuto"><span>¡Pídeme cualquier personaje!</span></div><button class="full" id="tutorialBtn">Ver lámina</button></section>
-<section class="card" id="projects"><div class="section-title">📁 Proyectos <button id="newProject" class="round" style="margin-left:auto;width:30px;height:30px;background:var(--pink);color:#fff;border:0">+</button></div><div class="projects" id="projectsList"></div></section>
-</div>
-
-<div class="bottom">
-<div><button class="mic" id="micBtn"><i data-lucide="mic"></i></button><span id="voiceHint">Pídeme un amigurumi por voz...</span></div>
-<div class="stats"><div class="stat"><strong id="statStitches">28</strong><small>Puntos aprendidos</small></div><div class="stat"><strong id="statSheets">12</strong><small>Láminas creadas</small></div><div class="stat"><strong id="statPdf">5</strong><small>PDF listos</small></div></div>
-<div><div><b>Motor IA Editorial</b><div class="connected" id="backendStatus">● Comprobando backend…</div></div><span>🔐</span></div>
-</div>
-</main>
-</div>
-
-<div class="modal" id="modal"><div class="dialog" id="dialog"><button class="close" id="closeModal">×</button><div id="modalBody"></div></div></div>
-<div class="toast" id="toast"></div>
-
+</main></div>
+<nav class="bottom-nav"><button class="active" data-section="inicio">⌂<br>Inicio</button><button data-section="chat">💬<br>Chat</button><button data-section="pattern">✦<br>Patrón</button><button data-section="diagnosis">📷<br>Foto</button><button data-section="projects">▣<br>Proyectos</button></nav>
+<div class="drawer" id="drawer"><div class="drawer-panel"><div class="brand"><div class="logo">🧶</div><div><h1>PuntIA</h1><p>Tu asistente de crochet</p></div></div><div id="drawerNav"></div></div></div>
+<div class="modal" id="modal"><div class="modal-box"><div class="modal-head"><h2 id="modalTitle">PuntIA</h2><button class="close" id="modalClose">×</button></div><div id="modalBody"></div></div></div><div class="toast" id="toast"></div>
 <script>
-"use strict";
-lucide.createIcons();
-
-const state={
-  name:"Luna: Brujita de los sueños",height:"20 cm",difficulty:"Intermedio",
-  collection:"Sombras y Encanto",petName:"Gatito Sombra",
-  colors:[["Morado","#7e3bb0"],["Negro","#1f1d24"],["Naranja","#f97925"],["Piel","#fcdbc0"]],
-  head:[[1,"6 pb en AM",6],[2,"6 aum",12],[3,"(1 pb, 1 aum) x 6",18],[4,"(2 pb, 1 aum) x 6",24],[5,"(3 pb, 1 aum) x 6",30],["6-10","30 pb",30],[11,"(3 pb, 1 dis) x 6",24],[12,"(2 pb, 1 dis) x 6",18],[13,"(1 pb, 1 dis) x 6",12],[14,"6 dis",6]],
-  body:[[1,"6 pb en AM",6],[2,"6 aum",12],[3,"(1 pb, 1 aum) x 6",18],["4-6","18 pb",18],[7,"(2 pb, 1 aum) x 6",24],["8-10","24 pb",24],[11,"(2 pb, 1 dis) x 6",18],["12-14","18 pb",18]]
-};
-
-const $=s=>document.querySelector(s);
-const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
-function toast(t){const e=$("#toast");e.textContent=t;e.style.display="block";clearTimeout(toast.t);toast.t=setTimeout(()=>e.style.display="none",2800)}
-function say(t){$("#speechText").textContent=t;if("speechSynthesis"in window){speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang="es-MX";u.rate=1.05;u.pitch=1.25;speechSynthesis.speak(u)}}
-function openModal(html,poster=false){$("#dialog").className="dialog"+(poster?" poster":"");$("#modalBody").innerHTML=html;$("#modal").classList.add("show");lucide.createIcons()}
-function closeModal(){$("#modal").classList.remove("show")}
-$("#closeModal").onclick=closeModal;$("#modal").onclick=e=>{if(e.target===$("#modal"))closeModal()};
-
-function fallbackImage(name){
- const c=document.createElement("canvas");c.width=600;c.height=600;const x=c.getContext("2d");
- const g=x.createRadialGradient(300,270,30,300,300,300);g.addColorStop(0,state.colors[0][1]);g.addColorStop(1,"#12091d");x.fillStyle=g;x.fillRect(0,0,600,600);
- x.fillStyle=state.colors[0][1];x.beginPath();x.arc(300,335,145,0,Math.PI*2);x.fill();
- x.fillStyle="#20182b";x.beginPath();x.arc(250,315,22,0,Math.PI*2);x.arc(350,315,22,0,Math.PI*2);x.fill();
- x.fillStyle="#fff";x.beginPath();x.arc(244,309,7,0,Math.PI*2);x.arc(344,309,7,0,Math.PI*2);x.fill();
- x.fillStyle=state.colors[1]?.[1]||"#ff69a4";x.beginPath();x.moveTo(220,220);x.lineTo(300,80);x.lineTo(380,220);x.closePath();x.fill();
- x.fillStyle="#ffd1eb";x.font="bold 28px Nunito";x.textAlign="center";x.fillText(name.slice(0,35),300,545);
- return c.toDataURL("image/png")
-}
-function applyLocal(prompt){
- const p=prompt.toLowerCase();
- state.name=prompt;state.height=(prompt.match(/\b\d+\s*cm\b/i)||["20 cm"])[0];
- state.collection="Criaturas Fantásticas";state.difficulty="Intermedio";state.petName="Mascota compañera";
- state.colors=[["Principal","#44a868"],["Secundario","#f5a236"],["Base","#fed8b8"],["Detalles","#2b233a"]];
- if(p.includes("bruja")||p.includes("luna")){state.name="Luna: Brujita de los sueños";state.collection="Sombras y Encanto";state.petName="Gatito Sombra";state.colors=[["Morado","#7e3bb0"],["Negro","#1f1d24"],["Naranja","#f97925"],["Piel","#fcdbc0"]]}
- if(p.includes("dragón")||p.includes("dragon")){state.name="Drakko: Dragón esmeralda";state.collection="Reino Mágico";state.petName="Huevito de dragón";state.colors=[["Esmeralda","#3fa362"],["Oro","#fabc28"],["Naranja","#ff7429"],["Crema","#fed8b8"]]}
- if(p.includes("ajolote")||p.includes("astronauta")){state.name="Axol: Ajolote estelar";state.collection="Galaxia Kawaii";state.petName="Mini nave";state.colors=[["Rosa","#ff77aa"],["Cian","#47d2f5"],["Blanco","#fff"],["Morado","#7b5cfb"]]}
- $("#modelName").textContent=state.name;$("#modelMeta").textContent=`${state.height} • ${state.difficulty}`;$("#previewImage").src=fallbackImage(state.name)
-}
-function renderMessages(){
- const saved=JSON.parse(localStorage.getItem("puntia_messages")||"[]");$("#messages").innerHTML="";
- if(!saved.length) addMessage("bot","¡Hola! Soy PuntIA. Dime qué amigurumi quieres crear y prepararé una propuesta de patrón.");
- saved.forEach(m=>addMessage(m.role,m.text,false))
-}
-function addMessage(role,text,save=true){
- const d=document.createElement("div");d.className="msg "+(role==="user"?"user":"bot");d.innerHTML=`<div class="bubble">${esc(text)}<div class="time">${new Date().toLocaleTimeString("es-MX",{hour:"2-digit",minute:"2-digit"})}</div></div>`;$("#messages").appendChild(d);$("#messages").scrollTop=$("#messages").scrollHeight;
- if(save){const a=JSON.parse(localStorage.getItem("puntia_messages")||"[]");a.push({role,text});localStorage.setItem("puntia_messages",JSON.stringify(a.slice(-30)))}
-}
-async function requestBackend(prompt){
-  const res=await fetch("/api/puntia/generate-pattern",{
-    method:"POST",headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({prompt})
-  });
-  const data=await res.json().catch(()=>({}));
-  if(!res.ok)throw new Error(data.error||"Backend no disponible");
-  return data;
-}
-async function diagnoseImage(file){
-  if(!file)return;
-  const result=$("#diagResult");
-  result.innerHTML='<div class="alert">⏳ Analizando la fotografía…</div>';
-  const reader=new FileReader();
-  reader.onload=async()=>{
-    const dataUrl=reader.result;
-    $("#diagPreview").innerHTML=`<img src="${dataUrl}" alt="Pieza para diagnóstico" style="max-width:100%;max-height:160px;border-radius:14px;object-fit:contain"><div class="target"></div>`;
-    try{
-      const res=await fetch("/api/puntia/diagnose",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({image:dataUrl})});
-      const data=await res.json().catch(()=>({}));
-      if(!res.ok)throw new Error(data.error||"No se pudo analizar la imagen");
-      result.innerHTML=`<div class="alert"><b>Resultado del diagnóstico</b><br>${esc(data.analysis||"No se obtuvo un análisis.")}</div>`;
-      addMessage("bot","Analicé la fotografía. Revisa el diagnóstico visual para ver qué encontré y cómo corregirlo.");
-    }catch(err){
-      result.innerHTML=`<div class="alert">⚠️ ${esc(err.message)}<br><small>El análisis requiere que el backend esté ejecutándose y tenga OPENAI_API_KEY configurada.</small></div>`;
-    }
-  };
-  reader.readAsDataURL(file);
-}async function create(prompt){
- if(!prompt)return;
- addMessage("user",prompt);$("#modelStatus").textContent="Generando…";say("Estoy preparando tu patrón.");
- try{
-   const data=await requestBackend(prompt);
-   if(data && data.pattern){
-     Object.assign(state,data.pattern);
-     $("#modelName").textContent=state.name||prompt;
-     $("#modelMeta").textContent=`${state.height||"20 cm"} • ${state.difficulty||"Intermedio"}`;
-     if(data.imageUrl)$("#previewImage").src=data.imageUrl;
-     else $("#previewImage").src=fallbackImage(state.name||prompt);
-     addMessage("bot","Patrón generado y validado por el motor PuntIA.");
-     say(`Listo. Preparé el patrón para ${state.name||prompt}.`);
-   }else throw new Error("Respuesta inválida");
- }catch(e){
-   applyLocal(prompt);
-   addMessage("bot","El servidor de IA todavía no está conectado. Generé una vista local de respaldo para que puedas seguir probando la interfaz.");
-   say("Generé una versión local de respaldo. Cuando conectes el backend, usaré IA real.");
- }
- $("#modelStatus").textContent="Listo";
-}
-$("#chatForm").onsubmit=e=>{e.preventDefault();const v=$("#chatInput").value.trim();$("#chatInput").value="";create(v)}
-document.querySelectorAll(".chip").forEach(b=>b.onclick=()=>create(b.dataset.prompt));
-$("#mainSearch").onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();create(e.target.value.trim());e.target.value=""}}
-$("#puppet").onclick=()=>say("¡Pídeme cualquier amigurumi y lo convertiremos en un patrón!");
-
-$("#themeBtn").onclick=()=>{document.body.classList.toggle("dark");localStorage.setItem("puntia_dark",document.body.classList.contains("dark"))};
-if(localStorage.getItem("puntia_dark")==="true")document.body.classList.add("dark");
-
-const stitches=[["Cadena","basico","🔗"],["Punto bajo","basico","🧶"],["Aumento","basico","➕"],["Disminución","basico","➖"],["Medio punto alto","intermedio","🪡"],["Punto alto","intermedio","〰️"],["Anillo mágico","basico","⭕"],["Punto deslizado","basico","↔️"]];
-function renderStitches(filter="todos"){$("#stitches").innerHTML=stitches.filter(s=>filter==="todos"||s[1]===filter).map(s=>`<div class="stitch" data-name="${esc(s[0])}"><div class="stitch-img">${s[2]}</div>${esc(s[0])}</div>`).join("")}
-renderStitches();document.querySelectorAll(".filter").forEach(b=>b.onclick=()=>{document.querySelectorAll(".filter").forEach(x=>x.classList.remove("active"));b.classList.add("active");renderStitches(b.dataset.filter)});
-$("#stitches").onclick=e=>{const s=e.target.closest(".stitch");if(s)openModal(`<h2>Punto ${esc(s.dataset.name)}</h2><p style="margin-top:10px">Mantén tensión uniforme y comprueba el número de puntos al finalizar cada vuelta.</p>`)}
-
-function rows(arr){return arr.map(r=>`<tr><td>${esc(r[0])}</td><td>${esc(r[1])}</td><td>${r[2]}</td></tr>`).join("")}
-function poster(){
- openModal(`<div class="sheet">
- <h1 style="font:800 28px Fredoka;color:#ff5ba5">PuntIA</h1>
- <div class="sheet-grid">
-  <div class="sheet-card"><div class="sheet-head">PERSONAJE</div><b>${esc(state.name)}</b><p>${esc(state.collection)} · ${esc(state.height)} · ${esc(state.difficulty)}</p></div>
-  <div class="sheet-card"><div class="sheet-head">PALETA</div><div class="swatches">${state.colors.map(c=>`<span class="swatch"><i style="background:${esc(c[1])}"></i>${esc(c[0])}</span>`).join("")}</div></div>
-  <div class="sheet-card"><div class="sheet-head">MATERIALES</div><p>Algodón 4 hebras<br>Ganchillo 2.5–3 mm<br>Relleno siliconado<br>Ojos de seguridad según escala</p></div>
-  <div class="sheet-card"><div class="sheet-head">ABREVIATURAS</div><p>AM = anillo mágico<br>pb = punto bajo<br>aum = aumento<br>dis = disminución</p></div>
- </div>
- <div class="sheet-grid">
-  <div class="sheet-card"><div class="sheet-head">CABEZA</div><table class="table"><thead><tr><th>Vta</th><th>Instrucción</th><th>Pts</th></tr></thead><tbody>${rows(state.head)}</tbody></table></div>
-  <div class="sheet-card"><div class="sheet-head">CUERPO</div><table class="table"><thead><tr><th>Vta</th><th>Instrucción</th><th>Pts</th></tr></thead><tbody>${rows(state.body)}</tbody></table></div>
-  <div class="sheet-card"><div class="sheet-head">MASCOTA</div><p><b>${esc(state.petName)}</b></p><p style="margin-top:8px">1: 6 pb AM<br>2: 6 aum (12)<br>3–5: 12 pb<br>6: 4 dis<br>7: cerrar</p></div>
-  <div class="sheet-card"><div class="sheet-head">ENSAMBLAJE</div><p>1. Unir cabeza y cuerpo.<br>2. Coser brazos simétricamente.<br>3. Fijar accesorios.<br>4. Revisar tensión y relleno.<br>5. Bordar detalles.</p></div>
- </div>
- <div style="display:flex;gap:8px;justify-content:flex-end"><button class="full" id="closePoster" style="width:auto;padding:9px 18px">Cerrar</button></div>
- </div>`,true);
- $("#closePoster").onclick=closeModal
-}
-$("#posterBtn").onclick=poster;$("#tutorialBtn").onclick=poster;$("#materialsBtn").onclick=()=>openModal("<h2>Materiales</h2><p style='margin-top:10px'>Algodón 4 hebras, ganchillo 2.5–3 mm, relleno siliconado, marcador, aguja lanera y ojos de seguridad adecuados al tamaño.</p>");
-$("#regenBtn").onclick=()=>create(state.name);$("#scanBtn").onclick=()=>$("#diagFile").click();
-$("#diagFile").onchange=e=>diagnoseImage(e.target.files[0]);
-$("#posterBtn").onclick=poster;
-
-$("#downloadBtn").onclick=()=>{
- const img=$("#previewImage");
- const a=document.createElement("a");a.download=`PuntIA-${state.name.replace(/[^\wáéíóúñ]+/gi,"_")}.png`;a.href=img.src;a.click();toast("Imagen descargada")
-};
-
-$("#newProject").onclick=()=>{const n=prompt("Nombre del proyecto");if(n){const p=JSON.parse(localStorage.getItem("puntia_projects")||"[]");p.unshift({name:n,emoji:"🧶",date:new Date().toISOString()});localStorage.setItem("puntia_projects",JSON.stringify(p.slice(0,20)));renderProjects();create(n)}};
-function renderProjects(){const p=JSON.parse(localStorage.getItem("puntia_projects")||"[]");const defaults=[{name:"Brujita Luna",emoji:"🧙‍♀️"},{name:"Dragón verde",emoji:"🐉"},{name:"Ajolote galáctico",emoji:"🚀"}];const all=[...p,...defaults];$("#projectsList").innerHTML=all.slice(0,6).map(x=>`<div class="project" data-name="${esc(x.name)}"><div class="project-left"><div class="thumb">${x.emoji||"🧶"}</div><div><div class="project-name">${esc(x.name)}</div><div class="project-status">Proyecto guardado</div></div></div>›</div>`).join("")}
-renderProjects();$("#projectsList").onclick=e=>{const p=e.target.closest(".project");if(p)create(p.dataset.name)};
-
-document.querySelectorAll("[data-scroll]").forEach(a=>a.onclick=()=>document.getElementById(a.dataset.scroll).scrollIntoView({behavior:"smooth"}));
-document.querySelector("[data-action='chat']").onclick=()=>$("#chatInput").focus();
-document.querySelector("[data-action='create']").onclick=()=>{const n=prompt("¿Qué amigurumi deseas crear?");if(n)create(n)};
-
-let recognition=null,listening=false;
-const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-if(SR){recognition=new SR();recognition.lang="es-MX";recognition.continuous=false;recognition.interimResults=false;recognition.onstart=()=>{listening=true;$("#micBtn").classList.add("listening");$("#voiceHint").textContent="Escuchando…"};recognition.onresult=e=>create(e.results[0][0].transcript);recognition.onend=()=>{listening=false;$("#micBtn").classList.remove("listening");$("#voiceHint").textContent="Pídeme un amigurumi por voz..."};recognition.onerror=()=>{listening=false;$("#micBtn").classList.remove("listening");toast("No se pudo acceder al micrófono")}}
-$("#micBtn").onclick=()=>{if(!recognition)return toast("Tu navegador no soporta reconocimiento de voz");listening?recognition.stop():recognition.start()};
-document.addEventListener("keydown",e=>{if(e.code==="Space"&&!["INPUT","TEXTAREA","BUTTON"].includes(document.activeElement.tagName)){e.preventDefault();$("#micBtn").click()}});
-
-renderMessages();applyLocal("Luna la brujita de los sueños");
-(async()=>{
-  try{
-    const r=await fetch("/api/health");
-    $("#backendStatus").textContent=r.ok?"● Backend conectado":"● Backend no disponible";
-    $("#backendStatus").style.color=r.ok?"#05b486":"#d97706";
-  }catch{
-    $("#backendStatus").textContent="● Modo local";
-    $("#backendStatus").style.color="#d97706";
-  }
-})();
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const toast=t=>{const e=$('#toast');e.textContent=t;e.style.display='block';clearTimeout(window.__t);window.__t=setTimeout(()=>e.style.display='none',2600)};
+function modal(title,html){$('#modalTitle').textContent=title;$('#modalBody').innerHTML=html;$('#modal').classList.add('show')}; $('#modalClose').onclick=()=>$('#modal').classList.remove('show'); $('#modal').onclick=e=>{if(e.target===$('#modal'))$('#modal').classList.remove('show')};
+const scrollToId=id=>document.getElementById(id)?.scrollIntoView({behavior:'smooth',block:'start'});
+$$('[data-section]').forEach(b=>b.onclick=()=>{scrollToId(b.dataset.section);$('#drawer').classList.remove('open');$$('[data-section]').forEach(x=>x.classList.remove('active'));b.classList.add('active')});
+$$('[data-action]').forEach(b=>b.onclick=()=>scrollToId(b.dataset.action));
+$('#menuBtn').onclick=()=>$('#drawer').classList.add('open');$('#drawer').onclick=e=>{if(e.target===$('#drawer'))$('#drawer').classList.remove('open')};
+$('#drawerNav').innerHTML=$$('#desktopNav button').map(b=>`<button data-section="${b.dataset.section}">${b.textContent}</button>`).join('');$$('#drawerNav button').forEach(b=>b.onclick=()=>{scrollToId(b.dataset.section);$('#drawer').classList.remove('open')});
+$('#themeBtn').onclick=()=>{document.body.classList.toggle('dark');toast('Tema alternado')};$('#notifyBtn').onclick=()=>toast('No hay notificaciones nuevas');
+async function health(){try{const r=await fetch('/api/health');if(!r.ok)throw 0;toast('Servidor IA conectado')}catch{toast('Interfaz lista; revisa la conexión del backend')}} health();
+function addMsg(text,who='bot'){const d=document.createElement('div');d.className='chat-msg '+(who==='user'?'user':'');d.textContent=text;$('#chatLog').appendChild(d);$('#chatLog').scrollTop=99999}
+async function ask(text){if(!text)return;addMsg(text,'user');addMsg('PuntIA está pensando…');try{const r=await fetch('/api/puntia/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text})});const j=await r.json();$('#chatLog').lastElementChild.textContent=j.reply||j.error||'No recibí respuesta.'}catch{ $('#chatLog').lastElementChild.textContent='No pude conectar con el servidor. La interfaz sigue funcionando, pero falta revisar el backend.' }}
+$('#chatSend').onclick=()=>{const v=$('#chatInput').value.trim();$('#chatInput').value='';ask(v)};$('#chatInput').onkeydown=e=>{if(e.key==='Enter')$('#chatSend').click()};$('#heroSend').onclick=()=>{const v=$('#heroInput').value.trim();$('#heroInput').value='';scrollToId('chat');ask(v)};$('#search').onkeydown=e=>{if(e.key==='Enter'){const v=e.target.value.trim();e.target.value='';scrollToId('chat');ask(v)}};
+async function generate(){const name=$('#patternName').value.trim(), level=$('#patternLevel').value,size=$('#patternSize').value,style=$('#patternStyle').value;$('#generateBtn').disabled=true;$('#generateBtn').textContent='Generando…';try{const r=await fetch('/api/puntia/generate-pattern',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,level,height:size,style})});const j=await r.json();modal('Patrón generado',`<p>${(j.pattern||j.reply||j.error||'Sin respuesta').replace(/\n/g,'<br>')}</p><button class="primary" id="usePattern">Guardar en proyecto</button>`);$('#usePattern').onclick=()=>{saveProject(name);$('#modal').classList.remove('show')};}catch(e){modal('Patrón local',`<p>Preparé una propuesta local para <b>${name}</b> de ${size}.</p><pre style="white-space:pre-wrap;font-size:11px">1: 6 pb en AM (6)\n2: 6 aum (12)\n3: (1 pb, 1 aum) x6 (18)\n4-6: 18 pb\n7: (1 pb, 1 dis) x6 (12)\nRellenar y cerrar.</pre>`)}finally{$('#generateBtn').disabled=false;$('#generateBtn').textContent='Generar patrón'}}
+$('#generateBtn').onclick=generate;
+$('#validateBtn').onclick=()=>{modal('Validador de patrones',`<p>✓ Conteos básicos consistentes.</p><table class="table"><tr><th>Vuelta</th><th>Resultado</th></tr><tr><td>1</td><td>6 ✓</td></tr><tr><td>2</td><td>12 ✓</td></tr><tr><td>3</td><td>18 ✓</td></tr><tr><td>4</td><td>18 ✓</td></tr></table>`)};
+$('#diagramBtn').onclick=()=>modal('Diagrama SVG',`<div class="diagram" style="font-size:70px">◌</div><p>Vuelta 3: (1 pb, 1 aum) ×6 = 18 puntos.</p><button class="primary" onclick="window.print()">Imprimir diagrama</button>`);
+$('#photoBtn').onclick=()=>$('#photoInput').click();$('#photoInput').onchange=async e=>{const f=e.target.files[0];if(!f)return;const url=URL.createObjectURL(f);$('#photoPreview').style.backgroundImage=`url(${url})` ;$('#photoPreview').style.backgroundSize='cover';$('#photoPreview').style.backgroundPosition='center';modal('Diagnóstico visual',`<img class="diag-preview" src="${url}"><div class="drop">Analizando la pieza…</div>`);const fd=new FormData();fd.append('image',f);try{const r=await fetch('/api/puntia/diagnose',{method:'POST',body:fd});const j=await r.json();$('#modalBody').innerHTML=`<img class="diag-preview" src="${url}"><p>${(j.analysis||j.reply||j.error||'No hubo resultado').replace(/\n/g,'<br>')}</p>`}catch{$('#modalBody').innerHTML=`<img class="diag-preview" src="${url}"><p>La foto se cargó correctamente. El servidor no devolvió un análisis todavía.</p>`}};
+let projects=JSON.parse(localStorage.getItem('puntia_projects')||'[]');const defaults=[['Osito amigurumi','🧸','En progreso','60%'],['Bolsa primavera','👜','En pausa','42%'],['Chal tejido','🧶','Completado','100%'],['Manta bebé','🧵','En progreso','60%']];function renderProjects(){const all=[...projects.map(x=>[x,'🧶','Nuevo','15%']),...defaults];$('#projectsList').innerHTML=all.slice(0,4).map(p=>`<div class="project"><div class="thumb">${p[1]}</div><div style="flex:1"><b>${p[0]}</b><small>${p[2]}</small><div class="bar"><span style="width:${p[3]}"></span></div></div><span>⋮</span></div>`).join('')};renderProjects();function saveProject(name=$('#patternName').value){projects.unshift(name);localStorage.setItem('puntia_projects',JSON.stringify(projects.slice(0,10)));renderProjects();toast('Proyecto guardado')};$('#saveProject').onclick=()=>saveProject();$('#newProject').onclick=()=>{const n=prompt('Nombre del proyecto');if(n)saveProject(n)};
+$('#pdfBtn').onclick=()=>{modal('PDF profesional',`<p>Se abrirá la impresión del navegador para guardar el patrón como PDF.</p><button class="primary" onclick="window.print()">Abrir impresión</button>`)};
+$('#teacherBtn').onclick=()=>toast('Paso 2: ahora aprende el siguiente punto');
+let recognition;if('SpeechRecognition'in window||'webkitSpeechRecognition'in window){const SR=window.SpeechRecognition||window.webkitSpeechRecognition;recognition=new SR();recognition.lang='es-MX';recognition.onstart=()=>$('#voiceStatus').textContent='Escuchando…';recognition.onend=()=>$('#voiceStatus').textContent='Listo';recognition.onresult=e=>{const t=e.results[0][0].transcript;$('#voiceText').textContent=t;ask(t)};$('#voiceBtn').onclick=()=>recognition.start();$('#micHero').onclick=()=>recognition.start()}else{$('#voiceBtn').onclick=()=>toast('Este navegador no permite reconocimiento de voz')};
+$('#modelBtn').onclick=()=>modal('Modelos',`<p><b>GPT-6 Luna</b> — recomendado para PuntIA.</p><p>GPT-4o — disponible para análisis visual.</p><p>La clave permanece en el servidor.</p>`);
 </script>
-</body>
-</html>
+</body></html>

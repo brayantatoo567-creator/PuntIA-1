@@ -1,57 +1,20 @@
-import "dotenv/config";
-import express from "express";
-import OpenAI from "openai";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
-
-const __filename=fileURLToPath(import.meta.url);
-const __dirname=path.dirname(__filename);
+const express=require('express');
+const multer=require('multer');
+const OpenAI=require('openai');
+const path=require('path');
+const fs=require('fs');
 const app=express();
-const PORT=Number(process.env.PORT||3000);
-const MODEL=process.env.OPENAI_MODEL||"gpt-6-luna";
+const upload=multer({storage:multer.memoryStorage(),limits:{fileSize:8*1024*1024}});
+app.use(express.json({limit:'2mb'}));
+app.use(express.static(path.join(__dirname,'public')));
 const client=process.env.OPENAI_API_KEY?new OpenAI({apiKey:process.env.OPENAI_API_KEY}):null;
-
-app.use(express.json({limit:"12mb"}));
-app.use(express.static(path.join(__dirname,"public")));
-app.get("/api/health",(_req,res)=>res.json({ok:true,aiConfigured:Boolean(client),model:MODEL}));
-
-const SYSTEM=`Eres PuntIA, experto en crochet y amigurumi. Responde en español de México.
-Genera patrones claros, reproducibles y matemáticamente coherentes.
-Devuelve SOLO JSON: {"pattern":{"name":"string","height":"20 cm","difficulty":"Básico|Intermedio|Avanzado","collection":"string","petName":"string","colors":[["nombre","hex"]],"head":[[vuelta,instruccion,puntos]],"body":[[vuelta,instruccion,puntos]]}}`;
-
-function extractJson(text){
-  const cleaned=String(text||"").replace(/```json|```/gi,"").trim();
-  const a=cleaned.indexOf("{"),b=cleaned.lastIndexOf("}");
-  if(a<0||b<a)throw new Error("JSON inválido");
-  return JSON.parse(cleaned.slice(a,b+1));
-}
-
-app.post("/api/puntia/generate-pattern",async(req,res)=>{
-  try{
-    const prompt=typeof req.body?.prompt==="string"?req.body.prompt.trim():"";
-    if(!prompt)return res.status(400).json({error:"Falta el prompt."});
-    if(!client)return res.status(503).json({error:"OPENAI_API_KEY no está configurada."});
-    const r=await client.responses.create({model:MODEL,instructions:SYSTEM,input:prompt});
-    res.json(extractJson(r.output_text));
-  }catch(e){console.error(e);res.status(500).json({error:"No se pudo generar el patrón con IA."});}
-});
-
-app.post("/api/puntia/diagnose",async(req,res)=>{
-  try{
-    const image=req.body?.image;
-    if(typeof image!=="string"||!image.startsWith("data:image/"))return res.status(400).json({error:"Imagen no válida."});
-    if(!client)return res.status(503).json({error:"OPENAI_API_KEY no está configurada."});
-    const r=await client.responses.create({
-      model:MODEL,
-      instructions:"Eres el módulo de diagnóstico visual de PuntIA para crochet/amigurumi. Explica qué parece estar mal, dónde, por qué puede ocurrir, cómo corregirlo paso a paso y tu nivel de certeza. Si la foto no permite determinar algo, dilo claramente. No inventes detalles.",
-      input:[{role:"user",content:[
-        {type:"input_text",text:"Analiza esta pieza de crochet y dame un diagnóstico práctico."},
-        {type:"input_image",image_url:image}
-      ]}]
-    });
-    res.json({analysis:r.output_text});
-  }catch(e){console.error(e);res.status(500).json({error:"No se pudo analizar la imagen."});}
-});
-
-app.get(/.*/,(_req,res)=>res.sendFile(path.join(__dirname,"public","index.html")));
-app.listen(PORT,()=>console.log("PuntIA: http://localhost:"+PORT));
+const TEXT_MODEL=process.env.OPENAI_MODEL||'gpt-6-luna';
+const VISION_MODEL=process.env.OPENAI_VISION_MODEL||'gpt-4o';
+const SYSTEM=`Eres PuntIA, asistente experto en crochet y amigurumi. Responde en español claro. Ayuda con patrones, conteos, materiales, técnicas, corrección de errores y enseñanza. No inventes que una foto fue analizada si no la recibiste. Cuando generes patrones, usa abreviaturas comunes (AM, pb, aum, dis), vueltas numeradas y conteos finales.`;
+app.get('/api/health',(req,res)=>res.json({ok:true,ai:Boolean(client),model:TEXT_MODEL,vision:VISION_MODEL}));
+async function responseText(input,model=TEXT_MODEL){if(!client)throw new Error('OPENAI_API_KEY no configurada');const r=await client.responses.create({model,input,instructions:SYSTEM});return r.output_text||'';}
+app.post('/api/puntia/chat',async(req,res)=>{try{const message=String(req.body?.message||'').trim();if(!message)return res.status(400).json({error:'Escribe un mensaje.'});const reply=await responseText([{role:'user',content:message}]);res.json({reply})}catch(e){console.error(e);res.status(500).json({error:e?.message||'Error del servidor'})}});
+app.post('/api/puntia/generate-pattern',async(req,res)=>{try{const {name='amigurumi',level='Intermedio',height='15 cm',style='tierno y clásico'}=req.body||{};const prompt=`Genera un patrón de crochet/amigurumi funcional y detallado para: ${name}. Nivel: ${level}. Tamaño aproximado: ${height}. Estilo: ${style}. Incluye materiales, abreviaturas, cabeza, cuerpo, extremidades, ensamblaje y conteo por vuelta. Sé práctico y coherente.`;const pattern=await responseText([{role:'user',content:prompt}]);res.json({pattern,name,height,level})}catch(e){console.error(e);res.status(500).json({error:e?.message||'No se pudo generar el patrón'})}});
+app.post('/api/puntia/diagnose',upload.single('image'),async(req,res)=>{try{if(!req.file)return res.status(400).json({error:'Falta la imagen.'});if(!client)return res.status(503).json({error:'OPENAI_API_KEY no configurada'});const b64=req.file.buffer.toString('base64');const data=`data:${req.file.mimetype};base64,${b64}`;const r=await client.responses.create({model:VISION_MODEL,instructions:`${SYSTEM}\nAnaliza la imagen de tejido como instructor de crochet. Identifica solamente problemas visibles o indica que no son concluyentes. Explica: problema, dónde, por qué puede ocurrir, cómo corregirlo y cómo evitarlo.`,input:[{role:'user',content:[{type:'input_text',text:'Analiza esta pieza de crochet y dame un diagnóstico práctico.'},{type:'input_image',image_url:data}]}]});res.json({analysis:r.output_text||'No fue posible obtener un análisis.'})}catch(e){console.error(e);res.status(500).json({error:e?.message||'Error analizando la imagen'})}});
+app.get(/.*/,(req,res)=>res.sendFile(path.join(__dirname,'public','index.html')));
+const port=Number(process.env.PORT||8080);app.listen(port,()=>console.log(`PuntIA v3 escuchando en ${port}`));
