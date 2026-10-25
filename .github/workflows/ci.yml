@@ -54,6 +54,13 @@ jobs:
           STATUS=$(curl -s -o /tmp/chat-empty.json -w '%{http_code}' -H 'Content-Type: application/json' -d '{"message":"   "}' http://127.0.0.1:8080/api/puntia/chat)
           test "$STATUS" = "400"
 
+          STATUS=$(curl -s -o /tmp/chat-unconfigured.json -w '%{http_code}' -H 'Content-Type: application/json' -d '{"message":"Ayúdame con un patrón de crochet"}' http://127.0.0.1:8080/api/puntia/chat)
+          test "$STATUS" = "503"
+          node -e "const e=require('/tmp/chat-unconfigured.json'); if(!e.error || !e.error.includes('no está configurada')) process.exit(1)"
+
+          STATUS=$(curl -s -o /tmp/pattern-unconfigured.json -w '%{http_code}' -H 'Content-Type: application/json' -d '{"name":"conejo"}' http://127.0.0.1:8080/api/puntia/generate-pattern)
+          test "$STATUS" = "503"
+
           STATUS=$(curl -s -o /tmp/diagnose-empty.json -w '%{http_code}' -X POST http://127.0.0.1:8080/api/puntia/diagnose)
           test "$STATUS" = "400"
 
