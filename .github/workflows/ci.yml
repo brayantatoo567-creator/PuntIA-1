@@ -1,0 +1,64 @@
+name: PuntIA CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Verificar API de PuntIA
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Instalar dependencias
+        run: npm install
+
+      - name: Comprobar sintaxis
+        run: node --check server.js
+
+      - name: Probar API
+        shell: bash
+        run: |
+          set -e
+          PORT=8080 node server.js > /tmp/puntia.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
+
+          READY=0
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:8080/api/health > /tmp/health.json; then
+              READY=1
+              break
+            fi
+            sleep 2
+          done
+
+          if [ "$READY" -ne 1 ]; then
+            cat /tmp/puntia.log
+            exit 1
+          fi
+
+          node -e "const h=require('/tmp/health.json'); if(h.ok!==true) process.exit(1); console.log('Health OK; IA configurada:',h.ai)"
+
+          STATUS=$(curl -s -o /tmp/chat.json -w '%{http_code}' \
+            -H 'Content-Type: application/json' \
+            -d '{"message":"   "}' \
+            http://127.0.0.1:8080/api/puntia/chat)
+          test "$STATUS" = "400"
+
+          STATUS=$(curl -s -o /tmp/diagnose.json -w '%{http_code}' \
+            -X POST http://127.0.0.1:8080/api/puntia/diagnose)
+          test "$STATUS" = "400"
+
+          echo "Pruebas básicas de API aprobadas."
