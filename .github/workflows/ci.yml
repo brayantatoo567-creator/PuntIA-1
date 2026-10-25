@@ -37,8 +37,11 @@ jobs:
       - name: Instalar dependencias
         run: npm install --no-audit --no-fund
 
-      - name: Comprobar sintaxis
-        run: node --check server.js
+      - name: Comprobar sintaxis del backend y frontend
+        run: |
+          node --check server.js
+          node -e "const fs=require('fs');const html=fs.readFileSync('public/index.html','utf8');const m=html.match(/<script>([\\s\\S]*?)<\\/script>/);if(!m)throw Error('No se encontró el script de la interfaz');fs.writeFileSync('/tmp/puntia-ui.js',m[1])"
+          node --check /tmp/puntia-ui.js
 
       - name: Probar endpoints y validaciones
         shell: bash
@@ -54,6 +57,14 @@ jobs:
             sleep 2
           done
           if [ "$READY" -ne 1 ]; then cat /tmp/puntia.log; exit 1; fi
+
+          STATUS=$(curl -s -o /tmp/home.html -w '%{http_code}' http://127.0.0.1:8080/)
+          test "$STATUS" = "200"
+          grep -q 'PuntIA' /tmp/home.html
+
+          STATUS=$(curl -s -o /tmp/mascot.svg -w '%{http_code}' http://127.0.0.1:8080/puntia-mascota.svg)
+          test "$STATUS" = "200"
+          grep -q '<svg' /tmp/mascot.svg
 
           node -e "const h=require('/tmp/health.json'); if(h.ok!==true) process.exit(1); if(typeof h.ai!=='boolean') process.exit(1); console.log('Health endpoint schema OK; AI key configured:',h.ai)"
 
