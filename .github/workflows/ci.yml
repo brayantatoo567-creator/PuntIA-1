@@ -57,4 +57,11 @@ jobs:
           STATUS=$(curl -s -o /tmp/diagnose-empty.json -w '%{http_code}' -X POST http://127.0.0.1:8080/api/puntia/diagnose)
           test "$STATUS" = "400"
 
+          LONG_MESSAGE=$(node -e "process.stdout.write('x'.repeat(8001))")
+          STATUS=$(curl -s -o /tmp/chat-long.json -w '%{http_code}' -H 'Content-Type: application/json' --data-binary "$(node -e 'process.stdout.write(JSON.stringify({message: "x".repeat(8001)}))')" http://127.0.0.1:8080/api/puntia/chat)
+          test "$STATUS" = "413"
+
+          STATUS=$(curl -s -o /tmp/diagnose-invalid-type.json -w '%{http_code}' -F 'image=@.github/workflows/ci.yml;type=text/plain' http://127.0.0.1:8080/api/puntia/diagnose)
+          test "$STATUS" = "415"
+
           echo "Health and negative-path API checks passed."
