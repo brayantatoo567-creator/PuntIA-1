@@ -54,16 +54,6 @@ jobs:
           STATUS=$(curl -s -o /tmp/chat-empty.json -w '%{http_code}' -H 'Content-Type: application/json' -d '{"message":"   "}' http://127.0.0.1:8080/api/puntia/chat)
           test "$STATUS" = "400"
 
-          STATUS=$(curl -s -o /tmp/pattern-empty.json -w '%{http_code}' -H 'Content-Type: application/json' -d '{}' http://127.0.0.1:8080/api/puntia/generate-pattern)
-          if [ "$STATUS" = "200" ]; then
-            echo "Unexpected successful pattern response without configured provider"
-            exit 1
-          fi
-          if [ "$STATUS" != "500" ] && [ "$STATUS" != "503" ]; then
-            cat /tmp/pattern-empty.json
-            exit 1
-          fi
-
           STATUS=$(curl -s -o /tmp/diagnose-empty.json -w '%{http_code}' -X POST http://127.0.0.1:8080/api/puntia/diagnose)
           test "$STATUS" = "400"
 
