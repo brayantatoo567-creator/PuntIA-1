@@ -79,6 +79,24 @@ main{min-width:0}.topbar{background:#0b1020dd;border-color:var(--line);backdrop-
 @media(max-width:620px){body{background:var(--bg)}.app{display:block}.sidebar{display:none}.topbar{padding:10px;position:sticky;top:0;z-index:8}.hero-grid{display:block}.hero{min-height:340px;margin-bottom:12px}.hero-person{scale:.82;transform-origin:bottom center}.speech{max-width:70%}.stack{grid-template-columns:1fr}.quick{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.quick button{font-size:12px;padding:10px 6px}.lesson-layout{grid-template-columns:1fr}.lesson-actions{flex-wrap:wrap}.lesson-actions button{flex:1;min-width:120px}.modules{grid-template-columns:1fr}.lower{grid-template-columns:1fr}.bottom-nav{display:flex}.didactic-tutorial{padding:14px}.tutorial-heading{gap:8px}.lesson-art{min-height:200px}}
 @media(prefers-reduced-motion:reduce){.card,.primary,.quick button{transition:none!important}}
 
+
+/* Mascota corregida: cabello de estambre rosa y rasgos visibles */
+.hero-person{z-index:2;width:260px;height:280px;isolation:isolate}
+.hero-person .hair{left:34px;top:3px;width:186px;height:157px;border-radius:48% 48% 43% 43%;z-index:1;background-color:#f21b83;background-image:repeating-radial-gradient(ellipse at 30% 28%,#ff9bc9 0 4px,#fa4c9d 5px 9px,#c91670 10px 12px);box-shadow:inset 0 -13px #b91b68,0 5px 14px #0003}
+.hero-person .hair:before{content:"";position:absolute;left:-8px;top:24px;width:48px;height:52px;border-radius:50%;background:repeating-radial-gradient(ellipse at 35% 35%,#ffadd3 0 3px,#f23891 4px 8px,#c91670 9px 11px);box-shadow:35px -17px 0 -3px #f54b9d,82px -17px 0 -4px #ff72b2,125px -7px 0 -2px #e92782,151px 20px 0 -4px #ff8fc5}
+.hero-person .hair:after{content:"";position:absolute;right:-5px;top:40px;width:40px;height:52px;border-radius:50%;background:repeating-radial-gradient(ellipse at 35% 35%,#ffadd3 0 3px,#f23891 4px 8px,#c91670 9px 11px);box-shadow:-8px 39px 0 -5px #ec3189}
+.hero-person .face{z-index:2;left:61px;top:47px;width:132px;height:151px;border:2px solid #ffb4c9;background:linear-gradient(140deg,#ffe0ca,#f8b99e);box-shadow:inset -6px -7px 0 #eaa58f}
+.hero-person .eye{z-index:4;display:block!important;top:96px;width:27px;height:34px;border:3px solid #432035;border-radius:50%;background:radial-gradient(circle at 42% 30%,#fff 0 4px,#54263c 5px 10px,#171321 11px 100%);box-shadow:0 2px 0 #fff6}
+.hero-person .eye:after{width:7px;height:7px;margin:4px;background:#fff;border-radius:50%}
+.hero-person .eye.l{left:82px}.hero-person .eye.r{left:137px}
+.hero-person .mouth{z-index:4;left:111px;top:145px;width:25px;height:15px;border:0;border-bottom:4px solid #9f3659;border-radius:0 0 50% 50%}
+.hero-person .bow{z-index:5;left:76px;top:22px;width:93px;height:31px;background:linear-gradient(135deg,#ffadd2,#ed2686);border:2px solid #ffdbeb;box-shadow:0 3px 8px #6e164b70}
+.hero-person .body{z-index:2;top:181px;left:38px;width:174px;height:91px;background:repeating-linear-gradient(0deg,#f8b8d1 0 5px,#e77eab 6px 8px);border:4px solid #ffe5ef;box-shadow:inset 0 0 0 5px #f5a6c6}
+.hero-person .body:after{content:"P";position:absolute;left:72px;top:13px;width:29px;height:29px;display:grid;place-items:center;border-radius:50%;background:#fff0f8;color:#e62483;border:2px solid #f36da9;font-weight:900;font-size:16px}
+.hero-person .hook{z-index:5;background:linear-gradient(#ffe0a0,#c88a45);height:8px;border:1px solid #ffe5b6}
+.hero-person .yarn{z-index:5;background:repeating-radial-gradient(ellipse at 35% 35%,#ffb0d3 0 3px,#ff5ca7 4px 7px,#d71978 8px 10px);box-shadow:inset -4px -5px 0 #c91d70,0 3px 8px #0004}
+@media(max-width:620px){.hero-person{scale:.82}}
+
 </style>
 </head>
 <body>
