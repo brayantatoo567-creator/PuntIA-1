@@ -97,6 +97,15 @@ main{min-width:0}.topbar{background:#0b1020dd;border-color:var(--line);backdrop-
 .hero-person .yarn{z-index:5;background:repeating-radial-gradient(ellipse at 35% 35%,#ffb0d3 0 3px,#ff5ca7 4px 7px,#d71978 8px 10px);box-shadow:inset -4px -5px 0 #c91d70,0 3px 8px #0004}
 @media(max-width:620px){.hero-person{scale:.82}}
 
+
+/* Ajuste de composición: separar globo de diálogo y personaje */
+.hero-person{left:66%;top:49%;transform:translate(-50%,-50%);z-index:2}
+.speech{left:4%;top:12%;width:202px;max-width:44%;padding:16px 18px;z-index:3}
+.speech strong{font-size:19px}.speech p{font-size:13px;line-height:1.4}
+.hero-chat{z-index:4}
+@media(max-width:1000px){.hero-person{left:67%;scale:.9}.speech{width:190px;max-width:43%;padding:14px}}
+@media(max-width:620px){.hero-person{left:65%;top:48%;scale:.76}.speech{left:4%;top:12%;width:175px;max-width:44%;padding:12px}.speech strong{font-size:16px}.speech p{font-size:11px}}
+
 </style>
 </head>
 <body>
