@@ -161,7 +161,7 @@ main{min-width:0}.topbar{background:#0b1020dd;border-color:var(--line);backdrop-
 <div class="drawer" id="drawer"><div class="drawer-panel"><div class="brand"><div class="logo">🧶</div><div><h1>PuntIA</h1><p>Tu asistente de crochet</p></div></div><div id="drawerNav"></div></div></div>
 <div class="modal" id="modal"><div class="modal-box"><div class="modal-head"><h2 id="modalTitle">PuntIA</h2><button class="close" id="modalClose">×</button></div><div id="modalBody"></div></div></div><div class="toast" id="toast"></div>
 <script>
-const $=s=>document.querySelector(s), $=s=>[...document.querySelectorAll(s)];
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const escapeHtml=value=>String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 const toast=t=>{const e=$('#toast');e.textContent=t;e.style.display='block';clearTimeout(window.__t);window.__t=setTimeout(()=>e.style.display='none',2600)};
 function modal(title,html){$('#modalTitle').textContent=title;$('#modalBody').innerHTML=html;openModal()}; const closeModal=()=>{const m=$('#modal');m.classList.remove('show');m.style.display='none'};const openModal=()=>{const m=$('#modal');m.style.removeProperty('display');m.classList.add('show')};$('#modalClose').onclick=closeModal;$('#modal').onclick=e=>{if(e.target===$('#modal'))closeModal()};document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});window.addEventListener('pageshow',()=>{const m=$('#modal');if(m&&!m.classList.contains('show'))m.style.display='none'});
