@@ -21,44 +21,50 @@ jobs:
         with:
           node-version: 22
 
+      - name: Verificar archivos de aplicación
+        run: |
+          test -f package.json
+          test -f server.js
+          test -f public/index.html
+          node -e "const p=require('./package.json'); if(!p.dependencies?.express || !p.dependencies?.openai || !p.dependencies?.multer) process.exit(1)"
+
       - name: Instalar dependencias
-        run: npm install
+        run: npm install --no-audit --no-fund
 
       - name: Comprobar sintaxis
         run: node --check server.js
 
-      - name: Probar API
+      - name: Probar endpoints y validaciones
         shell: bash
         run: |
-          set -e
+          set -euo pipefail
           PORT=8080 node server.js > /tmp/puntia.log 2>&1 &
           SERVER_PID=$!
           trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
 
           READY=0
           for i in {1..30}; do
-            if curl -fsS http://127.0.0.1:8080/api/health > /tmp/health.json; then
-              READY=1
-              break
-            fi
+            if curl -fsS http://127.0.0.1:8080/api/health > /tmp/health.json; then READY=1; break; fi
             sleep 2
           done
+          if [ "$READY" -ne 1 ]; then cat /tmp/puntia.log; exit 1; fi
 
-          if [ "$READY" -ne 1 ]; then
-            cat /tmp/puntia.log
+          node -e "const h=require('/tmp/health.json'); if(h.ok!==true) process.exit(1); if(typeof h.ai!=='boolean') process.exit(1); console.log('Health endpoint schema OK; AI key configured:',h.ai)"
+
+          STATUS=$(curl -s -o /tmp/chat-empty.json -w '%{http_code}' -H 'Content-Type: application/json' -d '{"message":"   "}' http://127.0.0.1:8080/api/puntia/chat)
+          test "$STATUS" = "400"
+
+          STATUS=$(curl -s -o /tmp/pattern-empty.json -w '%{http_code}' -H 'Content-Type: application/json' -d '{}' http://127.0.0.1:8080/api/puntia/generate-pattern)
+          if [ "$STATUS" = "200" ]; then
+            echo "Unexpected successful pattern response without configured provider"
+            exit 1
+          fi
+          if [ "$STATUS" != "500" ] && [ "$STATUS" != "503" ]; then
+            cat /tmp/pattern-empty.json
             exit 1
           fi
 
-          node -e "const h=require('/tmp/health.json'); if(h.ok!==true) process.exit(1); console.log('Health OK; IA configurada:',h.ai)"
-
-          STATUS=$(curl -s -o /tmp/chat.json -w '%{http_code}' \
-            -H 'Content-Type: application/json' \
-            -d '{"message":"   "}' \
-            http://127.0.0.1:8080/api/puntia/chat)
+          STATUS=$(curl -s -o /tmp/diagnose-empty.json -w '%{http_code}' -X POST http://127.0.0.1:8080/api/puntia/diagnose)
           test "$STATUS" = "400"
 
-          STATUS=$(curl -s -o /tmp/diagnose.json -w '%{http_code}' \
-            -X POST http://127.0.0.1:8080/api/puntia/diagnose)
-          test "$STATUS" = "400"
-
-          echo "Pruebas básicas de API aprobadas."
+          echo "Health and negative-path API checks passed."
