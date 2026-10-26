@@ -314,7 +314,7 @@ renderLesson();
 const mascot=$('#puntiaMascot'),motionToggle=$('#motionToggle');
 function mascotGreeting(){if(!mascot)return;mascot.classList.remove('is-listening');mascot.classList.add('is-speaking');const speech=$('.speech');if(speech){speech.querySelector('strong').textContent='¡Hola, te escucho!';speech.querySelector('p').innerHTML='Soy <b>PuntIA</b>. Pregúntame por un punto o elige un tutorial para aprender conmigo.'}setTimeout(()=>mascot.classList.remove('is-speaking'),1500)}
 mascot?.addEventListener('click',mascotGreeting);mascot?.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();mascotGreeting()}});
-motionToggle?.addEventListener('click',()=>{const paused=document.body.classList.toggle('motion-paused');motionToggle.setAttribute('aria-pressed',String(paused));motionToggle.textContent=paused?'▶ Reanudar movimiento':'⏸ Pausar movimiento'});
+motionToggle?.addEventListener('click',()=>{const paused=document.body.classList.toggle('motion-paused');motionToggle.setAttribute('aria-pressed',String(paused));motionToggle.textContent=paused?'▶ Reanudar movimiento':'⏸ Pausar movimiento';window.PuntIAAvatar?.setMotion(!paused)});
 const heroInput=$('#heroInput');heroInput?.addEventListener('focus',()=>{mascot?.classList.add('is-listening')});heroInput?.addEventListener('blur',()=>mascot?.classList.remove('is-listening'));
 </script>
 
@@ -423,4 +423,5 @@ const heroInput=$('#heroInput');heroInput?.addEventListener('focus',()=>{mascot?
 })();
 </script>
 
+<script type="module" src="/puntia-virtual.js"></script>
 </body></html>
