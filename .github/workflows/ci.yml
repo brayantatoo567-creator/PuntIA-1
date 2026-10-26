@@ -32,6 +32,21 @@ jobs:
           grep -q 'escapeHtml(j.pattern' public/index.html
           grep -q 'escapeHtml(j.analysis' public/index.html
           grep -q 'escapeHtml(p\[0\])' public/index.html
+          node <<'NODE'
+          const fs = require('fs');
+          const html = fs.readFileSync('public/index.html', 'utf8');
+          const required = [
+            "$$('.lesson-jump-btn').forEach",
+            "const oldSvgs=$$('.lesson-art .stitch-visual')",
+            "$$('[data-action=\"teacher\"]').forEach"
+          ];
+          for (const selector of required) {
+            if (!html.includes(selector)) throw new Error('Falta selector de colección: ' + selector);
+          }
+          if (/\\$\\(['"][^'"]+['"]\\)\\.(?:forEach|slice)\\(/.test(html)) {
+            throw new Error('Un selector de elemento único se está usando como colección');
+          }
+          NODE
           node -e "const p=require('./package.json'); if(!p.dependencies?.express || !p.dependencies?.openai || !p.dependencies?.multer) process.exit(1)"
 
       - name: Instalar dependencias
