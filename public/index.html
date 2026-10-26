@@ -126,6 +126,21 @@ main{min-width:0}.topbar{background:#0b1020dd;border-color:var(--line);backdrop-
 .hero-person.uses-reference-art{background:none!important;width:330px;height:390px;filter:drop-shadow(0 12px 18px #0005)}
 .hero-person.uses-reference-art .reference-mascot{display:block;width:124%;height:122%;object-fit:contain}
 @media(max-width:780px){.hero-person.uses-reference-art{width:260px;height:310px}}
+
+/* Mascota principal: mostrar siempre la ilustración SVG oficial y sus controles */
+.hero{isolation:isolate;min-height:410px!important}
+.hero-bg{z-index:0!important;pointer-events:none}
+.hero-person{z-index:3!important;left:66%!important;top:51%!important;width:330px!important;height:390px!important;transform:translate(-50%,-50%)!important;scale:1!important;overflow:visible!important;background:transparent!important}
+.hero-person .reference-mascot{display:block!important;position:absolute!important;inset:-5% -12% -12% -12%!important;width:124%!important;height:122%!important;object-fit:contain!important;object-position:center!important;opacity:1!important;visibility:visible!important;z-index:9!important;pointer-events:none!important;filter:drop-shadow(0 12px 18px #0006)!important}
+.hero-person:not(.uses-reference-art) .reference-mascot{display:block!important}
+.hero-person.uses-reference-art .hair,.hero-person.uses-reference-art .face,.hero-person.uses-reference-art .eye,.hero-person.uses-reference-art .mouth,.hero-person.uses-reference-art .bow,.hero-person.uses-reference-art .body,.hero-person.uses-reference-art .hook,.hero-person.uses-reference-art .yarn{display:none!important}
+.speech{z-index:4!important;left:3%!important;top:8%!important;max-width:43%!important}
+.hero-chat{z-index:5!important;display:flex!important}
+.puntia-motion-toggle{position:absolute;z-index:6;right:12px;top:12px;border:1px solid #ffffff55;border-radius:999px;padding:7px 10px;background:#111a2c;color:#fff;font-size:10px}
+.hero-person.uses-reference-art .reference-mascot{animation:referenceMascotFloat 3.6s ease-in-out infinite}
+@media(max-width:1150px){.hero-person{left:68%!important;width:290px!important;height:350px!important}.speech{max-width:40%!important}}
+@media(max-width:780px){.hero{min-height:410px!important}.hero-person{left:70%!important;top:52%!important;width:250px!important;height:310px!important}.speech{left:3%!important;top:8%!important;max-width:48%!important}.hero-chat{left:10px!important;right:10px!important}}
+@media(prefers-reduced-motion:reduce){.hero-person.uses-reference-art .reference-mascot{animation:none!important}}
 </style>
 </head>
 <body>
