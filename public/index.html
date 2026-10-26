@@ -141,6 +141,73 @@ main{min-width:0}.topbar{background:#0b1020dd;border-color:var(--line);backdrop-
 @media(max-width:1150px){.hero-person{left:68%!important;width:290px!important;height:350px!important}.speech{max-width:40%!important}}
 @media(max-width:780px){.hero{min-height:410px!important}.hero-person{left:70%!important;top:52%!important;width:250px!important;height:310px!important}.speech{left:3%!important;top:8%!important;max-width:48%!important}.hero-chat{left:10px!important;right:10px!important}}
 @media(prefers-reduced-motion:reduce){.hero-person.uses-reference-art .reference-mascot{animation:none!important}}
+
+/* PuntIA UI refinement — coherent hierarchy, mascot safety, responsive workspaces */
+:root{--ui-gap:clamp(12px,1.5vw,22px);--ui-radius:20px}
+body{line-height:1.5}
+.app{grid-template-columns:248px minmax(0,1fr);gap:0}
+.sidebar{padding:20px 14px;background:#090d19f5;z-index:25}
+.brand{padding:8px 10px 22px}.brand .logo{flex:0 0 44px}
+.nav{gap:5px}.nav button{min-height:42px;padding:10px 13px;border-radius:12px;font-size:13px;transition:background .18s,transform .18s}
+.nav button:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #ff83ba;outline-offset:2px}
+.nav button.active{box-shadow:inset 3px 0 #ffd1e3}
+main{padding:0 clamp(12px,2vw,28px) 100px;min-width:0;max-width:1700px;width:100%;margin:0 auto}
+.topbar{height:70px;gap:14px;margin-bottom:12px}
+.search{max-width:700px}.search input{min-height:46px;font-size:14px}
+.hero-grid{grid-template-columns:minmax(280px,1.3fr) minmax(220px,.8fr) minmax(220px,.85fr);gap:var(--ui-gap);align-items:stretch}
+.hero{min-height:390px;border-radius:var(--ui-radius);isolation:isolate}
+.hero-person{width:min(58%,250px);height:280px;left:67%;top:53%;z-index:1}
+.hero-person .reference-mascot{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;max-width:100%!important;max-height:100%!important;object-fit:contain!important;object-position:center bottom!important;z-index:5!important;display:block!important}
+.hero-person.uses-reference-art .hair,.hero-person.uses-reference-art .face,.hero-person.uses-reference-art .eye,.hero-person.uses-reference-art .mouth,.hero-person.uses-reference-art .bow,.hero-person.uses-reference-art .body,.hero-person.uses-reference-art .hook,.hero-person.uses-reference-art .yarn{display:none!important}
+.speech{z-index:7;left:18px;top:18px;width:min(225px,58%);padding:16px 18px;border-radius:18px;box-shadow:0 12px 32px #0003}
+.speech p{font-size:13px;line-height:1.55}
+.hero-chat{z-index:8;left:14px;right:14px;bottom:14px;min-width:0;border-radius:16px;padding:7px}
+.hero-chat input{min-width:0;font-size:13px}
+.puntia-motion-toggle{z-index:9;position:absolute;right:12px;top:12px;max-width:48%;font-size:10px}
+.stack{gap:var(--ui-gap);min-width:0;align-content:start}
+.stack .card{border-radius:var(--ui-radius)}
+.card{border-radius:var(--ui-radius);box-shadow:0 12px 32px #0002}
+.card h3{padding:15px 18px 10px;font-size:15px;line-height:1.35}
+.models{padding:0 17px 16px}.model{font-size:12px;gap:10px;align-items:center;padding:9px 0}.model span:last-child{white-space:nowrap}
+.system{padding:12px 17px 16px}.sys{gap:12px;font-size:12px;padding:7px 0}.sys span:last-child{text-align:right}
+.projects{padding:0 14px 14px}.project{gap:11px;padding:10px 0}.project>div:nth-child(2){min-width:0}.project b{font-size:12px}.project .bar{width:min(100%,150px)}
+.quick{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;padding:10px;margin:12px 0;border-radius:18px}
+.quick button{min-width:0;white-space:normal;line-height:1.35;padding:12px 10px;font-size:11px}
+.modules{grid-template-columns:minmax(0,1.15fr) minmax(300px,.85fr);gap:var(--ui-gap);margin-top:var(--ui-gap);align-items:start}
+.module{min-width:0;min-height:0;border-radius:var(--ui-radius)}
+.module h3{padding:15px 18px;font-size:15px}
+.module-body{padding:16px}
+.m1{grid-column:1;grid-row:span 2}.m2{grid-column:2}.m3{grid-column:1}.m4{grid-column:2}.m5{grid-column:1/-1}
+#chatLog{max-height:min(48vh,520px);min-height:230px;overflow:auto;padding:4px 3px 12px;scrollbar-gutter:stable}
+.chat-msg{font-size:14px;line-height:1.65;padding:13px 15px;margin:8px 0;overflow-wrap:anywhere}
+.chat-msg.user{margin-left:clamp(16px,10%,70px)}
+#chatInput{min-width:0!important;font-size:14px!important;padding:12px!important;background:#0c1322;color:#fff}
+#chatSend{flex:0 0 44px}
+.form-grid{gap:13px}.field label{font-size:12px;margin-bottom:5px}.field input,.field select{padding:11px 12px;border-radius:11px;font-size:14px;min-height:44px}
+.primary{padding:12px 14px;font-size:12px;border-radius:12px;min-height:42px}
+.lower{grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--ui-gap);margin-top:var(--ui-gap)}
+.lower .card{min-height:0}.lower .module-body{padding:16px}
+.didactic-tutorial{margin-top:var(--ui-gap);padding:clamp(14px,2vw,24px);border-radius:var(--ui-radius)}
+.lesson-layout{gap:var(--ui-gap)}
+.lesson-art{min-height:250px}.lesson-content{min-width:0}
+.lesson-content>p{font-size:14px}.lesson-actions button{min-height:42px}
+.modal-box{border:1px solid #303951;box-shadow:0 24px 80px #0008}.modal-box p{line-height:1.7}.modal-box pre{overflow:auto;max-width:100%}
+.toast{max-width:min(90vw,420px);line-height:1.5}
+@media(min-width:1500px){.hero-grid{grid-template-columns:minmax(320px,1.3fr) minmax(240px,.8fr) minmax(240px,.85fr)}.hero{min-height:420px}}
+@media(max-width:1180px){.app{grid-template-columns:220px minmax(0,1fr)}.hero-grid{grid-template-columns:minmax(0,1fr) minmax(220px,.75fr)}.hero-grid>.stack:last-child{display:grid;grid-column:1/-1;grid-template-columns:repeat(2,minmax(0,1fr))}.modules{grid-template-columns:minmax(0,1fr) minmax(280px,.9fr)}}
+@media(max-width:780px){.app{display:block}.sidebar{display:none}main{padding:0 10px 100px}.topbar{height:60px;margin-bottom:8px;gap:8px}.search input{min-height:42px;padding-left:35px;font-size:12px}.top-actions{gap:5px}.top-actions .icon-btn{width:34px;height:34px}.hero-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:10px}.hero{min-height:330px}.hero-grid>.stack{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.hero-grid>.stack:last-child{grid-column:auto;grid-template-columns:repeat(2,minmax(0,1fr))}.hero-grid .stack .card{min-width:0}.hero-person{width:48%!important;height:240px!important;left:72%!important;top:54%!important;transform:translate(-50%,-50%) scale(1)!important}.speech{left:12px!important;top:14px!important;width:54%!important;max-width:54%!important;padding:12px 14px}.speech strong{font-size:17px}.speech p{font-size:12px}.puntia-motion-toggle{max-width:45%;font-size:9px}.hero-chat{left:10px;right:10px;bottom:10px}.hero-chat input{font-size:12px}.quick{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:8px;padding:8px}.quick button{flex:0 0 145px;scroll-snap-align:start}.modules{grid-template-columns:minmax(0,1fr);gap:10px}.modules .module{grid-column:1;grid-row:auto}.m1{grid-row:auto!important}.m5{grid-column:1!important}.module-body{padding:13px}.module h3{padding:13px 15px}.chat-msg{font-size:13px}.lower{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.lower .card{min-width:0}.lesson-layout{grid-template-columns:minmax(0,1fr);gap:14px}.lesson-art{min-height:185px}.lesson-yarn{font-size:65px}.lesson-hook{font-size:38px}.tutorial-heading{gap:8px}.tutorial-heading p{font-size:12px}.lesson-count{padding:7px 9px;font-size:9px}.bottom-nav{left:6px;right:6px;bottom:6px;height:62px}.bottom-nav button{flex:1;font-size:9px}.drawer-panel{overflow:auto}.table{font-size:10px}.table th,.table td{padding:6px}.photo{height:120px}}
+@media(max-width:390px){main{padding-left:7px;padding-right:7px}.hero{min-height:310px}.hero-person{width:45%!important;height:215px!important;left:74%!important}.speech{width:58%!important;max-width:58%!important;padding:10px}.speech p{font-size:11px}.hero-chat{gap:4px}.hero-chat .icon-btn{width:32px;height:32px}.hero-chat .send{width:34px;height:34px}.hero-grid>.stack,.hero-grid>.stack:last-child{grid-template-columns:minmax(0,1fr)}.lower{grid-template-columns:minmax(0,1fr)}.top-actions #notifyBtn{display:none}.lesson-actions button{flex:1}.quick button{flex-basis:135px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
+
+
+/* Safe, readable assistant output */
+.chat-msg h4,.formatted-answer h4{font-size:15px;color:#ff8cbd;margin:8px 0 5px}
+.chat-msg p,.formatted-answer p{margin:6px 0;line-height:1.7}
+.chat-msg ul,.chat-msg ol,.formatted-answer ul,.formatted-answer ol{margin:7px 0;padding-left:22px}
+.chat-msg li,.formatted-answer li{margin:5px 0;line-height:1.65}
+.chat-msg code,.formatted-answer code{background:#0b1220;border:1px solid #34405a;border-radius:5px;padding:1px 5px;color:#ffb5d4}
+.formatted-answer{font-size:14px;line-height:1.7;overflow-wrap:anywhere}
+
 </style>
 </head>
 <body>
@@ -194,9 +261,9 @@ $$('[data-action]').forEach(b=>b.onclick=()=>scrollToId(b.dataset.action));
 $('#menuBtn').onclick=()=>$('#drawer').classList.add('open');$('#drawer').onclick=e=>{if(e.target===$('#drawer'))$('#drawer').classList.remove('open')};
 $('#drawerNav').innerHTML=$$('#desktopNav button').map(b=>`<button data-section="${b.dataset.section}">${b.textContent}</button>`).join('');$$('#drawerNav button').forEach(b=>b.onclick=()=>{scrollToId(b.dataset.section);$('#drawer').classList.remove('open')});
 $('#themeBtn').onclick=()=>{document.body.classList.toggle('dark');toast('Tema alternado')};$('#notifyBtn').onclick=()=>toast('No hay notificaciones nuevas');
-async function health(){const set=(id,label,ok)=>{const el=$('#'+id);if(el)el.textContent=label;const node=$('#'+id.replace('Status','Label'));if(node)node.textContent=(ok?'🟢 ':'🔴 ')+node.textContent.replace(/^[🟢🔴⚪]\s*/, '')};try{const r=await fetch('/api/health',{cache:'no-store'});if(!r.ok)throw 0;const status=await r.json();set('serverStatus','En línea',true);set('visionStatus',status.ai?'Conectada':'Falta clave de IA',Boolean(status.ai));set('dataStatus','No configurada',false);set('voiceStatus','No conectada',false);toast(status.ai?'Servidor e IA conectados':'Servidor conectado; falta configurar la clave de IA')}catch{set('serverStatus','Sin conexión',false);set('visionStatus','No disponible',false);set('dataStatus','No configurada',false);set('voiceStatus','No conectada',false);toast('No se pudo comprobar la conexión del backend')}} health();
-function addMsg(text,who='bot'){const d=document.createElement('div');d.className='chat-msg '+(who==='user'?'user':'');d.textContent=text;$('#chatLog').appendChild(d);$('#chatLog').scrollTop=99999}
-async function ask(text){if(!text)return;const mascot=$('#puntiaMascot');mascot?.classList.remove('is-listening');mascot?.classList.add('is-speaking');addMsg(text,'user');addMsg('PuntIA está pensando…');try{const r=await fetch('/api/puntia/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text})});const j=await r.json();$('#chatLog').lastElementChild.textContent=j.reply||j.error||'No recibí respuesta.'}catch{$('#chatLog').lastElementChild.textContent='No pude conectar con el servidor. La interfaz sigue funcionando, pero falta revisar el backend.'}finally{mascot?.classList.remove('is-speaking')}}
+async function health(){const set=(id,label,ok)=>{const el=$('#'+id);if(el)el.textContent=label;const node=$('#'+id.replace('Status','Label'));if(node)node.textContent=(ok?'🟢 ':'🔴 ')+node.textContent.replace(/^[🟢🔴⚪]\s*/, '')};try{const r=await fetch('/api/health',{cache:'no-store'});if(!r.ok)throw 0;const status=await r.json();set('serverStatus','En línea',true);set('visionStatus',status.ai?'Clave configurada':'Falta clave de IA',Boolean(status.ai));set('dataStatus','Guardado local',true);const voiceSupported=('SpeechRecognition'in window)||('webkitSpeechRecognition'in window);set('voiceStatus',voiceSupported?'Disponible en navegador':'No compatible',voiceSupported);const firstModel=$('.models .model:first-child span:first-child');const modelState=$('.models .model:first-child span:last-child');if(firstModel)firstModel.textContent='◉ '+(status.model||'Modelo configurado');if(modelState){modelState.textContent=status.ai?'Clave presente · no probada':'Sin clave';modelState.className=status.ai?'status-dot':''}const visionModel=$('.models .model:nth-child(2) span:first-child');if(visionModel)visionModel.textContent='◉ '+(status.vision||'Modelo de visión');const statusNote=status.ai?'Servidor en línea; clave detectada, llamadas aún por probar':'Servidor en línea; falta configurar la clave de IA';toast(statusNote)}catch{set('serverStatus','Sin conexión',false);set('visionStatus','No disponible',false);set('dataStatus','No verificado',false);set('voiceStatus','No verificado',false);toast('No se pudo comprobar la conexión del backend')}} health();
+function formatAssistantText(value){const safe=escapeHtml(value);const blocks=safe.split(/\n{2,}/).map(block=>{let s=block.trim();if(!s)return '';if(/^#{1,3}\s/.test(s)){const m=s.match(/^(#{1,3})\s+(.+)$/);return '<h4>'+m[2]+'</h4>'}if(/^(?:[-*]\s|\d+[.)]\s)/m.test(s)){const lines=s.split('\n');const ordered=/^\d+[.)]\s/.test(lines[0]);const items=lines.map(line=>line.replace(/^(?:[-*]|\d+[.)])\s+/, '').trim()).filter(Boolean);return '<'+(ordered?'ol':'ul')+'>'+items.map(item=>'<li>'+item+'</li>').join('')+'</'+(ordered?'ol':'ul')+'>'}return '<p>'+s.replace(/\n/g,'<br>').replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\*(.+?)\*/g,'<em>$1</em>').replace(/`([^`]+)`/g,'<code>$1</code>')+'</p>'});return blocks.join('')}function addMsg(text,who='bot'){const d=document.createElement('div');d.className='chat-msg '+(who==='user'?'user':'');if(who==='user')d.textContent=text;else d.innerHTML=formatAssistantText(text);$('#chatLog').appendChild(d);$('#chatLog').scrollTop=99999}
+async function ask(text){if(!text)return;const mascot=$('#puntiaMascot');mascot?.classList.remove('is-listening');mascot?.classList.add('is-speaking');addMsg(text,'user');addMsg('PuntIA está pensando…');try{const r=await fetch('/api/puntia/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text})});const j=await r.json();$('#chatLog').lastElementChild.innerHTML=formatAssistantText(j.reply||j.error||'No recibí respuesta.')}catch{$('#chatLog').lastElementChild.textContent='No pude conectar con el servidor. La interfaz sigue funcionando, pero falta revisar el backend.'}finally{mascot?.classList.remove('is-speaking')}}
 $('#chatSend').onclick=()=>{const v=$('#chatInput').value.trim();$('#chatInput').value='';ask(v)};$('#chatInput').onkeydown=e=>{if(e.key==='Enter')$('#chatSend').click()};$('#heroSend').onclick=()=>{const v=$('#heroInput').value.trim();$('#heroInput').value='';scrollToId('chat');ask(v)};$('#search').onkeydown=e=>{if(e.key==='Enter'){const v=e.target.value.trim();e.target.value='';scrollToId('chat');ask(v)}};
 async function generate(){const name=$('#patternName').value.trim(), level=$('#patternLevel').value,size=$('#patternSize').value,style=$('#patternStyle').value;$('#generateBtn').disabled=true;$('#generateBtn').textContent='Generando…';try{const r=await fetch('/api/puntia/generate-pattern',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,level,height:size,style})});const j=await r.json();modal('Patrón generado',`<p>${escapeHtml(j.pattern||j.reply||j.error||'Sin respuesta').replace(/\n/g,'<br>')}</p><button class="primary" id="usePattern">Guardar en proyecto</button>`);$('#usePattern').onclick=()=>{saveProject(name);$('#modal').classList.remove('show')};}catch(e){modal('Patrón local',`<p>Preparé una propuesta local para <b>${escapeHtml(name)}</b> de ${escapeHtml(size)}.</p><pre style="white-space:pre-wrap;font-size:11px">1: 6 pb en AM (6)\n2: 6 aum (12)\n3: (1 pb, 1 aum) x6 (18)\n4-6: 18 pb\n7: (1 pb, 1 dis) x6 (12)\nRellenar y cerrar.</pre>`)}finally{$('#generateBtn').disabled=false;$('#generateBtn').textContent='Generar patrón'}}
 $('#generateBtn').onclick=generate;
