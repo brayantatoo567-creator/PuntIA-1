@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#e84f87">
+<link rel="icon" type="image/svg+xml" href="/puntia-mascota.svg">
 <title>PuntIA — Asistente de crochet</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Quicksand:wght@600;700;800&display=swap');
@@ -61,7 +62,10 @@ main{padding:0 14px 96px}.topbar{background:#090d19ed;border-bottom:1px solid #2
 @media(prefers-reduced-motion:reduce){.hero-person,.hero-person .hair,.hero-person .bow,.hero-person .hook,.hero-person .yarn,.hero-person .eye,.hero-person.is-speaking,.hero-person.is-listening{animation:none!important;transition:none!important}.hero-person{translate:0 0;rotate:0deg}}
 .motion-paused .hero-person,.motion-paused .hero-person *{animation-play-state:paused!important}
 
+
+/* Mascota oficial: reemplaza el dibujo CSS antiguo por la ilustración SVG completa. */
 /* PuntIA visual refresh — dark atelier / neon yarn */
+
 :root{--bg:#090c18;--panel:#111729;--ink:#f7f3ff;--muted:#b5bad0;--line:#303751;--pink:#ff2f91;--pink2:#ff8bc0;--rose:#43203d;--purple:#a27aff;--blue:#4d9dff;--green:#29d6a0;--orange:#ffb36b;--shadow:0 12px 32px #0007;--r:18px}
 html{background:var(--bg)}body{background:radial-gradient(ellipse at 75% 0%,#351737 0,transparent 34%),radial-gradient(ellipse at 5% 80%,#24112f 0,transparent 30%),var(--bg);color:var(--ink)}
 .sidebar{background:#090d19ed;border-color:#29243f;box-shadow:8px 0 35px #0003}.brand h1{color:#fff}.brand p,.small,.topbar,.profile{color:var(--muted)}.logo{background:linear-gradient(135deg,#ff3295,#8e46ff);box-shadow:0 0 24px #ff2f9140}
@@ -118,6 +122,109 @@ main{min-width:0}.topbar{background:#0b1020dd;border-color:var(--line);backdrop-
 @keyframes referenceMascotTalk{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-3px) scale(1.012)}}
 @media(prefers-reduced-motion:reduce){.hero-person.uses-reference-art .reference-mascot{animation:none!important}}
 
+/* Mascota SVG: conservar el img real para que cargue y anime correctamente */
+.hero-person.uses-reference-art{background:none!important;width:330px;height:390px;filter:drop-shadow(0 12px 18px #0005)}
+.hero-person.uses-reference-art .reference-mascot{display:block;width:124%;height:122%;object-fit:contain}
+@media(max-width:780px){.hero-person.uses-reference-art{width:260px;height:310px}}
+
+/* Mascota principal: mostrar siempre la ilustración SVG oficial y sus controles */
+.hero{isolation:isolate;min-height:410px!important}
+.hero-bg{z-index:0!important;pointer-events:none}
+.hero-person{z-index:3!important;left:66%!important;top:51%!important;width:330px!important;height:390px!important;transform:translate(-50%,-50%)!important;scale:1!important;overflow:visible!important;background:transparent!important}
+.hero-person .reference-mascot{display:block!important;position:absolute!important;inset:-5% -12% -12% -12%!important;width:124%!important;height:122%!important;object-fit:contain!important;object-position:center!important;opacity:1!important;visibility:visible!important;z-index:9!important;pointer-events:none!important;filter:drop-shadow(0 12px 18px #0006)!important}
+.hero-person:not(.uses-reference-art) .reference-mascot{display:block!important}
+.hero-person.uses-reference-art .hair,.hero-person.uses-reference-art .face,.hero-person.uses-reference-art .eye,.hero-person.uses-reference-art .mouth,.hero-person.uses-reference-art .bow,.hero-person.uses-reference-art .body,.hero-person.uses-reference-art .hook,.hero-person.uses-reference-art .yarn{display:none!important}
+.speech{z-index:4!important;left:3%!important;top:8%!important;max-width:43%!important}
+.hero-chat{z-index:5!important;display:flex!important}
+.puntia-motion-toggle{position:absolute;z-index:6;right:12px;top:12px;border:1px solid #ffffff55;border-radius:999px;padding:7px 10px;background:#111a2c;color:#fff;font-size:10px}
+.hero-person.uses-reference-art .reference-mascot{animation:referenceMascotFloat 3.6s ease-in-out infinite}
+@media(max-width:1150px){.hero-person{left:68%!important;width:290px!important;height:350px!important}.speech{max-width:40%!important}}
+@media(max-width:780px){.hero{min-height:410px!important}.hero-person{left:70%!important;top:52%!important;width:250px!important;height:310px!important}.speech{left:3%!important;top:8%!important;max-width:48%!important}.hero-chat{left:10px!important;right:10px!important}}
+@media(prefers-reduced-motion:reduce){.hero-person.uses-reference-art .reference-mascot{animation:none!important}}
+
+/* PuntIA UI refinement — coherent hierarchy, mascot safety, responsive workspaces */
+:root{--ui-gap:clamp(12px,1.5vw,22px);--ui-radius:20px}
+body{line-height:1.5}
+.app{grid-template-columns:248px minmax(0,1fr);gap:0}
+.sidebar{padding:20px 14px;background:#090d19f5;z-index:25}
+.brand{padding:8px 10px 22px}.brand .logo{flex:0 0 44px}
+.nav{gap:5px}.nav button{min-height:42px;padding:10px 13px;border-radius:12px;font-size:13px;transition:background .18s,transform .18s}
+.nav button:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #ff83ba;outline-offset:2px}
+.nav button.active{box-shadow:inset 3px 0 #ffd1e3}
+main{padding:0 clamp(12px,2vw,28px) 100px;min-width:0;max-width:1700px;width:100%;margin:0 auto}
+.topbar{height:70px;gap:14px;margin-bottom:12px}
+.search{max-width:700px}.search input{min-height:46px;font-size:14px}
+.hero-grid{grid-template-columns:minmax(280px,1.3fr) minmax(220px,.8fr) minmax(220px,.85fr);gap:var(--ui-gap);align-items:stretch}
+.hero{min-height:390px;border-radius:var(--ui-radius);isolation:isolate}
+.hero-person{width:min(58%,250px);height:280px;left:67%;top:53%;z-index:1}
+.hero-person .reference-mascot{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;max-width:100%!important;max-height:100%!important;object-fit:contain!important;object-position:center bottom!important;z-index:5!important;display:block!important}
+.hero-person.uses-reference-art .hair,.hero-person.uses-reference-art .face,.hero-person.uses-reference-art .eye,.hero-person.uses-reference-art .mouth,.hero-person.uses-reference-art .bow,.hero-person.uses-reference-art .body,.hero-person.uses-reference-art .hook,.hero-person.uses-reference-art .yarn{display:none!important}
+.speech{z-index:7;left:18px;top:18px;width:min(225px,58%);padding:16px 18px;border-radius:18px;box-shadow:0 12px 32px #0003}
+.speech p{font-size:13px;line-height:1.55}
+.hero-chat{z-index:8;left:14px;right:14px;bottom:14px;min-width:0;border-radius:16px;padding:7px}
+.hero-chat input{min-width:0;font-size:13px}
+.puntia-motion-toggle{z-index:9;position:absolute;right:12px;top:12px;max-width:48%;font-size:10px}
+.stack{gap:var(--ui-gap);min-width:0;align-content:start}
+.stack .card{border-radius:var(--ui-radius)}
+.card{border-radius:var(--ui-radius);box-shadow:0 12px 32px #0002}
+.card h3{padding:15px 18px 10px;font-size:15px;line-height:1.35}
+.models{padding:0 17px 16px}.model{font-size:12px;gap:10px;align-items:center;padding:9px 0}.model span:last-child{white-space:nowrap}
+.system{padding:12px 17px 16px}.sys{gap:12px;font-size:12px;padding:7px 0}.sys span:last-child{text-align:right}
+.projects{padding:0 14px 14px}.project{gap:11px;padding:10px 0}.project>div:nth-child(2){min-width:0}.project b{font-size:12px}.project .bar{width:min(100%,150px)}
+.quick{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;padding:10px;margin:12px 0;border-radius:18px}
+.quick button{min-width:0;white-space:normal;line-height:1.35;padding:12px 10px;font-size:11px}
+.modules{grid-template-columns:minmax(0,1.15fr) minmax(300px,.85fr);gap:var(--ui-gap);margin-top:var(--ui-gap);align-items:start}
+.module{min-width:0;min-height:0;border-radius:var(--ui-radius)}
+.module h3{padding:15px 18px;font-size:15px}
+.module-body{padding:16px}
+.m1{grid-column:1;grid-row:span 2}.m2{grid-column:2}.m3{grid-column:1}.m4{grid-column:2}.m5{grid-column:1/-1}
+#chatLog{max-height:min(48vh,520px);min-height:230px;overflow:auto;padding:4px 3px 12px;scrollbar-gutter:stable}
+.chat-msg{font-size:14px;line-height:1.65;padding:13px 15px;margin:8px 0;overflow-wrap:anywhere}
+.chat-msg.user{margin-left:clamp(16px,10%,70px)}
+#chatInput{min-width:0!important;font-size:14px!important;padding:12px!important;background:#0c1322;color:#fff}
+#chatSend{flex:0 0 44px}
+.form-grid{gap:13px}.field label{font-size:12px;margin-bottom:5px}.field input,.field select{padding:11px 12px;border-radius:11px;font-size:14px;min-height:44px}
+.primary{padding:12px 14px;font-size:12px;border-radius:12px;min-height:42px}
+.lower{grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--ui-gap);margin-top:var(--ui-gap)}
+.lower .card{min-height:0}.lower .module-body{padding:16px}
+.didactic-tutorial{margin-top:var(--ui-gap);padding:clamp(14px,2vw,24px);border-radius:var(--ui-radius)}
+.lesson-layout{gap:var(--ui-gap)}
+.lesson-art{min-height:250px}.lesson-content{min-width:0}
+.lesson-content>p{font-size:14px}.lesson-actions button{min-height:42px}
+.modal-box{border:1px solid #303951;box-shadow:0 24px 80px #0008}.modal-box p{line-height:1.7}.modal-box pre{overflow:auto;max-width:100%}
+.toast{max-width:min(90vw,420px);line-height:1.5}
+@media(min-width:1500px){.hero-grid{grid-template-columns:minmax(320px,1.3fr) minmax(240px,.8fr) minmax(240px,.85fr)}.hero{min-height:420px}}
+@media(max-width:1180px){.app{grid-template-columns:220px minmax(0,1fr)}.hero-grid{grid-template-columns:minmax(0,1fr) minmax(220px,.75fr)}.hero-grid>.stack:last-child{display:grid;grid-column:1/-1;grid-template-columns:repeat(2,minmax(0,1fr))}.modules{grid-template-columns:minmax(0,1fr) minmax(280px,.9fr)}}
+@media(max-width:780px){.app{display:block}.sidebar{display:none}main{padding:0 10px 100px}.topbar{height:60px;margin-bottom:8px;gap:8px}.search input{min-height:42px;padding-left:35px;font-size:12px}.top-actions{gap:5px}.top-actions .icon-btn{width:34px;height:34px}.hero-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:10px}.hero{min-height:330px}.hero-grid>.stack{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.hero-grid>.stack:last-child{grid-column:auto;grid-template-columns:repeat(2,minmax(0,1fr))}.hero-grid .stack .card{min-width:0}.hero-person{width:48%!important;height:240px!important;left:72%!important;top:54%!important;transform:translate(-50%,-50%) scale(1)!important}.speech{left:12px!important;top:14px!important;width:54%!important;max-width:54%!important;padding:12px 14px}.speech strong{font-size:17px}.speech p{font-size:12px}.puntia-motion-toggle{max-width:45%;font-size:9px}.hero-chat{left:10px;right:10px;bottom:10px}.hero-chat input{font-size:12px}.quick{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:8px;padding:8px}.quick button{flex:0 0 145px;scroll-snap-align:start}.modules{grid-template-columns:minmax(0,1fr);gap:10px}.modules .module{grid-column:1;grid-row:auto}.m1{grid-row:auto!important}.m5{grid-column:1!important}.module-body{padding:13px}.module h3{padding:13px 15px}.chat-msg{font-size:13px}.lower{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.lower .card{min-width:0}.lesson-layout{grid-template-columns:minmax(0,1fr);gap:14px}.lesson-art{min-height:185px}.lesson-yarn{font-size:65px}.lesson-hook{font-size:38px}.tutorial-heading{gap:8px}.tutorial-heading p{font-size:12px}.lesson-count{padding:7px 9px;font-size:9px}.bottom-nav{left:6px;right:6px;bottom:6px;height:62px}.bottom-nav button{flex:1;font-size:9px}.drawer-panel{overflow:auto}.table{font-size:10px}.table th,.table td{padding:6px}.photo{height:120px}}
+@media(max-width:390px){main{padding-left:7px;padding-right:7px}.hero{min-height:310px}.hero-person{width:45%!important;height:215px!important;left:74%!important}.speech{width:58%!important;max-width:58%!important;padding:10px}.speech p{font-size:11px}.hero-chat{gap:4px}.hero-chat .icon-btn{width:32px;height:32px}.hero-chat .send{width:34px;height:34px}.hero-grid>.stack,.hero-grid>.stack:last-child{grid-template-columns:minmax(0,1fr)}.lower{grid-template-columns:minmax(0,1fr)}.top-actions #notifyBtn{display:none}.lesson-actions button{flex:1}.quick button{flex-basis:135px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
+
+
+/* Safe, readable assistant output */
+.chat-msg h4,.formatted-answer h4{font-size:15px;color:#ff8cbd;margin:8px 0 5px}
+.chat-msg p,.formatted-answer p{margin:6px 0;line-height:1.7}
+.chat-msg ul,.chat-msg ol,.formatted-answer ul,.formatted-answer ol{margin:7px 0;padding-left:22px}
+.chat-msg li,.formatted-answer li{margin:5px 0;line-height:1.65}
+.chat-msg code,.formatted-answer code{background:#0b1220;border:1px solid #34405a;border-radius:5px;padding:1px 5px;color:#ffb5d4}
+.formatted-answer{font-size:14px;line-height:1.7;overflow-wrap:anywhere}
+
+
+/* Mascota: área delimitada, proporción intacta y controles siempre por encima */
+.hero{position:relative;overflow:hidden;isolation:isolate;min-width:0}
+.hero-person{width:min(56%,260px)!important;height:min(78%,330px)!important;left:70%!important;top:49%!important;transform:translate(-50%,-50%)!important;overflow:visible}
+.hero-person .reference-mascot{inset:0!important;width:100%!important;height:100%!important;max-width:100%!important;max-height:100%!important;object-fit:contain!important;object-position:center bottom!important;transform-origin:center bottom!important}
+.speech{z-index:12!important;max-width:55%;overflow-wrap:anywhere}
+.hero-chat{z-index:13!important;left:14px!important;right:14px!important;bottom:14px!important;width:auto;max-width:none}
+.puntia-motion-toggle{z-index:14!important}
+.hero-person[role=button]{cursor:pointer}
+@media(max-width:1180px){.hero-person{width:min(52%,250px)!important;height:min(74%,290px)!important;left:70%!important;top:49%!important}}
+@media(max-width:780px){.hero{min-height:340px!important}.hero-person{width:48%!important;height:70%!important;left:72%!important;top:47%!important;transform:translate(-50%,-50%)!important}.speech{left:12px!important;top:14px!important;width:52%!important;max-width:52%!important}.hero-chat{left:10px!important;right:10px!important;bottom:10px!important}.puntia-motion-toggle{max-width:44%;white-space:normal}}
+@media(max-width:390px){.hero{min-height:320px!important}.hero-person{width:45%!important;height:66%!important;left:74%!important;top:46%!important}.speech{width:55%!important;max-width:55%!important}.hero-chat{left:8px!important;right:8px!important;bottom:8px!important}}
+@media(prefers-reduced-motion:reduce){.hero-person .reference-mascot{animation:none!important;transition:none!important}}
+
+
+/* Navegación agrupada por tareas */
+.nav-category{padding:13px 12px 4px;font-size:9px;font-weight:900;letter-spacing:1.7px;color:#a5abc1}.nav-category:not(:first-child){margin-top:2px}.drawer .nav-category{color:#a5abc1}
 </style>
 </head>
 <body>
@@ -125,15 +232,15 @@ main{min-width:0}.topbar{background:#0b1020dd;border-color:var(--line);backdrop-
 <aside class="sidebar">
   <div class="brand"><div class="logo">🧶</div><div><h1>Punt<span style="color:#e94f88">IA</span></h1><p>Tu asistente de crochet</p></div></div>
   <nav class="nav" id="desktopNav">
-    <button class="active" data-section="inicio"><i>⌂</i>Inicio</button><button data-section="chat"><i>💬</i>Chat IA</button><button data-section="pattern"><i>✦</i>Crear patrón</button><button data-section="validate"><i>▣</i>Validar patrón</button><button data-section="diagnosis"><i>📷</i>Diagnóstico (foto)</button><button data-section="teacher"><i>🎓</i>Profesor de crochet</button><button data-section="voice"><i>🎙</i>Voz</button><button data-section="projects"><i>▣</i>Proyectos</button><button data-section="library"><i>📖</i>Biblioteca de puntos</button><button data-section="diagram"><i>⌘</i>Diagramas</button><button data-section="pdf"><i>▤</i>PDF / Imprimir</button><button data-section="progress"><i>▥</i>Progreso</button><button data-section="admin"><i>⚙</i>Administración</button>
+    <div class="nav-category">ASISTENTE</div><button class="active" data-section="inicio"><i>⌂</i>Inicio</button><button data-section="chat"><i>💬</i>Chat IA</button><button data-section="voice"><i>🎙</i>Asistente por voz</button><div class="nav-category">PATRONES</div><button data-section="pattern"><i>✦</i>Crear patrón</button><button data-section="validate"><i>▣</i>Validar patrón</button><button data-section="diagram"><i>⌘</i>Diagramas</button><button data-section="pdf"><i>▤</i>Exportar / imprimir</button><div class="nav-category">APRENDIZAJE</div><button data-section="teacher"><i>🎓</i>Aprender crochet</button><button data-section="library"><i>📖</i>Biblioteca de puntos</button><button data-section="progress"><i>▥</i>Mi progreso</button><div class="nav-category">MIS PROYECTOS</div><button data-section="projects"><i>▣</i>Mis proyectos</button><div class="nav-category">HERRAMIENTAS</div><button data-section="diagnosis"><i>📷</i>Analizar foto</button><button data-section="admin"><i>⚙</i>Configuración técnica</button>
   </nav>
   <div class="sidebar-foot"><div class="progress-mini"><strong>Mi progreso · Nivel 4</strong><div class="bar"><span style="width:64%"></span></div><div class="small">320 / 500 XP · 28 puntos aprendidos</div></div></div>
 </aside>
 <main>
 <header class="topbar"><button class="icon-btn mobile-menu" id="menuBtn">☰</button><div class="search"><span>⌕</span><input id="search" placeholder="Pregúntame lo que necesites..."></div><div class="top-actions"><button class="icon-btn" id="themeBtn">☾</button><button class="icon-btn" id="notifyBtn">♧</button><div class="profile"><div class="avatar">👤</div><span>Mi espacio</span></div></div></header>
 <section class="hero-grid" id="inicio">
-  <div class="hero"><div class="hero-bg"></div><button class="puntia-motion-toggle" id="motionToggle" type="button" aria-pressed="false">⏸ Pausar movimiento</button><div class="hero-person" id="puntiaMascot" role="button" tabindex="0" aria-label="PuntIA, pulsa para saludar"><img class="reference-mascot" src="/puntia-mascota.webp" alt="PuntIA, muñeca de crochet rosa con gancho y ovillo" onload="this.parentElement.classList.add('uses-reference-art')" onerror="this.remove()"><div class="hair"></div><div class="face"></div><div class="eye l"></div><div class="eye r"></div><div class="mouth"></div><div class="bow"></div><div class="body"></div><div class="hook"></div><div class="yarn"></div></div><div class="speech"><strong>¡Hola!</strong><p>Soy <b>PuntIA</b>, tu asistente de crochet.<br>¿En qué puedo ayudarte hoy?</p></div><div class="hero-chat"><button class="icon-btn" id="micHero">🎙</button><input id="heroInput" placeholder="Escribe tu pregunta aquí..."><button class="send" id="heroSend">➤</button></div></div>
-  <div class="stack"><div class="card"><h3>Modelos disponibles</h3><div class="models"><div class="model"><span>◉ Modelo de texto activo</span><span class="status-dot" id="textModelStatus">Comprobando…</span></div><div class="model"><span>◉ Modelo de visión</span><span id="visionModelStatus">Comprobando…</span></div><p class="small" id="aiConfigStatus">Verificando configuración de IA…</p></div></div><div class="card"><h3>Estado del sistema</h3><div class="system"><div class="sys"><span>🟢 Servidor</span><span class="ok" id="serverStatus">Comprobando…</span></div><div class="sys"><span>🟢 Memoria</span><span class="ok" id="memoryStatus">Archivo local</span></div><div class="sys"><span>🟢 Visión IA</span><span class="ok" id="visionStatus">Comprobando…</span></div><div class="sys"><span>🟢 Voz</span><span class="ok" id="voiceSystemStatus">Comprobando…</span></div></div></div></div>
+  <div class="hero"><div class="hero-bg"></div><button class="puntia-motion-toggle" id="motionToggle" type="button" aria-pressed="false">⏸ Pausar movimiento</button><div class="hero-person" id="puntiaMascot" role="button" tabindex="0" aria-label="PuntIA, pulsa para saludar"><img class="reference-mascot" src="/puntia-mascota.svg" alt="PuntIA, muñeca de crochet rosa con gancho y ovillo" onload="this.parentElement.classList.add('uses-reference-art')" onerror="this.remove()"><div class="hair"></div><div class="face"></div><div class="eye l"></div><div class="eye r"></div><div class="mouth"></div><div class="bow"></div><div class="body"></div><div class="hook"></div><div class="yarn"></div></div><div class="speech"><strong>¡Hola!</strong><p>Soy <b>PuntIA</b>, tu asistente de crochet.<br>¿En qué puedo ayudarte hoy?</p></div><div class="hero-chat"><button class="icon-btn" id="micHero">🎙</button><input id="heroInput" placeholder="Escribe tu pregunta aquí..."><button class="send" id="heroSend">➤</button></div></div>
+  <div class="stack"><div class="card"><h3>Modelos disponibles</h3><div class="models"><div class="model"><span>◉ Modelo de texto</span><span class="status-dot" id="textModelStatus">Comprobando…</span></div><div class="model"><span>◉ Modelo de visión</span><span class="status-dot" id="visionModelStatus">Comprobando…</span></div><p class="small" id="aiConfigStatus">Verificando configuración de IA…</p><button class="primary" style="margin-top:7px" id="modelBtn">Ver información de modelos</button></div></div><div class="card"><h3>Estado del sistema</h3><div class="system"><div class="sys"><span id="serverLabel">🟢 Servidor</span><span class="ok" id="serverStatus">Comprobando…</span></div><div class="sys"><span id="dataLabel">⚪ Memoria</span><span id="dataStatus">Sin comprobar</span></div><div class="sys"><span id="visionLabel">⚪ IA (configuración)</span><span id="visionStatus">Comprobando…</span></div><div class="sys"><span id="voiceLabel">⚪ Voz</span><span id="voiceStatus">Comprobando…</span></div></div></div></div>
   <div class="stack"><div class="card"><h3 style="display:flex;align-items:center">Mis proyectos <button class="new" id="newProject">+ Nuevo</button></h3><div class="projects" id="projectsList"></div></div><div class="card"><h3>Progreso</h3><div class="xp"><div class="xp-ring"><div class="ring"></div><div><b>Nivel 4</b><div class="small">320 / 500 XP</div></div></div></div></div></div>
 </section>
 <div class="quick"><button data-action="pattern">✨ Crear un patrón</button><button data-action="validate">▣ Validar un patrón</button><button data-action="diagnosis">📷 Analizar una foto</button><button data-action="teacher">🎓 Explícame un punto</button><button data-action="pdf">📄 Generar PDF</button></div>
@@ -145,7 +252,7 @@ main{min-width:0}.topbar{background:#0b1020dd;border-color:var(--line);backdrop-
 <section class="modules">
   <article class="card module m1" id="chat"><h3>1. Chat con IA</h3><div class="module-body"><div id="chatLog"><div class="chat-msg">👩‍🦱 <b>PuntIA:</b> Dime qué quieres tejer y prepararé una respuesta útil.</div></div><div style="display:flex;gap:5px"><input id="chatInput" style="flex:1;border:1px solid var(--line);border-radius:9px;padding:8px;font-size:10px" placeholder="Escribe tu mensaje..."><button class="primary" id="chatSend" style="width:42px">➤</button></div></div></article>
   <article class="card module m2" id="pattern"><h3>2. Generador de patrones</h3><div class="module-body"><div class="form-grid"><div class="field"><label>¿Qué te gustaría tejer?</label><input id="patternName" value="Osito amigurumi"></div><div class="field"><label>Nivel</label><select id="patternLevel"><option>Principiante</option><option selected>Intermedio</option><option>Avanzado</option></select></div><div class="field"><label>Tamaño</label><input id="patternSize" value="15 cm"></div><div class="field"><label>Estilo</label><input id="patternStyle" value="Tierno y clásico"></div><button class="primary" id="generateBtn">Generar patrón</button></div></div></article>
-  <article class="card module m3" id="validate"><h3>3. Validador de patrones</h3><div class="module-body"><b style="font-size:10px">✨ Validación de conteos</b><table class="table" style="margin-top:8px"><thead><tr><th>Vuelta</th><th>Instrucciones</th><th>Conteo</th><th>Estado</th></tr></thead><tbody id="validationRows"><tr><td>1</td><td>6 pb</td><td>6</td><td class="okmark">✓</td></tr><tr><td>2</td><td>6 aum</td><td>12</td><td class="okmark">✓</td></tr><tr><td>3</td><td>(1 pb, 1 aum)×6</td><td>18</td><td class="okmark">✓</td></tr><tr><td>4</td><td>18 pb</td><td>18</td><td class="okmark">✓</td></tr></tbody></table><button class="primary" style="margin-top:8px" id="validateBtn">Validar mi patrón</button></div></article>
+  <article class="card module m3" id="validate"><h3>3. Validador de patrones</h3><div class="module-body"><b style="font-size:10px">✨ Comprueba los conteos por vuelta</b><label for="patternToValidate" class="small" style="display:block;margin:7px 0 4px">Pega una vuelta por línea. Ej.: 1: 6 pb (6)</label><textarea id="patternToValidate" rows="4" style="width:100%;resize:vertical;border:1px solid var(--line);border-radius:8px;padding:8px;font:12px Nunito, sans-serif" placeholder="1: 6 pb (6)&#10;2: 6 aum (12)&#10;3: (1 pb, 1 aum) x6 (18)"></textarea><button class="primary" style="margin-top:8px" id="validateBtn">Validar mi patrón</button><div id="validationResult" aria-live="polite" class="small" style="margin-top:8px">El resultado se calculará a partir del texto que pegues.</div></div></article>
   <article class="card module m4" id="diagram"><h3>4. Diagramas</h3><div class="module-body"><div class="diagram"><b style="font-size:10px">Diagrama SVG · Vuelta 3</b><div style="font-size:58px;margin:12px">◌</div><div class="small">○ pb · △ aum · ▽ dis · • pr</div></div><button class="primary" style="margin-top:8px" id="diagramBtn">Descargar diagrama</button></div></article>
   <article class="card module m5" id="diagnosis"><h3>5. Diagnóstico por foto</h3><div class="module-body"><div class="photo" id="photoPreview"></div><p><b>Problema detectado:</b> la IA analizará tu foto y señalará dónde, por qué y cómo corregirlo.</p><button class="primary" id="photoBtn">📷 Analizar foto</button><input id="photoInput" type="file" accept="image/*" hidden></div></article>
 </section>
@@ -162,28 +269,32 @@ main{min-width:0}.topbar{background:#0b1020dd;border-color:var(--line);backdrop-
 <div class="modal" id="modal"><div class="modal-box"><div class="modal-head"><h2 id="modalTitle">PuntIA</h2><button class="close" id="modalClose">×</button></div><div id="modalBody"></div></div></div><div class="toast" id="toast"></div>
 <script>
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const escapeHtml=value=>String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 const toast=t=>{const e=$('#toast');e.textContent=t;e.style.display='block';clearTimeout(window.__t);window.__t=setTimeout(()=>e.style.display='none',2600)};
 function modal(title,html){$('#modalTitle').textContent=title;$('#modalBody').innerHTML=html;openModal()}; const closeModal=()=>{const m=$('#modal');m.classList.remove('show');m.style.display='none'};const openModal=()=>{const m=$('#modal');m.style.removeProperty('display');m.classList.add('show')};$('#modalClose').onclick=closeModal;$('#modal').onclick=e=>{if(e.target===$('#modal'))closeModal()};document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});window.addEventListener('pageshow',()=>{const m=$('#modal');if(m&&!m.classList.contains('show'))m.style.display='none'});
 const scrollToId=id=>document.getElementById(id)?.scrollIntoView({behavior:'smooth',block:'start'});
 $$('[data-section]').forEach(b=>b.onclick=()=>{scrollToId(b.dataset.section);$('#drawer').classList.remove('open');$$('[data-section]').forEach(x=>x.classList.remove('active'));b.classList.add('active')});
 $$('[data-action]').forEach(b=>b.onclick=()=>scrollToId(b.dataset.action));
 $('#menuBtn').onclick=()=>$('#drawer').classList.add('open');$('#drawer').onclick=e=>{if(e.target===$('#drawer'))$('#drawer').classList.remove('open')};
-$('#drawerNav').innerHTML=$$('#desktopNav button').map(b=>`<button data-section="${b.dataset.section}">${b.textContent}</button>`).join('');$$('#drawerNav button').forEach(b=>b.onclick=()=>{scrollToId(b.dataset.section);$('#drawer').classList.remove('open')});
+$('#drawerNav').innerHTML='<nav class="nav">'+$('#desktopNav').innerHTML+'</nav>';$$('#drawerNav button').forEach(b=>b.onclick=()=>{scrollToId(b.dataset.section);$('#drawer').classList.remove('open')});
 $('#themeBtn').onclick=()=>{document.body.classList.toggle('dark');toast('Tema alternado')};$('#notifyBtn').onclick=()=>toast('No hay notificaciones nuevas');
-async function health(){const set=(id,value)=>{const el=document.getElementById(id);if(el)el.textContent=value};try{const r=await fetch('/api/health',{cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);const data=await r.json();set('serverStatus','En línea');set('textModelStatus',data.model||'No indicado');set('visionModelStatus',data.vision||'No indicado');set('aiConfigStatus',data.ai?'API de IA configurada':'Falta OPENAI_API_KEY en el servidor');set('visionStatus',data.ai?'Configurada; requiere prueba funcional':'No disponible: falta clave de IA');const canSpeak='speechSynthesis'in window;const canListen=('SpeechRecognition'in window)||('webkitSpeechRecognition'in window);set('voiceSystemStatus',canSpeak?(canListen?'Entrada y salida del navegador':'Salida del navegador; entrada no compatible'):'Voz no compatible con este navegador');}catch(e){set('serverStatus','Sin conexión');set('textModelStatus','No disponible');set('visionModelStatus','No disponible');set('aiConfigStatus','No se pudo consultar el servidor');set('visionStatus','Sin conexión');set('voiceSystemStatus',('speechSynthesis'in window)?'Salida del navegador':'No compatible');}} health();
-function addMsg(text,who='bot'){const d=document.createElement('div');d.className='chat-msg '+(who==='user'?'user':'');d.textContent=text;$('#chatLog').appendChild(d);$('#chatLog').scrollTop=99999}
-async function ask(text){if(!text)return;const mascot=$('#puntiaMascot');mascot?.classList.remove('is-listening');mascot?.classList.add('is-speaking');addMsg(text,'user');addMsg('PuntIA está pensando…');try{const r=await fetch('/api/puntia/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text})});const j=await r.json();$('#chatLog').lastElementChild.textContent=j.reply||j.error||'No recibí respuesta.'}catch{$('#chatLog').lastElementChild.textContent='No pude conectar con el servidor. La interfaz sigue funcionando, pero falta revisar el backend.'}finally{mascot?.classList.remove('is-speaking')}}
+let latestHealth=null;async function health(){const set=(id,label,ok)=>{const el=$('#'+id);if(el)el.textContent=label;const node=$('#'+id.replace('Status','Label'));if(node)node.textContent=(ok===true?'🟢 ':ok===false?'🔴 ':'⚪ ')+node.textContent.replace(/^[🟢🔴⚪]\s*/, '')};const setModel=(id,name)=>{const el=$('#'+id);if(!el)return;el.textContent=name?name+' · configurado':'No indicado';el.className=name?'status-dot':''};try{const r=await fetch('/api/health',{cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);const status=await r.json();latestHealth=status;set('serverStatus','En línea',true);setModel('textModelStatus',status.model);setModel('visionModelStatus',status.vision);set('aiConfigStatus',status.ai?'Clave presente; llamadas reales aún no probadas':'Falta OPENAI_API_KEY en el servidor',status.ai);set('visionStatus',status.ai?'Clave configurada; llamada no probada':'Falta clave de IA',Boolean(status.ai));set('dataStatus','Archivo local; escritura no probada',null);const voiceSupported=('SpeechRecognition'in window)||('webkitSpeechRecognition'in window);set('voiceStatus',voiceSupported?'Entrada por navegador':'Entrada no compatible',voiceSupported)}catch{latestHealth=null;set('serverStatus','Sin conexión',false);setModel('textModelStatus',null);setModel('visionModelStatus',null);set('aiConfigStatus','No se pudo consultar el servidor',null);set('visionStatus','No verificado',null);set('dataStatus','No verificado',null);set('voiceStatus','No verificado',null)}}health();
+function formatAssistantText(value){const safe=escapeHtml(value);const blocks=safe.split(/\n{2,}/).map(block=>{let s=block.trim();if(!s)return '';if(/^#{1,3}\s/.test(s)){const m=s.match(/^(#{1,3})\s+(.+)$/);return '<h4>'+m[2]+'</h4>'}if(/^(?:[-*]\s|\d+[.)]\s)/m.test(s)){const lines=s.split('\n');const ordered=/^\d+[.)]\s/.test(lines[0]);const items=lines.map(line=>line.replace(/^(?:[-*]|\d+[.)])\s+/, '').trim()).filter(Boolean);return '<'+(ordered?'ol':'ul')+'>'+items.map(item=>'<li>'+item+'</li>').join('')+'</'+(ordered?'ol':'ul')+'>'}return '<p>'+s.replace(/\n/g,'<br>').replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\*(.+?)\*/g,'<em>$1</em>').replace(/`([^`]+)`/g,'<code>$1</code>')+'</p>'});return blocks.join('')}function addMsg(text,who='bot'){const d=document.createElement('div');d.className='chat-msg '+(who==='user'?'user':'');if(who==='user')d.textContent=text;else d.innerHTML=formatAssistantText(text);$('#chatLog').appendChild(d);$('#chatLog').scrollTop=99999}
+function getPuntiaSessionId(){let id=localStorage.getItem('puntia_session_id');if(!id){id=crypto.randomUUID?crypto.randomUUID():Array.from(crypto.getRandomValues(new Uint8Array(24)),b=>b.toString(16).padStart(2,'0')).join('');localStorage.setItem('puntia_session_id',id)}return id}
+async function ask(text){if(!text)return;const mascot=$('#puntiaMascot');mascot?.classList.remove('is-listening');mascot?.classList.add('is-speaking');addMsg(text,'user');addMsg('PuntIA está pensando…');try{const r=await fetch('/api/puntia/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,userId:getPuntiaSessionId()})});const j=await r.json();$('#chatLog').lastElementChild.innerHTML=formatAssistantText(j.reply||j.error||'No recibí respuesta.')}catch{$('#chatLog').lastElementChild.textContent='No pude conectar con el servidor. La interfaz sigue funcionando, pero falta revisar el backend.'}finally{mascot?.classList.remove('is-speaking')}}
 $('#chatSend').onclick=()=>{const v=$('#chatInput').value.trim();$('#chatInput').value='';ask(v)};$('#chatInput').onkeydown=e=>{if(e.key==='Enter')$('#chatSend').click()};$('#heroSend').onclick=()=>{const v=$('#heroInput').value.trim();$('#heroInput').value='';scrollToId('chat');ask(v)};$('#search').onkeydown=e=>{if(e.key==='Enter'){const v=e.target.value.trim();e.target.value='';scrollToId('chat');ask(v)}};
-async function generate(){const name=$('#patternName').value.trim(), level=$('#patternLevel').value,size=$('#patternSize').value,style=$('#patternStyle').value;$('#generateBtn').disabled=true;$('#generateBtn').textContent='Generando…';try{const r=await fetch('/api/puntia/generate-pattern',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,level,height:size,style})});const j=await r.json();modal('Patrón generado',`<p>${(j.pattern||j.reply||j.error||'Sin respuesta').replace(/\n/g,'<br>')}</p><button class="primary" id="usePattern">Guardar en proyecto</button>`);$('#usePattern').onclick=()=>{saveProject(name);$('#modal').classList.remove('show')};}catch(e){modal('Patrón local',`<p>Preparé una propuesta local para <b>${name}</b> de ${size}.</p><pre style="white-space:pre-wrap;font-size:11px">1: 6 pb en AM (6)\n2: 6 aum (12)\n3: (1 pb, 1 aum) x6 (18)\n4-6: 18 pb\n7: (1 pb, 1 dis) x6 (12)\nRellenar y cerrar.</pre>`)}finally{$('#generateBtn').disabled=false;$('#generateBtn').textContent='Generar patrón'}}
+async function generate(){const name=$('#patternName').value.trim(), level=$('#patternLevel').value,size=$('#patternSize').value,style=$('#patternStyle').value;$('#generateBtn').disabled=true;$('#generateBtn').textContent='Generando…';try{const r=await fetch('/api/puntia/generate-pattern',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,level,height:size,style})});const j=await r.json();modal('Patrón generado',`<div class="formatted-answer">${formatAssistantText(j.pattern||j.reply||j.error||'Sin respuesta')}</div><button class="primary" id="usePattern">Guardar en proyecto</button>`);$('#usePattern').onclick=()=>{saveProject(name);$('#modal').classList.remove('show')};}catch(e){modal('No se pudo generar el patrón','<p>No pude conectar con el servidor. No se generó ningún patrón. Comprueba tu conexión e inténtalo de nuevo.</p>')}finally{$('#generateBtn').disabled=false;$('#generateBtn').textContent='Generar patrón'}}
 $('#generateBtn').onclick=generate;
-$('#validateBtn').onclick=()=>{modal('Validador de patrones',`<p>✓ Conteos básicos consistentes.</p><table class="table"><tr><th>Vuelta</th><th>Resultado</th></tr><tr><td>1</td><td>6 ✓</td></tr><tr><td>2</td><td>12 ✓</td></tr><tr><td>3</td><td>18 ✓</td></tr><tr><td>4</td><td>18 ✓</td></tr></table>`)};
+function countCrochetOutputs(text){let total=0,matched=0;const tokenRe=/(\d+)\s*(pb|puntos? bajos?|aum|aumentos?|dis|minuciones?|pr|puntos? rasos?)/gi;let m;while((m=tokenRe.exec(text))){const n=Number(m[1]);if(!Number.isSafeInteger(n)||n<1)continue;const op=m[2].toLowerCase();total+=/^(?:aum|aumentos?)$/.test(op)?n*2:/^(?:dis|minuciones?)$/.test(op)?n:n;matched++}return matched?{total,matched}:null}
+function validateCrochetPattern(raw){const lines=String(raw||'').split(/\r?\n/).map(line=>line.trim()).filter(Boolean);if(!lines.length)return {error:'Pega al menos una vuelta para validar.'};const rows=[];for(let index=0;index<lines.length;index++){const original=lines[index];let line=original.replace(/^\s*(?:vuelta\s*)?\d+\s*[:.)-]\s*/i,'').trim();const expectedMatch=line.match(/\(\s*(\d+)\s*\)\s*$/);const expected=expectedMatch?Number(expectedMatch[1]):null;if(expectedMatch)line=line.slice(0,expectedMatch.index).trim();let computed=0,matched=0;const groupRe=/\(([^()]*)\)\s*[x×]\s*(\d+)/i;const group=line.match(groupRe);if(group){const inner=countCrochetOutputs(group[1]);if(inner){computed+=inner.total*Number(group[2]);matched+=inner.matched}line=line.replace(group[0],' ')}const rest=countCrochetOutputs(line);if(rest){computed+=rest.total;matched+=rest.matched}if(!matched){rows.push({round:index+1,instructions:original,expected,computed:null,status:'unsupported'});continue}rows.push({round:index+1,instructions:original,expected,computed,status:expected===null?'calculated':computed===expected?'ok':'mismatch'})}return {rows,valid:rows.every(r=>r.status==='ok'||r.status==='calculated')&&rows.some(r=>r.status==='ok'),unsupported:rows.some(r=>r.status==='unsupported'),mismatch:rows.some(r=>r.status==='mismatch')}}
+$('#validateBtn').onclick=()=>{const result=validateCrochetPattern($('#patternToValidate').value);if(result.error){$('#validationResult').textContent=result.error;return}const rows=result.rows.map(r=>'<tr><td>'+r.round+'</td><td>'+escapeHtml(r.instructions)+'</td><td>'+(r.computed===null?'No calculable':r.computed)+(r.expected===null?'':' / esperado '+r.expected)+'</td><td>'+({ok:'✓ Coincide',mismatch:'⚠ No coincide',unsupported:'? No reconocido',calculated:'Calculado; sin total declarado'}[r.status])+'</td></tr>').join('');modal('Resultado de validación','<p>Esta comprobación calcula conteos simples y grupos del tipo (1 pb, 1 aum) x6. No certifica que el patrón completo sea correcto.</p><table class="table"><thead><tr><th>Vuelta</th><th>Instrucciones</th><th>Conteo</th><th>Estado</th></tr></thead><tbody>'+rows+'</tbody></table>');$('#validationResult').textContent=result.mismatch?'Se encontraron diferencias en los conteos.':result.unsupported?'Hay instrucciones que no pude interpretar; revísalas manualmente.':'Revisión calculada. Comprueba también la construcción y las instrucciones.'};
 $('#diagramBtn').onclick=()=>modal('Diagrama SVG',`<div class="diagram" style="font-size:70px">◌</div><p>Vuelta 3: (1 pb, 1 aum) ×6 = 18 puntos.</p><button class="primary" onclick="window.print()">Imprimir diagrama</button>`);
-$('#photoBtn').onclick=()=>$('#photoInput').click();$('#photoInput').onchange=async e=>{const f=e.target.files[0];if(!f)return;const url=URL.createObjectURL(f);$('#photoPreview').style.backgroundImage=`url(${url})` ;$('#photoPreview').style.backgroundSize='cover';$('#photoPreview').style.backgroundPosition='center';modal('Diagnóstico visual',`<img class="diag-preview" src="${url}"><div class="drop">Analizando la pieza…</div>`);const fd=new FormData();fd.append('image',f);try{const r=await fetch('/api/puntia/diagnose',{method:'POST',body:fd});const j=await r.json();$('#modalBody').innerHTML=`<img class="diag-preview" src="${url}"><p>${(j.analysis||j.reply||j.error||'No hubo resultado').replace(/\n/g,'<br>')}</p>`}catch{$('#modalBody').innerHTML=`<img class="diag-preview" src="${url}"><p>La foto se cargó correctamente. El servidor no devolvió un análisis todavía.</p>`}};
-let projects=JSON.parse(localStorage.getItem('puntia_projects')||'[]');const defaults=[['Osito amigurumi','🧸','En progreso','60%'],['Bolsa primavera','👜','En pausa','42%'],['Chal tejido','🧶','Completado','100%'],['Manta bebé','🧵','En progreso','60%']];function renderProjects(){const all=[...projects.map(x=>[x,'🧶','Nuevo','15%']),...defaults];$('#projectsList').innerHTML=all.slice(0,4).map(p=>`<div class="project"><div class="thumb">${p[1]}</div><div style="flex:1"><b>${p[0]}</b><small>${p[2]}</small><div class="bar"><span style="width:${p[3]}"></span></div></div><span>⋮</span></div>`).join('')};renderProjects();function saveProject(name=$('#patternName').value){projects.unshift(name);localStorage.setItem('puntia_projects',JSON.stringify(projects.slice(0,10)));renderProjects();toast('Proyecto guardado')};$('#saveProject').onclick=()=>saveProject();$('#newProject').onclick=()=>{const n=prompt('Nombre del proyecto');if(n)saveProject(n)};
+$('#photoBtn').onclick=()=>$('#photoInput').click();$('#photoInput').onchange=async e=>{const f=e.target.files[0];if(!f)return;const url=URL.createObjectURL(f);$('#photoPreview').style.backgroundImage=`url(${url})` ;$('#photoPreview').style.backgroundSize='cover';$('#photoPreview').style.backgroundPosition='center';modal('Diagnóstico visual',`<img class="diag-preview" src="${url}"><div class="drop">Analizando la pieza…</div>`);const fd=new FormData();fd.append('image',f);try{const r=await fetch('/api/puntia/diagnose',{method:'POST',body:fd});const j=await r.json();$('#modalBody').innerHTML=`<img class="diag-preview" src="${url}"><div class="formatted-answer">${formatAssistantText(j.analysis||j.reply||j.error||'No hubo resultado')}</div>`}catch{$('#modalBody').innerHTML=`<img class="diag-preview" src="${url}"><p>La foto se cargó correctamente. El servidor no devolvió un análisis todavía.</p>`}};
+let projects=JSON.parse(localStorage.getItem('puntia_projects')||'[]');const defaults=[['Osito amigurumi','🧸','En progreso','60%'],['Bolsa primavera','👜','En pausa','42%'],['Chal tejido','🧶','Completado','100%'],['Manta bebé','🧵','En progreso','60%']];function renderProjects(){const all=[...projects.map(x=>[x,'🧶','Nuevo','15%']),...defaults];$('#projectsList').innerHTML=all.slice(0,4).map(p=>`<div class="project"><div class="thumb">${p[1]}</div><div style="flex:1"><b>${escapeHtml(p[0])}</b><small>${p[2]}</small><div class="bar"><span style="width:${p[3]}"></span></div></div><span>⋮</span></div>`).join('')};renderProjects();function saveProject(name=$('#patternName').value){projects.unshift(name);localStorage.setItem('puntia_projects',JSON.stringify(projects.slice(0,10)));renderProjects();toast('Proyecto guardado')};$('#saveProject').onclick=()=>saveProject();$('#newProject').onclick=()=>{const n=prompt('Nombre del proyecto');if(n)saveProject(n)};
 $('#pdfBtn').onclick=()=>{modal('PDF profesional',`<p>Se abrirá la impresión del navegador para guardar el patrón como PDF.</p><button class="primary" onclick="window.print()">Abrir impresión</button>`)};
 $('#teacherBtn').onclick=()=>toast('Paso 2: ahora aprende el siguiente punto');
 let recognition;if('SpeechRecognition'in window||'webkitSpeechRecognition'in window){const SR=window.SpeechRecognition||window.webkitSpeechRecognition;recognition=new SR();recognition.lang='es-MX';recognition.onstart=()=>$('#voiceStatus').textContent='Escuchando…';recognition.onend=()=>$('#voiceStatus').textContent='Listo';recognition.onresult=e=>{const t=e.results[0][0].transcript;$('#voiceText').textContent=t;ask(t)};$('#voiceBtn').onclick=()=>recognition.start();$('#micHero').onclick=()=>recognition.start()}else{$('#voiceBtn').onclick=()=>toast('Este navegador no permite reconocimiento de voz')};
-$('#modelBtn').onclick=()=>modal('Modelos',`<p><b>GPT-6 Luna</b> — recomendado para PuntIA.</p><p>GPT-4o — disponible para análisis visual.</p><p>La clave permanece en el servidor.</p>`);
+$('#modelBtn').onclick=()=>{const data=latestHealth||{};const textModel=escapeHtml(String(data.model||'No disponible'));const visionModel=escapeHtml(String(data.vision||'No disponible'));const aiStatus=data.ok?(data.ai?'La clave está configurada; las llamadas reales aún no están verificadas.':'Falta la clave de IA en el servidor.'):'No se pudo consultar /api/health.';modal('Estado de modelos',`<p><b>Modelo de texto configurado:</b> ${textModel}</p><p><b>Modelo de visión configurado:</b> ${visionModel}</p><p>${escapeHtml(aiStatus)}</p><p>Este panel es informativo y no cambia el modelo activo. La clave permanece en el servidor.</p>`)};
 
 /* Tutorial didáctico interactivo */
 const crochetLessons=[
@@ -196,18 +307,127 @@ const crochetLessons=[
 ];
 let lessonIndex=0;
 function stitchSvg(step){const loops=step===0?1:step===1?1:step===2?2:step===3?2:step===4?1:0;const loopEls=Array.from({length:loops},(_,i)=>'<ellipse class="yarn" cx="'+(112+i*34)+'" cy="'+(68+(i%2)*3)+'" rx="12" ry="25"/><ellipse class="yarn-hi" cx="'+(108+i*34)+'" cy="68" rx="5" ry="18"/>').join('');const caption=['Hilo preparado','Busca el punto','Dos bucles en el gancho','Pasa por los primeros dos','Queda un bucle','Punto alto completo'][step];return '<svg class="stitch-visual" viewBox="0 0 290 170" role="img" aria-label="'+caption+'"><defs><linearGradient id="metal" x1="0" x2="1"><stop stop-color="#8b9bb5"/><stop offset=".5" stop-color="#fff"/><stop offset="1" stop-color="#8798b4"/></linearGradient></defs><path class="yarn" d="M25 132 C40 116 53 145 67 128 S92 112 105 130 S130 145 145 126 S169 112 185 130 S211 144 225 126 S249 116 265 130"/><path class="yarn-hi" d="M25 132 C40 116 53 145 67 128 S92 112 105 130 S130 145 145 126 S169 112 185 130 S211 144 225 126 S249 116 265 130"/><path class="yarn" d="M74 130 C70 102 78 88 92 88 C105 88 105 111 119 111 C134 111 131 82 145 82 C160 82 158 111 173 111 C186 111 186 91 199 92 C212 94 211 112 209 129"/><path class="yarn-hi" d="M74 130 C70 102 78 88 92 88 C105 88 105 111 119 111 C134 111 131 82 145 82 C160 82 158 111 173 111 C186 111 186 91 199 92 C212 94 211 112 209 129"/>'+loopEls+'<path class="hook-metal" d="M58 33 L170 53 Q188 57 178 73 Q170 83 159 72"/><path class="hook-shine" d="M61 29 L170 49"/><path class="yarn" d="M244 18 C224 25 211 39 194 49 C183 55 175 58 164 58"/><path class="yarn-hi" d="M244 18 C224 25 211 39 194 49 C183 55 175 58 164 58"/><path class="guide" d="'+(step===0?'M210 25 Q185 35 165 54':step===1?'M175 68 L175 105':step===2?'M154 42 Q141 55 132 74':step===3?'M178 52 Q171 64 163 78':step===4?'M173 52 Q163 66 153 78':'M225 54 Q244 74 231 91')+'"/><circle class="number" cx="25" cy="26" r="14"/><text x="25" y="30" text-anchor="middle" class="label">'+(step+1)+'</text><text x="145" y="160" text-anchor="middle" class="label">'+caption+'</text></svg>'}
-function renderLesson(){const l=crochetLessons[lessonIndex];$('.lesson-jump-btn').forEach((b,i)=>{b.setAttribute('aria-current',i===lessonIndex?'step':'false')});$('#lessonCount').textContent='PASO '+(lessonIndex+1)+' DE '+crochetLessons.length;$('#lessonTitle').textContent=(lessonIndex+1)+'. '+l.title;$('#lessonDescription').textContent=l.desc;$('#lessonTip').textContent=l.tip;$('#lessonCaption').textContent=l.caption;$('.lesson-art').insertAdjacentHTML('afterbegin',stitchSvg(lessonIndex));const oldSvgs=$('.lesson-art .stitch-visual');oldSvgs.slice(0,-1).forEach(x=>x.remove());$('#lessonProgress').style.width=((lessonIndex+1)/crochetLessons.length*100)+'%';$('#lessonPrev').disabled=lessonIndex===0;$('#lessonNext').textContent=lessonIndex===crochetLessons.length-1?'Repetir tutorial ↻':'Siguiente paso →';$('#lessonFeedback').textContent='';}
-$('.lesson-jump-btn').forEach(b=>b.onclick=()=>{lessonIndex=Number(b.dataset.lesson);renderLesson()});$('#lessonPrev').onclick=()=>{if(lessonIndex>0){lessonIndex--;renderLesson()}};
+function renderLesson(){const l=crochetLessons[lessonIndex];$$('.lesson-jump-btn').forEach((b,i)=>{b.setAttribute('aria-current',i===lessonIndex?'step':'false')});$('#lessonCount').textContent='PASO '+(lessonIndex+1)+' DE '+crochetLessons.length;$('#lessonTitle').textContent=(lessonIndex+1)+'. '+l.title;$('#lessonDescription').textContent=l.desc;$('#lessonTip').textContent=l.tip;$('#lessonCaption').textContent=l.caption;$('.lesson-art').insertAdjacentHTML('afterbegin',stitchSvg(lessonIndex));const oldSvgs=$$('.lesson-art .stitch-visual');oldSvgs.slice(0,-1).forEach(x=>x.remove());$('#lessonProgress').style.width=((lessonIndex+1)/crochetLessons.length*100)+'%';$('#lessonPrev').disabled=lessonIndex===0;$('#lessonNext').textContent=lessonIndex===crochetLessons.length-1?'Repetir tutorial ↻':'Siguiente paso →';$('#lessonFeedback').textContent='';}
+$$('.lesson-jump-btn').forEach(b=>b.onclick=()=>{lessonIndex=Number(b.dataset.lesson);renderLesson()});$('#lessonPrev').onclick=()=>{if(lessonIndex>0){lessonIndex--;renderLesson()}};
 $('#lessonNext').onclick=()=>{if(lessonIndex<crochetLessons.length-1){lessonIndex++;renderLesson()}else{lessonIndex=0;renderLesson();$('#lessonFeedback').textContent='¡Empezamos de nuevo! Practica a tu ritmo.'}};
 $('#lessonRepeat').onclick=()=>{renderLesson();const line='Paso '+(lessonIndex+1)+'. '+crochetLessons[lessonIndex].title+'. '+crochetLessons[lessonIndex].desc;$('#lessonFeedback').textContent='PuntIA repite: '+crochetLessons[lessonIndex].desc;if('speechSynthesis'in window){window.speechSynthesis.cancel();const utterance=new SpeechSynthesisUtterance(line);utterance.lang='es-MX';utterance.rate=.9;window.speechSynthesis.speak(utterance)}};
-$('[data-action="teacher"]').forEach(b=>b.onclick=()=>{scrollToId('tutorial');$('#lessonFeedback').textContent='Aquí tienes la explicación paso a paso.'});
+$$('[data-action="teacher"]').forEach(b=>b.onclick=()=>{scrollToId('tutorial');$('#lessonFeedback').textContent='Aquí tienes la explicación paso a paso.'});
 renderLesson();
 /* Interacción de la mascota y control de movimiento */
 const mascot=$('#puntiaMascot'),motionToggle=$('#motionToggle');
 function mascotGreeting(){if(!mascot)return;mascot.classList.remove('is-listening');mascot.classList.add('is-speaking');const speech=$('.speech');if(speech){speech.querySelector('strong').textContent='¡Hola, te escucho!';speech.querySelector('p').innerHTML='Soy <b>PuntIA</b>. Pregúntame por un punto o elige un tutorial para aprender conmigo.'}setTimeout(()=>mascot.classList.remove('is-speaking'),1500)}
 mascot?.addEventListener('click',mascotGreeting);mascot?.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();mascotGreeting()}});
-motionToggle?.addEventListener('click',()=>{const paused=document.body.classList.toggle('motion-paused');motionToggle.setAttribute('aria-pressed',String(paused));motionToggle.textContent=paused?'▶ Reanudar movimiento':'⏸ Pausar movimiento'});
+motionToggle?.addEventListener('click',()=>{const paused=document.body.classList.toggle('motion-paused');motionToggle.setAttribute('aria-pressed',String(paused));motionToggle.textContent=paused?'▶ Reanudar movimiento':'⏸ Pausar movimiento';window.PuntIAAvatar?.setMotion(!paused)});
 const heroInput=$('#heroInput');heroInput?.addEventListener('focus',()=>{mascot?.classList.add('is-listening')});heroInput?.addEventListener('blur',()=>mascot?.classList.remove('is-listening'));
 </script>
-<script type="module" src="/puntia-virtual.js"></script>
+
+<script>
+/* Cargar la ilustración original optimizada; el SVG queda como fallback si falla la carga. */
+(async function loadPuntiaOriginalMascot(){
+  const img=document.querySelector('.reference-mascot');
+  if(!img)return;
+  try{
+    const response=await fetch('/puntia-mascota-original.webp.b64',{cache:'force-cache'});
+    if(!response.ok)throw new Error('HTTP '+response.status);
+    const encoded=(await response.text()).trim();
+    const binary=atob(encoded);
+    const bytes=new Uint8Array(binary.length);
+    for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);
+    const objectUrl=URL.createObjectURL(new Blob([bytes],{type:'image/webp'}));
+    const probe=new Image();
+    probe.onload=()=>{img.src=objectUrl;img.parentElement?.classList.add('uses-reference-art');};
+    probe.onerror=()=>URL.revokeObjectURL(objectUrl);
+    probe.src=objectUrl;
+  }catch(error){
+    console.warn('Se conserva la mascota SVG de respaldo.',error);
+  }
+})();
+</script>
+
+
+<style id="puntia-mobile-touch-hotfix">
+/* Hotfix móvil: elimina capas transparentes que interceptan los toques y amplía los objetivos táctiles. */
+@media (max-width: 780px) {
+  html { scroll-padding-top: 76px; }
+  body { -webkit-tap-highlight-color: transparent; }
+  main { position: relative; z-index: 1; padding-bottom: calc(112px + env(safe-area-inset-bottom)) !important; }
+  .topbar { z-index: 25 !important; }
+  .bottom-nav {
+    z-index: 60 !important;
+    height: auto !important;
+    min-height: 76px;
+    padding: 8px 4px calc(8px + env(safe-area-inset-bottom));
+    touch-action: manipulation;
+  }
+  .bottom-nav button {
+    min-width: 0; min-height: 54px; flex: 1 1 0;
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    gap: 3px; padding: 6px 2px; font-size: 11px !important;
+    line-height: 1.2; position: relative; z-index: 61;
+    pointer-events: auto; touch-action: manipulation;
+  }
+  .drawer { z-index: 90 !important; }
+  .drawer.open { display: block !important; pointer-events: auto !important; }
+  .drawer-panel { position: relative; z-index: 91; pointer-events: auto; }
+  .drawer button, button, [role="button"] { touch-action: manipulation; }
+  .modal.show { z-index: 100 !important; pointer-events: auto !important; }
+  .modal.show .modal-box, .modal.show button { pointer-events: auto !important; }
+  .hero-bg, .hero-person .reference-mascot { pointer-events: none !important; }
+}
+</style>
+<script id="puntia-mobile-interaction-hotfix">
+(() => {
+  if (window.__puntiaTouchHotfixInstalled) return;
+  window.__puntiaTouchHotfixInstalled = true;
+  const byId = id => document.getElementById(id);
+  const scrollToSection = id => {
+    const target = byId(id);
+    if (target) target.scrollIntoView({ behavior: 'auto', block: 'start' });
+  };
+  // Delegación en captura: mantiene navegables los controles aunque algún componente
+  // vuelva a renderizar sus botones después de cargar la página.
+  document.addEventListener('click', event => {
+    const button = event.target.closest('button, [role="button"]');
+    if (!button) return;
+    if (button.matches('[data-section]')) {
+      const id = button.dataset.section;
+      if (byId(id)) {
+        event.preventDefault();
+        scrollToSection(id);
+        document.querySelectorAll('[data-section]').forEach(item => {
+          item.classList.toggle('active', item.dataset.section === id);
+        });
+        byId('drawer')?.classList.remove('open');
+      }
+      return;
+    }
+    if (button.id === 'menuBtn') {
+      event.preventDefault();
+      byId('drawer')?.classList.add('open');
+      return;
+    }
+    if (button.id === 'modalClose') {
+      event.preventDefault();
+      const modal = byId('modal');
+      modal?.classList.remove('show');
+      if (modal) modal.style.display = 'none';
+      return;
+    }
+  }, true);
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape') byId('drawer')?.classList.remove('open');
+  });
+  // En Android, volver desde bfcache no debe dejar un modal transparente bloqueando la pantalla.
+  window.addEventListener('pageshow', () => {
+    const modal = byId('modal');
+    if (modal && !modal.classList.contains('show')) modal.style.display = 'none';
+    byId('drawer')?.classList.remove('open');
+  });
+})();
+</script>
+
+
+
+
+<script type="module" src="/puntia-virtual.js?v=3d-original"></script>
 </body></html>
