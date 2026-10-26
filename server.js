@@ -7,7 +7,7 @@ const upload=multer({storage:multer.memoryStorage(),limits:{fileSize:8*1024*1024
 app.use(express.json({limit:'2mb'}));
 app.use(express.static(path.join(__dirname,'public')));
 const client=process.env.OPENAI_API_KEY?new OpenAI({apiKey:process.env.OPENAI_API_KEY}):null;
-const TEXT_MODEL=process.env.OPENAI_MODEL||'gpt-6-luna';
+const TEXT_MODEL=process.env.OPENAI_MODEL||'gpt-4o-mini';
 const VISION_MODEL=process.env.OPENAI_VISION_MODEL||'gpt-4o';
 const SYSTEM=`Eres PuntIA, asistente experto en crochet y amigurumi. Responde en español claro. Ayuda con patrones, conteos, materiales, técnicas, corrección de errores y enseñanza. No inventes que una foto fue analizada si no la recibiste. Cuando generes patrones, usa abreviaturas comunes (AM, pb, aum, dis), vueltas numeradas y conteos finales.`;
 app.get('/api/health',(req,res)=>res.json({ok:true,ai:Boolean(client),model:TEXT_MODEL,vision:VISION_MODEL}));
