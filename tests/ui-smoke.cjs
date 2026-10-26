@@ -28,7 +28,7 @@ async function waitForServer() {
   let browser;
   try {
     await waitForServer();
-    browser = await chromium.launch({ headless: true });
+    browser = await chromium.launch({ headless: true, args: ['--enable-webgl', '--ignore-gpu-blocklist', '--use-gl=angle', '--use-angle=swiftshader'] });
     const page = await browser.newPage({ viewport: { width: 1440, height: 1000 }, reducedMotion: 'reduce' });
     page.setDefaultTimeout(15000);
 
@@ -57,6 +57,18 @@ async function waitForServer() {
     page.on('pageerror', error => errors.push(error.message));
     await page.goto(baseURL, { waitUntil: 'domcontentloaded' });
     await page.locator('#puntiaMascot').waitFor({ state: 'visible' });
+    // Verify the actual Three.js renderer, not only the fallback illustration.
+    await page.waitForFunction(() => window.PuntIAAvatar?.getRenderStatus?.().lastRenderAt > 0, null, { timeout: 15000 }).catch(async () => {
+      const status = await page.evaluate(() => window.PuntIAAvatar?.getRenderStatus?.() || null);
+      throw new Error('El avatar 3D no completó un render WebGL. Estado: ' + JSON.stringify(status) + '; errores JS=' + errors.join(' | '));
+    });
+    const renderStatus = await page.evaluate(() => window.PuntIAAvatar.getRenderStatus());
+    if (!renderStatus.rendererReady || !renderStatus.canvasConnected || renderStatus.width < 1 || renderStatus.height < 1) {
+      throw new Error('Estado de renderizado 3D inválido: ' + JSON.stringify(renderStatus));
+    }
+    await page.evaluate(() => window.PuntIAAvatar.setEmotion('curious'));
+    if (await page.evaluate(() => window.PuntIAAvatar.getEmotion()) !== 'curious') throw new Error('El cambio de expresión a curiosa no funcionó.');
+    await page.evaluate(() => window.PuntIAAvatar.setEmotion('happy'));
     await page.locator('.reference-mascot').evaluate(img => img.decode());
     await page.waitForFunction(() => document.querySelector('.reference-mascot')?.src.startsWith('blob:'));
     if (!(await page.locator('.reference-mascot').evaluate(img => img.naturalWidth > 0))) {
@@ -94,6 +106,20 @@ async function waitForServer() {
       throw new Error('La memoria y el chat están usando sesiones distintas: chat=' + firstSessionId + ', memoria=' + memorySessionId);
     }
     await page.locator('#puntiaMemoryButton').click();
+
+    // Exercise memory persistence against the real local server: create, read, delete, verify deletion.
+    const memoryTestId = 'test-' + crypto.randomUUID();
+    const savedMemory = await page.request.post(baseURL + '/api/puntia/memory', {
+      data: { userId: memoryTestId, content: 'PuntIA E2E memory persistence check', category: 'test' }
+    });
+    if (savedMemory.status() !== 200 || !(await savedMemory.json()).saved) throw new Error('No se pudo guardar un recuerdo de prueba: HTTP ' + savedMemory.status());
+    const readMemory = await page.request.get(baseURL + '/api/puntia/memory/' + encodeURIComponent(memoryTestId));
+    const memoryItems = (await readMemory.json()).items || [];
+    if (readMemory.status() !== 200 || !memoryItems.some(item => item.content === 'PuntIA E2E memory persistence check')) throw new Error('El recuerdo guardado no se pudo recuperar.');
+    const deletedMemory = await page.request.delete(baseURL + '/api/puntia/memory/' + encodeURIComponent(memoryTestId));
+    if (deletedMemory.status() !== 200 || !(await deletedMemory.json()).deleted) throw new Error('No se pudo borrar el recuerdo de prueba.');
+    const afterDelete = await page.request.get(baseURL + '/api/puntia/memory/' + encodeURIComponent(memoryTestId));
+    if (((await afterDelete.json()).items || []).length !== 0) throw new Error('El recuerdo persistió después de borrarlo.');
 
     // Pattern generation: verify form -> API -> result modal.
     await page.locator('#patternName').fill('Conejito de prueba');
