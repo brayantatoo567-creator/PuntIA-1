@@ -423,5 +423,46 @@ const heroInput=$('#heroInput');heroInput?.addEventListener('focus',()=>{mascot?
 })();
 </script>
 
-<script type="module" src="/puntia-virtual.js"></script>
+
+<style id="puntia-preserve-original-mascot">
+/* Conserva la ilustración original de PuntIA: no la sustituye por un modelo 3D distinto. */
+#puntiaMascot .puntia-3d-canvas { display:none !important; }
+#puntiaMascot .reference-mascot {
+  display:block !important; opacity:1 !important; visibility:visible !important;
+  position:absolute !important; inset:0 !important; width:100% !important; height:100% !important;
+  object-fit:contain !important; object-position:center bottom !important;
+  z-index:9 !important; pointer-events:none !important;
+  transform-origin:center bottom !important;
+}
+#puntiaMascot .hair,#puntiaMascot .face,#puntiaMascot .eye,#puntiaMascot .mouth,
+#puntiaMascot .bow,#puntiaMascot .body,#puntiaMascot .hook,#puntiaMascot .yarn {
+  display:none !important;
+}
+#puntiaMascot.uses-reference-art .reference-mascot {
+  animation: puntiaOriginalFloat 3.6s ease-in-out infinite !important;
+}
+#puntiaMascot.uses-reference-art.is-speaking .reference-mascot {
+  animation: puntiaOriginalTalk .8s ease-in-out infinite !important;
+}
+#puntiaMascot.uses-reference-art.is-listening .reference-mascot {
+  animation: puntiaOriginalListen 1.2s ease-in-out infinite !important;
+}
+@keyframes puntiaOriginalFloat {
+  0%,100% { transform:translateY(0) rotate(-.4deg) }
+  50% { transform:translateY(-8px) rotate(.5deg) }
+}
+@keyframes puntiaOriginalTalk {
+  0%,100% { transform:translateY(0) scale(1) }
+  50% { transform:translateY(-4px) scale(1.012) }
+}
+@keyframes puntiaOriginalListen {
+  0%,100% { transform:translateY(0) rotate(-.5deg) }
+  50% { transform:translateY(-4px) rotate(1.2deg) }
+}
+.motion-paused #puntiaMascot .reference-mascot { animation-play-state:paused !important; }
+@media(prefers-reduced-motion:reduce) {
+  #puntiaMascot .reference-mascot { animation:none !important; }
+}
+</style>
+
 </body></html>
