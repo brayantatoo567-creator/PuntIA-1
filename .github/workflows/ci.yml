@@ -52,7 +52,7 @@ jobs:
             "function renderLesson(){const l=crochetLessons[lessonIndex];$('.lesson-jump-btn').forEach",
             "const oldSvgs=$('.lesson-art .stitch-visual')",
             ";$('[data-action=\\"teacher\\"]').forEach",
-            "$('#drawerNav button').forEach"
+            ";$('#drawerNav button').forEach"
           ];
           for (const selector of invalid) {
             if (html.includes(selector)) throw new Error('Selector de elemento único usado como colección: ' + selector);
