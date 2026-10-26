@@ -28,7 +28,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.m
 
   let renderer, scene, camera, root, face, eyes = [], brows = [], mouth, yarnOrbit, hookGroup;
   let frameId, observer, emotion = 'happy', targetX = 0, targetY = 0;
-  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let motionEnabled = true;
   const clock = new THREE.Clock();
   const animatedParts = {};
   const material = (color, roughness = .8, metalness = 0) => new THREE.MeshStandardMaterial({color, roughness, metalness});
@@ -146,7 +146,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.m
     function animate(){
       frameId=requestAnimationFrame(animate);
       const t=clock.getElapsedTime();
-      if(!reducedMotion){
+      if(motionEnabled){
         root.position.y=Math.sin(t*1.35)*.045;
         root.rotation.y+=(targetX-root.rotation.y)*.035;
         root.rotation.x+=(targetY-root.rotation.x)*.035;
@@ -208,7 +208,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.m
       if(emotion==='surprised'||emotion==='talking') mouth.scale.y=1.15;
     }
   }
-  window.PuntIAAvatar={setEmotion,getEmotion:()=>emotion};
+  window.PuntIAAvatar={setEmotion,getEmotion:()=>emotion,setMotion(enabled){motionEnabled=Boolean(enabled);if(motionEnabled&&!frameId)animate();return motionEnabled},getMotion:()=>motionEnabled};
 
   function getUserId(){
     let id=localStorage.getItem('puntia_user_id');
