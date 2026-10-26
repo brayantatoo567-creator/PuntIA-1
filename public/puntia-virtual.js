@@ -27,7 +27,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.m
   avatar.appendChild(canvas);
 
   let renderer, scene, camera, root, face, eyes = [], brows = [], mouth, yarnOrbit, hookGroup;
-  let frameId, observer, emotion = 'happy', targetX = 0, targetY = 0;
+  let frameId, observer, emotion = 'happy', targetX = 0, targetY = 0, lastRenderAt = 0;
   let motionEnabled = true;
   const clock = new THREE.Clock();
   const animatedParts = {};
@@ -159,7 +159,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.m
         eyes.forEach(e=>{e.group.scale.y=Math.max(.08,1-blink*.94);e.lid.position.y=.20-blink*.16;e.lid.scale.y=.005+blink*.20});
         if(emotion==='surprised'){eyes.forEach(e=>e.group.scale.y=Math.max(.08,1-blink*.94)*1.08)}
       }
-      renderer.render(scene,camera);
+      renderer.render(scene,camera); lastRenderAt=performance.now();
     }
     animate();
     avatar.addEventListener('pointermove',e=>{
@@ -208,7 +208,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.m
       if(emotion==='surprised'||emotion==='talking') mouth.scale.y=1.15;
     }
   }
-  window.PuntIAAvatar={setEmotion,getEmotion:()=>emotion,setMotion(enabled){motionEnabled=Boolean(enabled);if(motionEnabled&&!frameId)animate();return motionEnabled},getMotion:()=>motionEnabled};
+  window.PuntIAAvatar={setEmotion,getEmotion:()=>emotion,getRenderStatus:()=>({rendererReady:Boolean(renderer),canvasConnected:canvas.isConnected,width:canvas.width,height:canvas.height,lastRenderAt}),setMotion(enabled){motionEnabled=Boolean(enabled);if(motionEnabled&&!frameId)animate();return motionEnabled},getMotion:()=>motionEnabled};
 
   // Use the same ID as chat so memory and conversation share one isolated user session.
   function getUserId(){
