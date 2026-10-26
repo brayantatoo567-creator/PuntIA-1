@@ -77,7 +77,7 @@ jobs:
       - name: Instalar Chromium para pruebas de interfaz
         run: |
           npm install --no-save --no-audit --no-fund playwright
-          npx playwright install --with-deps chromium
+          npx playwright install chromium
 
       - name: Pruebas de interfaz en escritorio y móvil
         run: node tests/ui-smoke.cjs
