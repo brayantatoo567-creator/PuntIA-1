@@ -210,9 +210,14 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.m
   }
   window.PuntIAAvatar={setEmotion,getEmotion:()=>emotion,setMotion(enabled){motionEnabled=Boolean(enabled);if(motionEnabled&&!frameId)animate();return motionEnabled},getMotion:()=>motionEnabled};
 
+  // Use the same ID as chat so memory and conversation share one isolated user session.
   function getUserId(){
-    let id=localStorage.getItem('puntia_user_id');
-    if(!id){id='u-'+(crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+'-'+Math.random().toString(36).slice(2));localStorage.setItem('puntia_user_id',id)}
+    let id=localStorage.getItem('puntia_session_id')||localStorage.getItem('puntia_user_id');
+    if(!id){
+      id=crypto.randomUUID?crypto.randomUUID():Array.from(crypto.getRandomValues(new Uint8Array(24)),b=>b.toString(16).padStart(2,'0')).join('');
+    }
+    localStorage.setItem('puntia_session_id',id);
+    localStorage.setItem('puntia_user_id',id);
     return id;
   }
   const originalFetch=window.fetch.bind(window);
