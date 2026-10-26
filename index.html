@@ -225,6 +225,31 @@ main{padding:0 clamp(12px,2vw,28px) 100px;min-width:0;max-width:1700px;width:100
 
 /* Navegación agrupada por tareas */
 .nav-category{padding:13px 12px 4px;font-size:9px;font-weight:900;letter-spacing:1.7px;color:#a5abc1}.nav-category:not(:first-child){margin-top:2px}.drawer .nav-category{color:#a5abc1}
+
+/* Mobile polish: keep motion controls clear of PuntIA's face and reserve room for nav */
+@media(max-width:780px){
+  .hero{min-height:365px!important;padding-bottom:0}
+  .hero-person{top:43%!important;left:70%!important;width:47%!important;height:64%!important}
+  .speech{top:12px!important;left:10px!important;width:51%!important;max-width:51%!important;padding:11px 12px!important}
+  .speech strong{font-size:clamp(15px,4.3vw,18px)!important}
+  .speech p{font-size:clamp(11px,3.1vw,13px)!important}
+  .puntia-motion-toggle{top:auto!important;right:10px!important;bottom:77px!important;max-width:128px!important;width:auto!important;padding:8px 10px!important;font-size:11px!important;line-height:1.25!important;white-space:normal!important}
+  .hero-chat{bottom:9px!important;min-height:60px}
+  .bottom-nav{height:66px!important;padding:4px 2px calc(4px + env(safe-area-inset-bottom))!important}
+  .bottom-nav button{min-width:0!important;white-space:normal;line-height:1.15;padding:4px 1px;font-size:clamp(9px,2.7vw,11px)!important}
+  main{padding-bottom:calc(100px + env(safe-area-inset-bottom))!important}
+  .modules,.lower,.hero-grid>.stack{min-width:0}
+  .card,.module,.hero,.didactic-tutorial{max-width:100%;min-width:0}
+}
+@media(max-width:390px){
+  .hero{min-height:350px!important}
+  .hero-person{top:42%!important;left:71%!important;width:46%!important;height:62%!important}
+  .speech{width:52%!important;max-width:52%!important}
+  .puntia-motion-toggle{bottom:76px!important;max-width:116px!important;font-size:10px!important}
+  .bottom-nav{left:5px!important;right:5px!important;bottom:5px!important}
+}
+@media(prefers-reduced-motion:reduce){.puntia-motion-toggle{transition:none!important}}
+
 </style>
 </head>
 <body>
