@@ -27,8 +27,11 @@ jobs:
           test -f server.js
           test -f public/index.html
           test -f public/puntia-mascota.svg
+          test -f public/puntia-mascota-original.webp.b64
           grep -q 'src="/puntia-mascota.svg"' public/index.html
           grep -q '<link rel="icon" type="image/svg+xml" href="/puntia-mascota.svg">' public/index.html
+          grep -q 'loadPuntiaOriginalMascot' public/index.html
+          grep -q 'reference-mascot' public/index.html
           grep -q 'const escapeHtml=' public/index.html
           grep -q 'escapeHtml(j.pattern' public/index.html
           grep -q 'escapeHtml(j.analysis' public/index.html
@@ -52,6 +55,13 @@ jobs:
           for (const selector of invalid) {
             if (html.includes(selector)) throw new Error('Selector de elemento único usado como colección: ' + selector);
           }
+          const encoded = fs.readFileSync('public/puntia-mascota-original.webp.b64', 'utf8').trim();
+          if (!encoded || !/^[A-Za-z0-9+/]+={0,2}$/.test(encoded)) throw new Error('El recurso de la mascota no es base64 válido');
+          const image = Buffer.from(encoded, 'base64');
+          if (image.length < 1000 || image.toString('ascii', 0, 4) !== 'RIFF' || image.toString('ascii', 8, 12) !== 'WEBP') {
+            throw new Error('El recurso decodificado no tiene una firma WebP válida');
+          }
+          console.log('Mascota WebP validada:', image.length, 'bytes');
           NODE
           node -e "const p=require('./package.json'); if(!p.dependencies?.express || !p.dependencies?.openai || !p.dependencies?.multer) process.exit(1)"
 
@@ -87,6 +97,10 @@ jobs:
           test "$STATUS" = "200"
           grep -q '<svg' /tmp/mascot.svg
 
+          STATUS=$(curl -s -o /tmp/mascot-webp-b64.txt -w '%{http_code}' http://127.0.0.1:8080/puntia-mascota-original.webp.b64)
+          test "$STATUS" = "200"
+          cmp public/puntia-mascota-original.webp.b64 /tmp/mascot-webp-b64.txt
+
           node -e "const h=require('/tmp/health.json'); if(h.ok!==true) process.exit(1); if(typeof h.ai!=='boolean') process.exit(1); console.log('Health endpoint schema OK; AI key configured:',h.ai)"
 
           STATUS=$(curl -s -o /tmp/chat-empty.json -w '%{http_code}' -H 'Content-Type: application/json' -d '{"message":"   "}' http://127.0.0.1:8080/api/puntia/chat)
@@ -102,7 +116,6 @@ jobs:
           STATUS=$(curl -s -o /tmp/diagnose-empty.json -w '%{http_code}' -X POST http://127.0.0.1:8080/api/puntia/diagnose)
           test "$STATUS" = "400"
 
-          LONG_MESSAGE=$(node -e "process.stdout.write('x'.repeat(8001))")
           STATUS=$(curl -s -o /tmp/chat-long.json -w '%{http_code}' -H 'Content-Type: application/json' --data-binary "$(node -e 'process.stdout.write(JSON.stringify({message: "x".repeat(8001)}))')" http://127.0.0.1:8080/api/puntia/chat)
           test "$STATUS" = "413"
 
