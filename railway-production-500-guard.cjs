@@ -45,7 +45,7 @@ function patchProjects() {
   if (!anchor.test(before)) throw new Error('Production patch: project controller anchor not found; refusing unsafe deploy');
   const guard = [
     'const { projects, jobs, usage, pattern } = services;',
-    "  const isProjectCloudPath = /^\\\\/api\\\\/(?:projects|jobs)(?:\\\\/|$)/.test(p);",
+    "  const isProjectCloudPath = /^\\/api\\/(?:projects|jobs)(?:\\/|$)/.test(p);",
     "  const currentOwner = typeof currentUser === 'function' ? currentUser(req) : null;",
     "  const currentOwnerId = String(currentOwner?.id || '');",
     '  if (deps.cloud?.projectRepo && isProjectCloudPath && !' + uuid + '.test(currentOwnerId)) {',
