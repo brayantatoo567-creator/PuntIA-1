@@ -94,7 +94,7 @@ async function waitForServer() {
     // Crochet validator: compare computed counts with declared round totals.
     await page.locator('#patternToValidate').fill('1: 6 pb (6)\n2: 6 aum (12)\n3: (1 pb, 1 aum) x6 (18)');
     await page.locator('#validateBtn').click();
-    await page.getByText('✓ Coincide').waitFor({ state: 'visible' });
+    await page.getByText('✓ Coincide').first().waitFor({ state: 'visible' });
     await page.locator('#modalClose').click();
     await page.locator('#patternToValidate').fill('1: 6 pb (9)');
     await page.locator('#validateBtn').click();
