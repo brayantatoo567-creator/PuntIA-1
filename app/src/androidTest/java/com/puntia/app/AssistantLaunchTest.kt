@@ -1,7 +1,8 @@
 package com.puntia.app
 
-import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.core.app.ActivityScenario
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import org.junit.Assert.assertNotNull
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -10,7 +11,7 @@ class AssistantLaunchTest {
     @Test fun mainScreenLaunches() {
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
-                assert(activity.title != null || activity.findViewById<android.view.View>(android.R.id.content) != null)
+                assertNotNull(activity.findViewById<android.view.View>(android.R.id.content))
             }
         }
     }
