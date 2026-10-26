@@ -37,10 +37,11 @@ async function waitForServer() {
       status: 200, contentType: 'application/json',
       body: JSON.stringify({ ok: true, ai: false, model: 'test-model', vision: 'test-vision' })
     }));
-    await page.route('**/api/puntia/chat', route => route.fulfill({
-      status: 200, contentType: 'application/json',
-      body: JSON.stringify({ reply: 'Respuesta de prueba del asistente.' })
-    }));
+    let chatIntercepted = false;
+    await page.route('**/api/puntia/chat**', route => {
+      chatIntercepted = true;
+      return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ reply: 'Respuesta de prueba del asistente.' }) });
+    });
     await page.route('**/api/puntia/generate-pattern', route => route.fulfill({
       status: 200, contentType: 'application/json',
       body: JSON.stringify({ pattern: 'Patrón de prueba: 6 pb en anillo mágico.' })
@@ -69,7 +70,11 @@ async function waitForServer() {
     // Chat: send a message and ensure the deterministic response appears.
     await page.locator('#chatInput').fill('¿Cómo hago un punto bajo?');
     await page.locator('#chatSend').click();
-    await page.getByText('Respuesta de prueba del asistente.').waitFor({ state: 'visible' });
+    try {
+      await page.getByText('Respuesta de prueba del asistente.').waitFor({ state: 'visible', timeout: 8000 });
+    } catch {
+      throw new Error('Prueba de chat falló. Interceptada=' + chatIntercepted + '; chatLog=' + await page.locator('#chatLog').innerText() + '; errores JS=' + errors.join(' | '));
+    }
 
     // Pattern generation: verify form -> API -> result modal.
     await page.locator('#patternName').fill('Conejito de prueba');
