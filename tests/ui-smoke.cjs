@@ -115,7 +115,11 @@ async function waitForServer() {
     await page.locator('#drawer').evaluate(el => {
       if (el.classList.contains('open')) throw new Error('El menú móvil no se cerró tras navegar.');
     });
-    await page.evaluate(() => window.scrollTo(0, 0));
+    await page.evaluate(() => {
+      window.scrollTo(0, 0);
+      const toast = document.querySelector('#toast');
+      if (toast) toast.style.display = 'none';
+    });
     await page.waitForTimeout(200);
     await page.screenshot({ path: 'test-artifacts/puntia-mobile.png' });
 
