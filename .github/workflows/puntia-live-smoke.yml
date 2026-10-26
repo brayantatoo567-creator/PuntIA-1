@@ -1,0 +1,71 @@
+name: PuntIA Live AI Smoke Test
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/puntia-live-smoke.yml'
+      - 'server.js'
+      - 'package.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  live-ai-pattern:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Wait for live health endpoint
+        shell: bash
+        run: |
+          set -euo pipefail
+          URL="https://puntia-validation-production.up.railway.app"
+          for attempt in $(seq 1 24); do
+            if curl -fsS --max-time 10 "$URL/api/health" -o /tmp/health.json; then
+              cat /tmp/health.json
+              node -e 'const h=require("/tmp/health.json"); if(!h.ok) process.exit(1); if(!h.ai) { console.error("AI is not configured on the live service"); process.exit(2); } console.log("Health OK; AI configured; model:", h.model);'
+              exit 0
+            fi
+            echo "Health endpoint not ready (attempt $attempt/24)"
+            sleep 5
+          done
+          echo "Health endpoint did not become ready"
+          exit 1
+      - name: Generate a real amigurumi pattern through production API
+        shell: bash
+        run: |
+          set -euo pipefail
+          URL="https://puntia-validation-production.up.railway.app"
+          HTTP_CODE=$(curl -sS --max-time 150 -o /tmp/pattern.json -w '%{http_code}' \
+            -H 'Content-Type: application/json' \
+            -X POST "$URL/api/puntia/generate-pattern" \
+            --data '{"name":"conejito amigurumi de prueba","level":"Principiante","height":"12 cm","style":"simple y tierno"}')
+          echo "Pattern API HTTP status: $HTTP_CODE"
+          if [ "$HTTP_CODE" != "200" ]; then
+            node -e 'try { const r=require("/tmp/pattern.json"); console.error("API error:", r.error || "No error detail"); } catch {}'
+            exit 1
+          fi
+          node <<'NODE'
+          const fs = require('fs');
+          const data = JSON.parse(fs.readFileSync('/tmp/pattern.json', 'utf8'));
+          const pattern = String(data.pattern || '').trim();
+          if (pattern.length < 80) {
+            console.error('FAIL: pattern response is empty or too short.');
+            process.exit(1);
+          }
+          const checks = {
+            materials: /material/i.test(pattern),
+            roundsOrRows: /ronda|vuelta/i.test(pattern),
+            assemblyOrPieces: /ensambl|unir|pieza|oreja|cuerpo/i.test(pattern),
+            counts: /\(\s*\d+\s*(?:puntos?|pts?)?\s*\)/i.test(pattern) || /\d+\s*(?:puntos?|pts?)\s*(?:en total|totales)/i.test(pattern)
+          };
+          console.log('Pattern generated successfully. Characters:', pattern.length);
+          console.log('Structural checks:', JSON.stringify(checks));
+          if (!checks.materials || !checks.roundsOrRows || !checks.assemblyOrPieces) {
+            console.error('FAIL: pattern did not include all required structural sections.');
+            process.exit(1);
+          }
+          console.log('PASS: live AI pattern generation and structural checks.');
+          NODE
