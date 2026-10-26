@@ -38,8 +38,10 @@ async function waitForServer() {
       body: JSON.stringify({ ok: true, ai: false, model: 'test-model', vision: 'test-vision' })
     }));
     let chatIntercepted = false;
+    let chatPayload = null;
     await page.route('**/api/puntia/chat**', route => {
       chatIntercepted = true;
+      try { chatPayload = route.request().postDataJSON(); } catch {}
       return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ reply: 'Respuesta de prueba del asistente.' }) });
     });
     await page.route('**/api/puntia/generate-pattern', route => route.fulfill({
@@ -75,6 +77,13 @@ async function waitForServer() {
     } catch {
       throw new Error('Prueba de chat falló. Interceptada=' + chatIntercepted + '; chatLog=' + await page.locator('#chatLog').innerText() + '; errores JS=' + errors.join(' | '));
     }
+    if (!chatPayload || !/^[a-f0-9-]{32,36}$/i.test(chatPayload.userId || '')) {
+      throw new Error('El chat no envió un identificador de sesión válido: ' + JSON.stringify(chatPayload));
+    }
+    const firstSessionId = chatPayload.userId;
+    if (await page.evaluate(() => localStorage.getItem('puntia_session_id')) !== firstSessionId) {
+      throw new Error('El identificador enviado al chat no coincide con la sesión persistida en el navegador.');
+    }
 
     // Pattern generation: verify form -> API -> result modal.
     await page.locator('#patternName').fill('Conejito de prueba');
@@ -95,6 +104,9 @@ async function waitForServer() {
     // Mobile: verify layout does not overflow horizontally and drawer keeps grouped nav.
     await page.setViewportSize({ width: 390, height: 844 });
     await page.reload({ waitUntil: 'domcontentloaded' });
+    if (await page.evaluate(() => localStorage.getItem('puntia_session_id')) !== firstSessionId) {
+      throw new Error('El identificador de sesión no persistió después de recargar la página.');
+    }
     await page.locator('.reference-mascot').evaluate(img => img.decode());
     await page.waitForFunction(() => document.querySelector('.reference-mascot')?.src.startsWith('blob:'));
     const dimensions = await page.evaluate(() => ({
