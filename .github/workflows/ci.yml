@@ -42,7 +42,8 @@ jobs:
           const required = [
             "$$('.lesson-jump-btn').forEach",
             "const oldSvgs=$$('.lesson-art .stitch-visual')",
-            "$$('[data-action=\"teacher\"]').forEach"
+            "$('[data-action=\"teacher\"]').forEach",
+            "$('#drawerNav button').forEach"
           ];
           for (const selector of required) {
             if (!html.includes(selector)) throw new Error('Falta selector de colección: ' + selector);
@@ -50,7 +51,8 @@ jobs:
           const invalid = [
             "function renderLesson(){const l=crochetLessons[lessonIndex];$('.lesson-jump-btn').forEach",
             "const oldSvgs=$('.lesson-art .stitch-visual')",
-            ";$('[data-action=\"teacher\"]').forEach"
+            ";$('[data-action=\"teacher\"]').forEach",
+            "$('#drawerNav button').forEach"
           ];
           for (const selector of invalid) {
             if (html.includes(selector)) throw new Error('Selector de elemento único usado como colección: ' + selector);
