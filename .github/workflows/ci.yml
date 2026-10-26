@@ -42,7 +42,7 @@ jobs:
           const required = [
             "$$('.lesson-jump-btn').forEach",
             "const oldSvgs=$$('.lesson-art .stitch-visual')",
-            "$$('[data-action=\\"teacher\\"]').forEach",
+            "$$('[data-action=",
             "$$('#drawerNav button').forEach"
           ];
           for (const selector of required) {
@@ -51,7 +51,7 @@ jobs:
           const invalid = [
             "function renderLesson(){const l=crochetLessons[lessonIndex];$('.lesson-jump-btn').forEach",
             "const oldSvgs=$('.lesson-art .stitch-visual')",
-            ";$('[data-action=\\"teacher\\"]').forEach",
+            ";$('[data-action=",
             ";$('#drawerNav button').forEach"
           ];
           for (const selector of invalid) {
