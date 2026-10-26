@@ -64,14 +64,7 @@ main{padding:0 14px 96px}.topbar{background:#090d19ed;border-bottom:1px solid #2
 
 
 /* Mascota oficial: reemplaza el dibujo CSS antiguo por la ilustración SVG completa. */
-.hero-person{width:clamp(220px,30vw,310px)!important;height:clamp(275px,36vw,365px)!important;background:url('/puntia-mascota.svg') center center/contain no-repeat!important;filter:drop-shadow(0 12px 18px #0005)}
-.hero-person>*{display:none!important}
-@media(max-width:780px){.hero-person{width:220px!important;height:275px!important}}
 /* PuntIA visual refresh — dark atelier / neon yarn */
-/* Mascota SVG oficial en el panel principal */
-.hero-person{background-image:url('/puntia-mascota.svg?rev=2a5c742')!important;background-repeat:no-repeat!important;background-position:center!important;background-size:contain!important;width:clamp(220px,30vw,310px)!important;height:clamp(275px,36vw,365px)!important;z-index:3!important}
-.hero-person>*{display:none!important}
-@media(max-width:780px){.hero-person{width:220px!important;height:275px!important}}
 
 :root{--bg:#090c18;--panel:#111729;--ink:#f7f3ff;--muted:#b5bad0;--line:#303751;--pink:#ff2f91;--pink2:#ff8bc0;--rose:#43203d;--purple:#a27aff;--blue:#4d9dff;--green:#29d6a0;--orange:#ffb36b;--shadow:0 12px 32px #0007;--r:18px}
 html{background:var(--bg)}body{background:radial-gradient(ellipse at 75% 0%,#351737 0,transparent 34%),radial-gradient(ellipse at 5% 80%,#24112f 0,transparent 30%),var(--bg);color:var(--ink)}
@@ -129,6 +122,10 @@ main{min-width:0}.topbar{background:#0b1020dd;border-color:var(--line);backdrop-
 @keyframes referenceMascotTalk{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-3px) scale(1.012)}}
 @media(prefers-reduced-motion:reduce){.hero-person.uses-reference-art .reference-mascot{animation:none!important}}
 
+/* Mascota SVG: conservar el img real para que cargue y anime correctamente */
+.hero-person.uses-reference-art{background:none!important;width:330px;height:390px;filter:drop-shadow(0 12px 18px #0005)}
+.hero-person.uses-reference-art .reference-mascot{display:block;width:124%;height:122%;object-fit:contain}
+@media(max-width:780px){.hero-person.uses-reference-art{width:260px;height:310px}}
 </style>
 </head>
 <body>
