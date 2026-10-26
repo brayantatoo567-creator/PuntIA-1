@@ -33,8 +33,8 @@ jobs:
           grep -q 'loadPuntiaOriginalMascot' public/index.html
           grep -q 'reference-mascot' public/index.html
           grep -q 'const escapeHtml=' public/index.html
-          grep -q 'escapeHtml(j.pattern' public/index.html
-          grep -q 'escapeHtml(j.analysis' public/index.html
+          grep -q 'formatAssistantText(j.pattern' public/index.html
+          grep -q 'formatAssistantText(j.analysis' public/index.html
           grep -q 'escapeHtml(p\[0\])' public/index.html
           node <<'NODE'
           const fs = require('fs');
