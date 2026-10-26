@@ -74,6 +74,22 @@ jobs:
           node -e "const fs=require('fs');const html=fs.readFileSync('public/index.html','utf8');const m=html.match(/<script>([\\s\\S]*?)<\\/script>/);if(!m)throw Error('No se encontró el script de la interfaz');fs.writeFileSync('/tmp/puntia-ui.js',m[1])"
           node --check /tmp/puntia-ui.js
 
+      - name: Instalar Chromium para pruebas de interfaz
+        run: |
+          npm install --no-save --no-audit --no-fund playwright
+          npx playwright install --with-deps chromium
+
+      - name: Pruebas de interfaz en escritorio y móvil
+        run: node tests/ui-smoke.cjs
+
+      - name: Guardar capturas de la interfaz
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: puntia-ui-smoke-screenshots
+          path: test-artifacts/
+          if-no-files-found: ignore
+
       - name: Probar endpoints y validaciones
         shell: bash
         run: |
