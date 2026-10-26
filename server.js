@@ -22,7 +22,7 @@ function createApp() {
   app.use('/api/puntia', assistantRoutes);
   app.use('/api/puntia', memoryRoutes);
 
-  app.use('/api/*', (_req, res) => res.status(404).json({ error: 'Ruta de API no encontrada.' }));
+  app.use('/api', (_req, res) => res.status(404).json({ error: 'Ruta de API no encontrada.' }));
   app.get('*path', (_req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
   app.use((err, _req, res, _next) => {
     if (err && err.code === 'LIMIT_FILE_SIZE') {
