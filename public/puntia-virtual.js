@@ -20,7 +20,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.m
     const key = new THREE.DirectionalLight(0xffc4df,2.1); key.position.set(-3,4,6); scene.add(key);
     const fill = new THREE.PointLight(0xffffff,1.2); fill.position.set(3,-2,4); scene.add(fill);
     avatarGroup = new THREE.Group(); scene.add(avatarGroup);
-    new THREE.TextureLoader().load('/puntia-mascota.webp', texture => {
+    new THREE.TextureLoader().load('/puntia-mascota.svg', texture => {
       texture.colorSpace = THREE.SRGBColorSpace;
       avatarPlane = new THREE.Mesh(new THREE.PlaneGeometry(3.65,3.95),new THREE.MeshBasicMaterial({map:texture,transparent:true,side:THREE.DoubleSide,depthWrite:false}));
       avatarPlane.position.set(0,-.06,0); avatarGroup.add(avatarPlane);
