@@ -159,6 +159,27 @@ async function waitForServer() {
       viewport: document.documentElement.clientWidth,
       content: document.documentElement.scrollWidth
     }));
+    // Regression checks for the mobile hero: controls must not overlap the mascot face area.
+    const mobileLayout = await page.evaluate(() => {
+      const hero = document.querySelector('.hero');
+      const mascot = document.querySelector('.hero-person');
+      const motion = document.querySelector('.puntia-motion-toggle');
+      const nav = document.querySelector('.bottom-nav');
+      const rect = el => {
+        if (!el) return null;
+        const r = el.getBoundingClientRect();
+        return { x:r.x, y:r.y, width:r.width, height:r.height, bottom:r.bottom, right:r.right };
+      };
+      return { hero:rect(hero), mascot:rect(mascot), motion:rect(motion), nav:rect(nav),
+        motionBottom:getComputedStyle(motion || document.body).bottom,
+        navHeight:nav ? nav.getBoundingClientRect().height : 0 };
+    });
+    if (!mobileLayout.motion || !mobileLayout.nav || mobileLayout.navHeight < 55) {
+      throw new Error('Faltan controles móviles o la navegación inferior es demasiado pequeña: ' + JSON.stringify(mobileLayout));
+    }
+    if (mobileLayout.motion.bottom > mobileLayout.nav.y - 4) {
+      throw new Error('El control de movimiento puede quedar tapado por la navegación inferior: ' + JSON.stringify(mobileLayout));
+    }
     if (dimensions.content > dimensions.viewport + 2) {
       throw new Error('Desbordamiento horizontal móvil: ' + JSON.stringify(dimensions));
     }
