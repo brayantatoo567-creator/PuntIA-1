@@ -27,7 +27,7 @@ jobs:
           test -f server.js
           test -f index.html
           test -f public/index.html
-          cmp -s index.html public/index.html || { echo 'index.html and public/index.html must stay synchronized'; exit 1; }
+          cmp -s index.html public/index.html
           grep -q 'OPENAI_TIMEOUT_MS=45000' .env.example
           grep -q '/data/puntia-memory.json' .gitignore
           test -f public/puntia-mascota.svg
