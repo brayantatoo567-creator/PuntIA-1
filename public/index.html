@@ -341,4 +341,86 @@ const heroInput=$('#heroInput');heroInput?.addEventListener('focus',()=>{mascot?
 })();
 </script>
 
+
+<style id="puntia-mobile-touch-hotfix">
+/* Hotfix móvil: elimina capas transparentes que interceptan los toques y amplía los objetivos táctiles. */
+@media (max-width: 780px) {
+  html { scroll-padding-top: 76px; }
+  body { -webkit-tap-highlight-color: transparent; }
+  main { position: relative; z-index: 1; padding-bottom: calc(112px + env(safe-area-inset-bottom)) !important; }
+  .topbar { z-index: 25 !important; }
+  .bottom-nav {
+    z-index: 60 !important;
+    height: auto !important;
+    min-height: 76px;
+    padding: 8px 4px calc(8px + env(safe-area-inset-bottom));
+    touch-action: manipulation;
+  }
+  .bottom-nav button {
+    min-width: 0; min-height: 54px; flex: 1 1 0;
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    gap: 3px; padding: 6px 2px; font-size: 11px !important;
+    line-height: 1.2; position: relative; z-index: 61;
+    pointer-events: auto; touch-action: manipulation;
+  }
+  .drawer { z-index: 90 !important; }
+  .drawer.open { display: block !important; pointer-events: auto !important; }
+  .drawer-panel { position: relative; z-index: 91; pointer-events: auto; }
+  .drawer button, button, [role="button"] { touch-action: manipulation; }
+  .modal.show { z-index: 100 !important; pointer-events: auto !important; }
+  .modal.show .modal-box, .modal.show button { pointer-events: auto !important; }
+  .hero-bg, .hero-person .reference-mascot { pointer-events: none !important; }
+}
+</style>
+<script id="puntia-mobile-interaction-hotfix">
+(() => {
+  if (window.__puntiaTouchHotfixInstalled) return;
+  window.__puntiaTouchHotfixInstalled = true;
+  const byId = id => document.getElementById(id);
+  const scrollToSection = id => {
+    const target = byId(id);
+    if (target) target.scrollIntoView({ behavior: 'auto', block: 'start' });
+  };
+  // Delegación en captura: mantiene navegables los controles aunque algún componente
+  // vuelva a renderizar sus botones después de cargar la página.
+  document.addEventListener('click', event => {
+    const button = event.target.closest('button, [role="button"]');
+    if (!button) return;
+    if (button.matches('[data-section]')) {
+      const id = button.dataset.section;
+      if (byId(id)) {
+        event.preventDefault();
+        scrollToSection(id);
+        document.querySelectorAll('[data-section]').forEach(item => {
+          item.classList.toggle('active', item.dataset.section === id);
+        });
+        byId('drawer')?.classList.remove('open');
+      }
+      return;
+    }
+    if (button.id === 'menuBtn') {
+      event.preventDefault();
+      byId('drawer')?.classList.add('open');
+      return;
+    }
+    if (button.id === 'modalClose') {
+      event.preventDefault();
+      const modal = byId('modal');
+      modal?.classList.remove('show');
+      if (modal) modal.style.display = 'none';
+      return;
+    }
+  }, true);
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape') byId('drawer')?.classList.remove('open');
+  });
+  // En Android, volver desde bfcache no debe dejar un modal transparente bloqueando la pantalla.
+  window.addEventListener('pageshow', () => {
+    const modal = byId('modal');
+    if (modal && !modal.classList.contains('show')) modal.style.display = 'none';
+    byId('drawer')?.classList.remove('open');
+  });
+})();
+</script>
+
 </body></html>
