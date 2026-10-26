@@ -209,4 +209,5 @@ mascot?.addEventListener('click',mascotGreeting);mascot?.addEventListener('keydo
 motionToggle?.addEventListener('click',()=>{const paused=document.body.classList.toggle('motion-paused');motionToggle.setAttribute('aria-pressed',String(paused));motionToggle.textContent=paused?'▶ Reanudar movimiento':'⏸ Pausar movimiento'});
 const heroInput=$('#heroInput');heroInput?.addEventListener('focus',()=>{mascot?.classList.add('is-listening')});heroInput?.addEventListener('blur',()=>mascot?.classList.remove('is-listening'));
 </script>
+<script type="module" src="/puntia-virtual.js"></script>
 </body></html>
