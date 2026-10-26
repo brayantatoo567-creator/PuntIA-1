@@ -91,6 +91,16 @@ async function waitForServer() {
     await page.getByText(/Patrón de prueba: 6 pb en anillo mágico/).waitFor({ state: 'visible' });
     await page.locator('#modalClose').click();
 
+    // Crochet validator: compare computed counts with declared round totals.
+    await page.locator('#patternToValidate').fill('1: 6 pb (6)\\n2: 6 aum (12)\\n3: (1 pb, 1 aum) x6 (18)');
+    await page.locator('#validateBtn').click();
+    await page.getByText('✓ Coincide').waitFor({ state: 'visible' });
+    await page.locator('#modalClose').click();
+    await page.locator('#patternToValidate').fill('1: 6 pb (9)');
+    await page.locator('#validateBtn').click();
+    await page.getByText('⚠ No coincide').waitFor({ state: 'visible' });
+    await page.locator('#modalClose').click();
+
     // Photo diagnosis: upload a tiny valid PNG and verify the mocked analysis is rendered.
     const tinyPng = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jZ3sAAAAASUVORK5CYII=', 'base64');
     await page.locator('#photoInput').setInputFiles({ name: 'crochet-test.png', mimeType: 'image/png', buffer: tinyPng });
