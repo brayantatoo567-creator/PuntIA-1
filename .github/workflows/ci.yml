@@ -134,6 +134,20 @@ jobs:
           STATUS=$(curl -s -o /tmp/diagnose-empty.json -w '%{http_code}' -X POST http://127.0.0.1:8080/api/puntia/diagnose)
           test "$STATUS" = "400"
 
+          # Anonymous memory must be isolated by a high-entropy session ID.
+          STATUS=$(curl -s -o /tmp/memory-shared.json -w '%{http_code}' http://127.0.0.1:8080/api/puntia/memory/demo-user)
+          test "$STATUS" = "404"
+          STATUS=$(curl -s -o /tmp/memory-no-session.json -w '%{http_code}' -H 'Content-Type: application/json' -d '{"content":"must not be stored"}' http://127.0.0.1:8080/api/puntia/memory)
+          test "$STATUS" = "400"
+          SESSION_ID=0123456789abcdef0123456789abcdef
+          STATUS=$(curl -s -o /tmp/memory-save.json -w '%{http_code}' -H 'Content-Type: application/json' -d "{\"userId\":\"$SESSION_ID\",\"content\":\"memory isolation test\"}" http://127.0.0.1:8080/api/puntia/memory)
+          test "$STATUS" = "200"
+          STATUS=$(curl -s -o /tmp/memory-read.json -w '%{http_code}' "http://127.0.0.1:8080/api/puntia/memory/$SESSION_ID")
+          test "$STATUS" = "200"
+          node -e "const m=require('/tmp/memory-read.json'); if(!m.items?.some(x=>x.content==='memory isolation test')) process.exit(1)"
+          STATUS=$(curl -s -o /tmp/memory-delete.json -w '%{http_code}' -X DELETE "http://127.0.0.1:8080/api/puntia/memory/$SESSION_ID")
+          test "$STATUS" = "200"
+
           STATUS=$(curl -s -o /tmp/chat-long.json -w '%{http_code}' -H 'Content-Type: application/json' --data-binary "$(node -e 'process.stdout.write(JSON.stringify({message: "x".repeat(8001)}))')" http://127.0.0.1:8080/api/puntia/chat)
           test "$STATUS" = "413"
 
