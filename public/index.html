@@ -62,6 +62,11 @@ main{padding:0 14px 96px}.topbar{background:#090d19ed;border-bottom:1px solid #2
 @media(prefers-reduced-motion:reduce){.hero-person,.hero-person .hair,.hero-person .bow,.hero-person .hook,.hero-person .yarn,.hero-person .eye,.hero-person.is-speaking,.hero-person.is-listening{animation:none!important;transition:none!important}.hero-person{translate:0 0;rotate:0deg}}
 .motion-paused .hero-person,.motion-paused .hero-person *{animation-play-state:paused!important}
 
+
+/* Mascota oficial: reemplaza el dibujo CSS antiguo por la ilustración SVG completa. */
+.hero-person{width:clamp(220px,30vw,310px)!important;height:clamp(275px,36vw,365px)!important;background:url('/puntia-mascota.svg') center center/contain no-repeat!important;filter:drop-shadow(0 12px 18px #0005)}
+.hero-person>*{display:none!important}
+@media(max-width:780px){.hero-person{width:220px!important;height:275px!important}}
 /* PuntIA visual refresh — dark atelier / neon yarn */
 :root{--bg:#090c18;--panel:#111729;--ink:#f7f3ff;--muted:#b5bad0;--line:#303751;--pink:#ff2f91;--pink2:#ff8bc0;--rose:#43203d;--purple:#a27aff;--blue:#4d9dff;--green:#29d6a0;--orange:#ffb36b;--shadow:0 12px 32px #0007;--r:18px}
 html{background:var(--bg)}body{background:radial-gradient(ellipse at 75% 0%,#351737 0,transparent 34%),radial-gradient(ellipse at 5% 80%,#24112f 0,transparent 30%),var(--bg);color:var(--ink)}
