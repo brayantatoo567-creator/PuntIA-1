@@ -115,7 +115,9 @@ async function waitForServer() {
     await page.locator('#drawer').evaluate(el => {
       if (el.classList.contains('open')) throw new Error('El menú móvil no se cerró tras navegar.');
     });
-    await page.screenshot({ path: 'test-artifacts/puntia-mobile.png', fullPage: true });
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await page.waitForTimeout(200);
+    await page.screenshot({ path: 'test-artifacts/puntia-mobile.png' });
 
     if (errors.length) throw new Error('Errores JavaScript en navegador: ' + errors.join(' | '));
     console.log('E2E PASS: mascota original, cinco categorías, chat, generación de patrón, menú móvil y desbordamiento horizontal.');
