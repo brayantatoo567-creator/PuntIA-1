@@ -28,6 +28,7 @@ jobs:
           test -f public/index.html
           test -f public/puntia-mascota.svg
           grep -q 'src="/puntia-mascota.svg"' public/index.html
+          grep -q '<link rel="icon" type="image/svg+xml" href="/puntia-mascota.svg">' public/index.html
           grep -q 'const escapeHtml=' public/index.html
           grep -q 'escapeHtml(j.pattern' public/index.html
           grep -q 'escapeHtml(j.analysis' public/index.html
