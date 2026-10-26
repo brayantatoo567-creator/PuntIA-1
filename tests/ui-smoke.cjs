@@ -58,7 +58,7 @@ async function waitForServer() {
     await page.goto(baseURL, { waitUntil: 'domcontentloaded' });
     await page.locator('#puntiaMascot').waitFor({ state: 'visible' });
     // Verify the actual Three.js renderer, not only the fallback illustration.
-    await page.waitForFunction(() => window.PuntIAAvatar?.getRenderStatus?.().lastRenderAt > 0, { timeout: 15000 }).catch(async () => {
+    await page.waitForFunction(() => window.PuntIAAvatar?.getRenderStatus?.().lastRenderAt > 0, null, { timeout: 15000 }).catch(async () => {
       const status = await page.evaluate(() => window.PuntIAAvatar?.getRenderStatus?.() || null);
       throw new Error('El avatar 3D no completó un render WebGL. Estado: ' + JSON.stringify(status) + '; errores JS=' + errors.join(' | '));
     });
