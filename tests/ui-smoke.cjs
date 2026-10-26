@@ -30,6 +30,7 @@ async function waitForServer() {
     await waitForServer();
     browser = await chromium.launch({ headless: true });
     const page = await browser.newPage({ viewport: { width: 1440, height: 1000 }, reducedMotion: 'reduce' });
+    page.setDefaultTimeout(15000);
 
     // Stub API responses to test the interface deterministically without using paid AI credits.
     await page.route('**/api/health', route => route.fulfill({
@@ -51,7 +52,7 @@ async function waitForServer() {
 
     const errors = [];
     page.on('pageerror', error => errors.push(error.message));
-    await page.goto(baseURL, { waitUntil: 'networkidle' });
+    await page.goto(baseURL, { waitUntil: 'domcontentloaded' });
     await page.locator('#puntiaMascot').waitFor({ state: 'visible' });
     await page.locator('.reference-mascot').evaluate(img => img.decode());
     await page.waitForFunction(() => document.querySelector('.reference-mascot')?.src.startsWith('blob:'));
@@ -82,7 +83,7 @@ async function waitForServer() {
 
     // Mobile: verify layout does not overflow horizontally and drawer keeps grouped nav.
     await page.setViewportSize({ width: 390, height: 844 });
-    await page.reload({ waitUntil: 'networkidle' });
+    await page.reload({ waitUntil: 'domcontentloaded' });
     await page.locator('.reference-mascot').evaluate(img => img.decode());
     await page.waitForFunction(() => document.querySelector('.reference-mascot')?.src.startsWith('blob:'));
     const dimensions = await page.evaluate(() => ({
