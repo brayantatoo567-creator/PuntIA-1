@@ -14,4 +14,7 @@ function listMessages(userId, limit = 50) {
   return getDatabase().prepare('SELECT id, role, content, emotion, created_at AS createdAt FROM conversations WHERE user_id = ? ORDER BY id DESC LIMIT ?')
     .all(userId, limit).reverse();
 }
-module.exports = { addMessage, recentMessages, listMessages };
+function deleteMessages(userId) {
+  return getDatabase().prepare('DELETE FROM conversations WHERE user_id = ?').run(userId).changes;
+}
+module.exports = { addMessage, recentMessages, listMessages, deleteMessages };
