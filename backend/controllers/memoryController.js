@@ -1,5 +1,5 @@
 const memoryModel = require('../models/memoryModel');
-const { listMessages } = require('../models/conversationModel');
+const { listMessages, deleteMessages } = require('../models/conversationModel');
 const bounded = (value, fallback, max) => String(value ?? fallback).trim().slice(0, max) || fallback;
 function getMemory(req, res) {
   const userId = bounded(req.params.userId, '', 100);
@@ -14,6 +14,8 @@ function saveMemory(req, res) {
 }
 function deleteMemory(req, res) {
   const userId = bounded(req.params.userId, '', 100);
-  return res.json({ deleted: true, count: memoryModel.deleteMemories(userId) });
+  const memories = memoryModel.deleteMemories(userId);
+  const messages = deleteMessages(userId);
+  return res.json({ deleted: true, count: memories + messages });
 }
 module.exports = { getMemory, saveMemory, deleteMemory };
