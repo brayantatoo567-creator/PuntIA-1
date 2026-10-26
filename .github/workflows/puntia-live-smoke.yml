@@ -13,10 +13,12 @@ permissions:
   contents: read
 
 jobs:
-  live-ai-pattern:
+  live-ai-smoke:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 8
     steps:
+      - uses: actions/checkout@v4
+
       - name: Wait for live health endpoint
         shell: bash
         run: |
@@ -33,39 +35,49 @@ jobs:
           done
           echo "Health endpoint did not become ready"
           exit 1
-      - name: Generate a real amigurumi pattern through production API
+
+      - name: Test real AI chat
         shell: bash
         run: |
           set -euo pipefail
           URL="https://puntia-validation-production.up.railway.app"
-          HTTP_CODE=$(curl -sS --max-time 150 -o /tmp/pattern.json -w '%{http_code}' \
-            -H 'Content-Type: application/json' \
-            -X POST "$URL/api/puntia/generate-pattern" \
-            --data '{"name":"conejito amigurumi de prueba","level":"Principiante","height":"12 cm","style":"simple y tierno"}')
-          echo "Pattern API HTTP status: $HTTP_CODE"
-          if [ "$HTTP_CODE" != "200" ]; then
-            node -e 'try { const r=require("/tmp/pattern.json"); console.error("API error:", r.error || "No error detail"); } catch {}'
-            exit 1
-          fi
+          CODE=$(curl -sS --max-time 150 -o /tmp/chat.json -w '%{http_code}' -H 'Content-Type: application/json' -X POST "$URL/api/puntia/chat" --data '{"message":"Responde en español en una frase breve: ¿qué es un punto bajo en crochet?"}')
+          echo "Chat API HTTP status: $CODE"
+          test "$CODE" = "200"
+          node -e 'const r=require("/tmp/chat.json"); if(typeof r.reply!=="string" || r.reply.trim().length<10) throw Error("Chat response empty or too short"); console.log("PASS: live AI chat response:",r.reply.length,"characters; emotion:",r.emotion||"not returned")'
+
+      - name: Generate a real amigurumi pattern
+        shell: bash
+        run: |
+          set -euo pipefail
+          URL="https://puntia-validation-production.up.railway.app"
+          CODE=$(curl -sS --max-time 150 -o /tmp/pattern.json -w '%{http_code}' -H 'Content-Type: application/json' -X POST "$URL/api/puntia/generate-pattern" --data '{"name":"conejito amigurumi de prueba","level":"Principiante","height":"12 cm","style":"simple y tierno"}')
+          echo "Pattern API HTTP status: $CODE"
+          if [ "$CODE" != "200" ]; then node -e 'try { console.error(require("/tmp/pattern.json").error || "No error detail") } catch {}'; exit 1; fi
           node <<'NODE'
-          const fs = require('fs');
-          const data = JSON.parse(fs.readFileSync('/tmp/pattern.json', 'utf8'));
-          const pattern = String(data.pattern || '').trim();
-          if (pattern.length < 80) {
-            console.error('FAIL: pattern response is empty or too short.');
-            process.exit(1);
-          }
-          const checks = {
-            materials: /material/i.test(pattern),
-            roundsOrRows: /ronda|vuelta/i.test(pattern),
-            assemblyOrPieces: /ensambl|unir|pieza|oreja|cuerpo/i.test(pattern),
-            counts: /\(\s*\d+\s*(?:puntos?|pts?)?\s*\)/i.test(pattern) || /\d+\s*(?:puntos?|pts?)\s*(?:en total|totales)/i.test(pattern)
+          const fs=require('fs');
+          const d=JSON.parse(fs.readFileSync('/tmp/pattern.json','utf8'));
+          const p=String(d.pattern||'').trim();
+          const checks={
+            nonEmpty:p.length>80,
+            materials:/material/i.test(p),
+            roundsOrRows:/ronda|vuelta/i.test(p),
+            assemblyOrPieces:/ensambl|unir|pieza|oreja|cuerpo/i.test(p),
+            counts:/\(\s*\d+\s*(?:puntos?|pts?)?\s*\)/i.test(p)||/\d+\s*(?:puntos?|pts?)\s*(?:en total|totales)/i.test(p)
           };
-          console.log('Pattern generated successfully. Characters:', pattern.length);
-          console.log('Structural checks:', JSON.stringify(checks));
-          if (!checks.materials || !checks.roundsOrRows || !checks.assemblyOrPieces) {
-            console.error('FAIL: pattern did not include all required structural sections.');
-            process.exit(1);
-          }
-          console.log('PASS: live AI pattern generation and structural checks.');
+          console.log('Pattern length:',p.length,'checks:',JSON.stringify(checks));
+          if(!checks.nonEmpty||!checks.materials||!checks.roundsOrRows||!checks.assemblyOrPieces||!checks.counts) process.exit(1);
+          console.log('PASS: live pattern response has required structure.');
           NODE
+
+      - name: Test real image diagnosis
+        shell: bash
+        run: |
+          set -euo pipefail
+          URL="https://puntia-validation-production.up.railway.app"
+          # Small valid PNG fixture; this checks upload handling and the live vision-model path.
+          node -e 'require("fs").writeFileSync("/tmp/test.png",Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+j4WQAAAAASUVORK5CYII=","base64"))'
+          CODE=$(curl -sS --max-time 150 -o /tmp/diagnose.json -w '%{http_code}' -X POST "$URL/api/puntia/diagnose" -F 'image=@/tmp/test.png;type=image/png')
+          echo "Image diagnosis HTTP status: $CODE"
+          if [ "$CODE" != "200" ]; then node -e 'try { console.error(require("/tmp/diagnose.json").error || "No error detail") } catch {}'; exit 1; fi
+          node -e 'const r=require("/tmp/diagnose.json"); if(typeof r.analysis!=="string" || r.analysis.trim().length<10) throw Error("Vision response empty or too short"); console.log("PASS: live image diagnosis returned",r.analysis.length,"characters.")'
