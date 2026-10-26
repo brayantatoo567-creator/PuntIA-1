@@ -28,7 +28,9 @@ jobs:
           test -f index.html
           test -f public/index.html
           cmp -s index.html public/index.html || { echo 'index.html and public/index.html must stay synchronized'; exit 1; }
-          grep -q '^OPENAI_TIMEOUT_MS=45000          test -f public/puntia-mascota.svg
+          grep -q 'OPENAI_TIMEOUT_MS=45000' .env.example
+          grep -q '/data/puntia-memory.json' .gitignore
+          test -f public/puntia-mascota.svg
           test -f public/puntia-mascota-original.webp.b64
           grep -q 'src="/puntia-mascota.svg"' public/index.html
           grep -q '<link rel="icon" type="image/svg+xml" href="/puntia-mascota.svg">' public/index.html
