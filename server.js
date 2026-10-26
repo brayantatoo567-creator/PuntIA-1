@@ -1,32 +1,45 @@
-const express=require('express');
-const multer=require('multer');
-const OpenAI=require('openai');
-const path=require('path');
-const app=express();
-const upload=multer({storage:multer.memoryStorage(),limits:{fileSize:8*1024*1024},fileFilter:(req,file,cb)=>{if(!['image/jpeg','image/png','image/webp','image/gif'].includes(file.mimetype))return cb(new Error('Formato de imagen no admitido. Usa JPG, PNG, WEBP o GIF.'));cb(null,true);}});
-app.use(express.json({limit:'2mb'}));
-app.use(express.static(path.join(__dirname,'public')));
-const client=process.env.OPENAI_API_KEY?new OpenAI({apiKey:process.env.OPENAI_API_KEY}):null;
-const TEXT_MODEL=process.env.OPENAI_MODEL||'gpt-6-luna';
-const VISION_MODEL=process.env.OPENAI_VISION_MODEL||'gpt-4o';
-const SYSTEM=`Eres PuntIA, asistente experto en crochet y amigurumi. Responde en español claro. Ayuda con patrones, conteos, materiales, técnicas, corrección de errores y enseñanza. No inventes que una foto fue analizada si no la recibiste. Cuando generes patrones, usa abreviaturas comunes (AM, pb, aum, dis), vueltas numeradas y conteos finales.`;
-app.get('/api/health',(req,res)=>res.json({ok:true,ai:Boolean(client),model:TEXT_MODEL,vision:VISION_MODEL}));
-async function responseText(input,model=TEXT_MODEL){if(!client){const e=new Error('OPENAI_API_KEY no configurada');e.code='AI_NOT_CONFIGURED';throw e;}const r=await client.responses.create({model,input,instructions:SYSTEM});return r.output_text||'';}
-function sendApiError(res,e,fallback){if(e?.code==='AI_NOT_CONFIGURED')return res.status(503).json({error:'La IA no está configurada en el servidor.'});console.error('PuntIA API error:',e?.status||e?.code||e?.name||'unknown');return res.status(500).json({error:fallback});}
-function textField(value,fallback,max){const v=String(value??fallback).trim();return v.slice(0,max)||fallback;}
-app.post('/api/puntia/chat',async(req,res)=>{try{const message=String(req.body?.message||'').trim();if(!message)return res.status(400).json({error:'Escribe un mensaje.'});if(message.length>8000)return res.status(413).json({error:'El mensaje supera el límite de 8000 caracteres.'});const userId=String(req.body?.userId||'demo-user').slice(0,100);const db=readMemory();const memories=(db[userId]||[]).slice(-12).map(x=>x.content).join('\\n');const context=memories?'Memoria relevante y reciente del usuario (úsala solo si ayuda):\\n'+memories+'\\n\\nMensaje actual: '+message:message;const reply=await responseText([{role:'user',content:context}]);db[userId]=db[userId]||[];db[userId].push({content:'Usuario: '+message,category:'conversation',createdAt:new Date().toISOString()},{content:'PuntIA: '+reply,category:'assistant_reply',createdAt:new Date().toISOString()});db[userId]=db[userId].slice(-200);writeMemory(db);res.json({reply,emotion:emotionFor(reply),memorySaved:true})}catch(e){return sendApiError(res,e,'No se pudo responder. Inténtalo de nuevo.')}});
-app.post('/api/puntia/generate-pattern',async(req,res)=>{try{const name=textField(req.body?.name,'amigurumi',160),level=textField(req.body?.level,'Intermedio',60),height=textField(req.body?.height,'15 cm',40),style=textField(req.body?.style,'tierno y clásico',120);const prompt=`Genera un patrón de crochet/amigurumi funcional y detallado para: ${name}. Nivel: ${level}. Tamaño aproximado: ${height}. Estilo: ${style}. Incluye materiales, abreviaturas, cabeza, cuerpo, extremidades, ensamblaje y conteo por vuelta. Sé práctico y coherente.`;const pattern=await responseText([{role:'user',content:prompt}]);res.json({pattern,name,height,level})}catch(e){return sendApiError(res,e,'No se pudo generar el patrón. Inténtalo de nuevo.')}});
-app.post('/api/puntia/diagnose',upload.single('image'),async(req,res)=>{try{if(!req.file)return res.status(400).json({error:'Falta la imagen.'});if(!client)return res.status(503).json({error:'OPENAI_API_KEY no configurada'});const b64=req.file.buffer.toString('base64');const data=`data:${req.file.mimetype};base64,${b64}`;const r=await client.responses.create({model:VISION_MODEL,instructions:`${SYSTEM}\nAnaliza la imagen de tejido como instructor de crochet. Identifica solamente problemas visibles o indica que no son concluyentes. Explica: problema, dónde, por qué puede ocurrir, cómo corregirlo y cómo evitarlo.`,input:[{role:'user',content:[{type:'input_text',text:'Analiza esta pieza de crochet y dame un diagnóstico práctico.'},{type:'input_image',image_url:data}]}]});res.json({analysis:r.output_text||'No fue posible obtener un análisis.'})}catch(e){return sendApiError(res,e,'No se pudo analizar la imagen. Verifica el archivo e inténtalo de nuevo.')}});
-// --- PuntIA virtual companion: persistent memory and emotion state ---
-const fs=require('fs');
-const MEMORY_FILE=path.join(__dirname,'data','puntia-memory.json');
-function readMemory(){try{return JSON.parse(fs.readFileSync(MEMORY_FILE,'utf8'))}catch{return {}}}
-function writeMemory(data){fs.mkdirSync(path.dirname(MEMORY_FILE),{recursive:true});fs.writeFileSync(MEMORY_FILE+'.tmp',JSON.stringify(data,null,2));fs.renameSync(MEMORY_FILE+'.tmp',MEMORY_FILE)}
-function emotionFor(text){const t=String(text||'').toLowerCase();if(/felicidades|lo logramos|¡listo|excelente|genial|perfecto/.test(t))return 'excited';if(/no te preocupes|vamos con calma|lo corregimos|error|difícil/.test(t))return 'concerned';if(/patrón|patron|vuelta|puntos|materiales|paso a paso/.test(t))return 'focused';if(/¿qué|cuéntame|qué te gustaría|explorar/.test(t))return 'curious';return 'happy'}
-app.get('/api/puntia/memory/:userId',(req,res)=>{const userId=String(req.params.userId||'').slice(0,100);const db=readMemory();res.json({items:(db[userId]||[]).slice(-50)})});
-app.post('/api/puntia/memory',(req,res)=>{const userId=String(req.body?.userId||'demo-user').slice(0,100);const content=String(req.body?.content||'').trim().slice(0,2000);const category=String(req.body?.category||'note').slice(0,40);if(!content)return res.status(400).json({error:'La memoria está vacía.'});const db=readMemory();db[userId]=db[userId]||[];db[userId].push({content,category,createdAt:new Date().toISOString()});db[userId]=db[userId].slice(-200);writeMemory(db);res.json({saved:true,count:db[userId].length})});
-app.delete('/api/puntia/memory/:userId',(req,res)=>{const db=readMemory();delete db[String(req.params.userId||'').slice(0,100)];writeMemory(db);res.json({deleted:true})});
-app.get(/.*/,(req,res)=>res.sendFile(path.join(__dirname,'public','index.html')));
-app.use((err,req,res,next)=>{if(err instanceof multer.MulterError){const status=err.code==='LIMIT_FILE_SIZE'?413:400;return res.status(status).json({error:err.code==='LIMIT_FILE_SIZE'?'La imagen supera el límite de 8 MB.':'No se pudo recibir la imagen.'});}if(err?.message==='Formato de imagen no admitido. Usa JPG, PNG, WEBP o GIF.')return res.status(415).json({error:err.message});console.error('PuntIA request error:',err?.name||'unknown');return res.status(500).json({error:'Error interno del servidor.'});});
+const express = require('express');
+const path = require('node:path');
+const { initializeDatabase } = require('./backend/database');
+const assistantRoutes = require('./backend/routes/assistantRoutes');
+const memoryRoutes = require('./backend/routes/memoryRoutes');
 
-const port=Number(process.env.PORT||8080);app.listen(port,()=>console.log(`PuntIA v3 escuchando en ${port}`));
+function createApp() {
+  initializeDatabase();
+  const app = express();
+  app.disable('x-powered-by');
+  app.use(express.json({ limit: '2mb' }));
+  app.use(express.static(path.join(__dirname, 'public')));
+
+  app.get('/api/health', (_req, res) => {
+    res.json({
+      ok: true,
+      ai: Boolean(process.env.OPENAI_API_KEY),
+      model: process.env.OPENAI_MODEL || 'gpt-4.1-mini',
+      vision: process.env.OPENAI_VISION_MODEL || 'gpt-4o'
+    });
+  });
+  app.use('/api/puntia', assistantRoutes);
+  app.use('/api/puntia', memoryRoutes);
+
+  app.use('/api', (_req, res) => res.status(404).json({ error: 'Ruta de API no encontrada.' }));
+  app.get('*path', (_req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
+  app.use((err, _req, res, _next) => {
+    if (err && err.code === 'LIMIT_FILE_SIZE') {
+      return res.status(413).json({ error: 'La imagen supera el límite de 8 MB.' });
+    }
+    if (err && err.message === 'Formato de imagen no admitido. Usa JPG, PNG, WEBP o GIF.') {
+      return res.status(415).json({ error: err.message });
+    }
+    console.error('PuntIA request error:', err?.name || 'unknown');
+    return res.status(500).json({ error: 'Error interno del servidor.' });
+  });
+  return app;
+}
+
+if (require.main === module) {
+  const port = Number(process.env.PORT || 8080);
+  createApp().listen(port, () => console.log(`PuntIA escuchando en el puerto ${port}`));
+}
+
+module.exports = { createApp };
