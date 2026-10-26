@@ -82,6 +82,12 @@ async function waitForServer() {
     await page.getByText(/Patrón de prueba: 6 pb en anillo mágico/).waitFor({ state: 'visible' });
     await page.locator('#modalClose').click();
 
+    // Photo diagnosis: upload a tiny valid PNG and verify the mocked analysis is rendered.
+    const tinyPng = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jZ3sAAAAASUVORK5CYII=', 'base64');
+    await page.locator('#photoInput').setInputFiles({ name: 'crochet-test.png', mimeType: 'image/png', buffer: tinyPng });
+    await page.getByText('Diagnóstico visual simulado para prueba.').waitFor({ state: 'visible', timeout: 10000 });
+    await page.locator('#modalClose').click();
+
     // Responsive desktop screenshot.
     fs.mkdirSync(path.join(process.cwd(), 'test-artifacts'), { recursive: true });
     await page.screenshot({ path: 'test-artifacts/puntia-desktop.png', fullPage: true });
