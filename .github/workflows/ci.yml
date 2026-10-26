@@ -77,6 +77,8 @@ jobs:
       - name: Comprobar sintaxis del backend y frontend
         run: |
           node --check server.js
+          cp public/puntia-virtual.js /tmp/puntia-virtual.mjs
+          node --check /tmp/puntia-virtual.mjs
           node -e "const fs=require('fs');const html=fs.readFileSync('public/index.html','utf8');const m=html.match(/<script>([\\s\\S]*?)<\\/script>/);if(!m)throw Error('No se encontró el script de la interfaz');fs.writeFileSync('/tmp/puntia-ui.js',m[1])"
           node --check /tmp/puntia-ui.js
 
