@@ -314,4 +314,28 @@ mascot?.addEventListener('click',mascotGreeting);mascot?.addEventListener('keydo
 motionToggle?.addEventListener('click',()=>{const paused=document.body.classList.toggle('motion-paused');motionToggle.setAttribute('aria-pressed',String(paused));motionToggle.textContent=paused?'▶ Reanudar movimiento':'⏸ Pausar movimiento'});
 const heroInput=$('#heroInput');heroInput?.addEventListener('focus',()=>{mascot?.classList.add('is-listening')});heroInput?.addEventListener('blur',()=>mascot?.classList.remove('is-listening'));
 </script>
+
+<script>
+/* Cargar la ilustración original optimizada; el SVG queda como fallback si falla la carga. */
+(async function loadPuntiaOriginalMascot(){
+  const img=document.querySelector('.reference-mascot');
+  if(!img)return;
+  try{
+    const response=await fetch('/puntia-mascota-original.webp.b64',{cache:'force-cache'});
+    if(!response.ok)throw new Error('HTTP '+response.status);
+    const encoded=(await response.text()).trim();
+    const binary=atob(encoded);
+    const bytes=new Uint8Array(binary.length);
+    for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);
+    const objectUrl=URL.createObjectURL(new Blob([bytes],{type:'image/webp'}));
+    const probe=new Image();
+    probe.onload=()=>{img.src=objectUrl;img.parentElement?.classList.add('uses-reference-art');};
+    probe.onerror=()=>URL.revokeObjectURL(objectUrl);
+    probe.src=objectUrl;
+  }catch(error){
+    console.warn('Se conserva la mascota SVG de respaldo.',error);
+  }
+})();
+</script>
+
 </body></html>
