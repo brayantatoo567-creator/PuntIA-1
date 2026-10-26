@@ -208,6 +208,20 @@ main{padding:0 clamp(12px,2vw,28px) 100px;min-width:0;max-width:1700px;width:100
 .chat-msg code,.formatted-answer code{background:#0b1220;border:1px solid #34405a;border-radius:5px;padding:1px 5px;color:#ffb5d4}
 .formatted-answer{font-size:14px;line-height:1.7;overflow-wrap:anywhere}
 
+
+/* Mascota: área delimitada, proporción intacta y controles siempre por encima */
+.hero{position:relative;overflow:hidden;isolation:isolate;min-width:0}
+.hero-person{width:min(56%,260px)!important;height:min(78%,330px)!important;left:70%!important;top:49%!important;transform:translate(-50%,-50%)!important;overflow:visible}
+.hero-person .reference-mascot{inset:0!important;width:100%!important;height:100%!important;max-width:100%!important;max-height:100%!important;object-fit:contain!important;object-position:center bottom!important;transform-origin:center bottom!important}
+.speech{z-index:12!important;max-width:55%;overflow-wrap:anywhere}
+.hero-chat{z-index:13!important;left:14px!important;right:14px!important;bottom:14px!important;width:auto;max-width:none}
+.puntia-motion-toggle{z-index:14!important}
+.hero-person[role=button]{cursor:pointer}
+@media(max-width:1180px){.hero-person{width:min(52%,250px)!important;height:min(74%,290px)!important;left:70%!important;top:49%!important}}
+@media(max-width:780px){.hero{min-height:340px!important}.hero-person{width:48%!important;height:70%!important;left:72%!important;top:47%!important;transform:translate(-50%,-50%)!important}.speech{left:12px!important;top:14px!important;width:52%!important;max-width:52%!important}.hero-chat{left:10px!important;right:10px!important;bottom:10px!important}.puntia-motion-toggle{max-width:44%;white-space:normal}}
+@media(max-width:390px){.hero{min-height:320px!important}.hero-person{width:45%!important;height:66%!important;left:74%!important;top:46%!important}.speech{width:55%!important;max-width:55%!important}.hero-chat{left:8px!important;right:8px!important;bottom:8px!important}}
+@media(prefers-reduced-motion:reduce){.hero-person .reference-mascot{animation:none!important;transition:none!important}}
+
 </style>
 </head>
 <body>
