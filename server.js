@@ -100,8 +100,6 @@ function deleteUserMemory(userId){
   });
 }
 function emotionFor(text){const t=String(text||'').toLowerCase();if(/felicidades|lo logramos|¡listo|excelente|genial|perfecto/.test(t))return 'excited';if(/no te preocupes|vamos con calma|lo corregimos|error|difícil/.test(t))return 'concerned';if(/patrón|patron|vuelta|puntos|materiales|paso a paso/.test(t))return 'focused';if(/¿qué|cuéntame|qué te gustaría|explorar/.test(t))return 'curious';return 'happy'}
-app.get('/api/puntia/memory/:userId',(req,res)=>{const userId=req.puntiaUserId;const db=readMemory();res.json({items:(db[userId]||[]).slice(-50)})});
-app.post('/api/puntia/memory',(req,res)=>{const userId=req.puntiaUserId;const content=String(req.body?.content||'').trim().slice(0,2000);const category=String(req.body?.category||'note').slice(0,40);if(!content)return res.status(400).json({error:'La memoria está vacía.'});mutateMemory(userId,current=>{current.push({content,category,createdAt:new Date().toISOString()});return current.slice(-200)}).then(count=>res.json({saved:true,count})).catch(()=>res.status(500).json({error:'No se pudo guardar la memoria.'}))});
 function rejectCrossOriginMutation(req,res,next){
   const origin=req.get('origin');
   if(!origin)return next();
@@ -114,6 +112,8 @@ app.use('/api/puntia/memory',(req,res,next)=>{
   if(req.method==='POST'||req.method==='DELETE')return rejectCrossOriginMutation(req,res,next);
   next();
 });
+app.get('/api/puntia/memory/:userId',(req,res)=>{const userId=req.puntiaUserId;const db=readMemory();res.json({items:(db[userId]||[]).slice(-50)})});
+app.post('/api/puntia/memory',(req,res)=>{const userId=req.puntiaUserId;const content=String(req.body?.content||'').trim().slice(0,2000);const category=String(req.body?.category||'note').slice(0,40);if(!content)return res.status(400).json({error:'La memoria está vacía.'});mutateMemory(userId,current=>{current.push({content,category,createdAt:new Date().toISOString()});return current.slice(-200)}).then(count=>res.json({saved:true,count})).catch(()=>res.status(500).json({error:'No se pudo guardar la memoria.'}))});
 app.delete('/api/puntia/memory/:userId',(req,res)=>{const userId=req.puntiaUserId;deleteUserMemory(userId).then(()=>res.json({deleted:true})).catch(()=>res.status(500).json({error:'No se pudo borrar la memoria.'}))});
 app.get(/.*/,(req,res)=>res.sendFile(path.join(__dirname,'public','index.html')));
 app.use((err,req,res,next)=>{if(err instanceof multer.MulterError){const status=err.code==='LIMIT_FILE_SIZE'?413:400;return res.status(status).json({error:err.code==='LIMIT_FILE_SIZE'?'La imagen supera el límite de 8 MB.':'No se pudo recibir la imagen.'});}if(err?.message==='Formato de imagen no admitido. Usa JPG, PNG, WEBP o GIF.')return res.status(415).json({error:err.message});console.error('PuntIA request error:',err?.name||'unknown');return res.status(500).json({error:'Error interno del servidor.'});});
