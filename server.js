@@ -2,7 +2,7 @@ const express=require('express');
 const multer=require('multer');
 const OpenAI=require('openai');
 const path=require('path');
-const { validatePattern } = require('./tests/pattern-math.cjs');
+const { validatePattern } = require('./pattern-validator.cjs');
 const app=express();
 const upload=multer({storage:multer.memoryStorage(),limits:{fileSize:8*1024*1024},fileFilter:(req,file,cb)=>{if(!['image/jpeg','image/png','image/webp','image/gif'].includes(file.mimetype))return cb(new Error('Formato de imagen no admitido. Usa JPG, PNG, WEBP o GIF.'));cb(null,true);}});
 app.use(express.json({limit:'2mb'}));
