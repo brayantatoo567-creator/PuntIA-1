@@ -17,7 +17,7 @@ La auditoría estática identificó riesgos que requieren corrección y validaci
 
 Las rutas de memoria ahora derivan la identidad de una cookie de sesión `HttpOnly`, `SameSite=Lax`, firmada con HMAC-SHA256; los identificadores enviados en el cuerpo o la URL ya no seleccionan la memoria. La firma se compara en tiempo constante y la cookie se marca `Secure` en producción/Railway. Se añadieron pruebas CI para dos sesiones independientes, escrituras concurrentes y borrado aislado.
 
-**Pendiente:** configurar `PUNTIA_SESSION_SECRET` con un secreto aleatorio persistente en Railway antes de desplegar. Si falta, el servidor usa un secreto efímero y avisa en los logs; eso invalida sesiones tras reinicios. También falta validar CSRF y revisar las políticas de sesión antes de producción. Esta cookie identifica una sesión anónima; no equivale a una cuenta autenticada.
+**Correcciones adicionales en la rama:** el servidor ahora falla al arrancar en producción/Railway si `PUNTIA_SESSION_SECRET` falta o tiene menos de 32 bytes; no debe desplegarse hasta configurar el secreto persistente. Las mutaciones de memoria (`POST` y `DELETE`) rechazan cabeceras `Origin` que no coinciden con el origen esperado. La cookie identifica una sesión anónima; no equivale a una cuenta autenticada. Se añadieron pruebas CI para ambas defensas; deben pasar en el commit final.
 
 ### P1 — Protección contra abuso de endpoints de IA
 
@@ -25,7 +25,7 @@ Chat, generación de patrones y diagnóstico consumen recursos externos. En el b
 
 **Corrección parcial aplicada en esta rama:** se limita a 4 por defecto el número de solicitudes simultáneas en los endpoints de chat, generación de patrones, diagnóstico de imagen y diagnóstico administrativo. Puede configurarse con `MAX_ACTIVE_AI_REQUESTS` (rango 1–20); al alcanzar el límite se devuelve HTTP 429 y `Retry-After: 2`.
 
-**Pendiente:** este límite es por proceso, no un límite de frecuencia por IP/usuario ni una cuota global entre réplicas. Requiere autenticación real, control de frecuencia y límites en la plataforma para cerrar el hallazgo.
+**Pendiente:** este límite es por proceso, no un límite de frecuencia por IP/sesión ni una cuota global entre réplicas. Hace falta un limitador distribuido y cuotas para cerrar el hallazgo.
 
 ### P1 — Validación real de archivos de imagen
 
@@ -69,7 +69,7 @@ El validador reconoce una parte de la notación (`pb`, `aum`, `dis` y grupos rep
 - Se serializan las mutaciones de memoria JSON y se evita que el chat guarde sobre una copia antigua después de esperar a la IA.
 - Se limita la concurrencia de los endpoints de IA por proceso.
 - Las memorias se vinculan a cookies de sesión firmadas, no a identificadores arbitrarios enviados por el cliente.
-- Se amplían las pruebas de CI para comprobar aislamiento entre sesiones y escrituras concurrentes.
+- Se amplían las pruebas de CI para comprobar aislamiento entre sesiones, escrituras concurrentes, rechazo de mutaciones con origen cruzado y cierre seguro al faltar el secreto de producción.
 - Se añade este informe como registro trazable de hallazgos, límites y prioridades.
 
 Estos cambios están en la rama de auditoría; no se han desplegado a producción ni han cambiado el volumen persistente.
