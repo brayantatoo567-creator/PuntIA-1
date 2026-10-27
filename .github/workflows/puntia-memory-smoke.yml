@@ -1,0 +1,66 @@
+name: PuntIA Memory Persistence Smoke Test
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/puntia-memory-smoke.yml'
+      - 'server.js'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  memory-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Wait for production health
+        shell: bash
+        run: |
+          set -euo pipefail
+          URL="https://puntia-validation-production.up.railway.app"
+          for attempt in $(seq 1 24); do
+            if curl -fsS --max-time 10 "$URL/api/health" -o /tmp/health.json; then
+              node -e 'const h=require("/tmp/health.json"); if(!h.ok || !h.ai) process.exit(1); console.log("Production health and AI configuration OK")'
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "Production health did not become ready"
+          exit 1
+
+      - name: Verify chat memory is written and readable
+        shell: bash
+        run: |
+          set -euo pipefail
+          URL="https://puntia-validation-production.up.railway.app"
+          USER_ID="auditmemory${GITHUB_RUN_ID}${GITHUB_RUN_ATTEMPT}0123456789abcdef"
+          export USER_ID
+          CODE=$(curl -sS --max-time 150 -o /tmp/memory-chat.json -w '%{http_code}' -H 'Content-Type: application/json' -X POST "$URL/api/puntia/chat" --data "$(node -e 'console.log(JSON.stringify({message:"Responde exactamente con la frase MEMORIA_AUDIT_OK",userId:process.env.USER_ID}))')")
+          echo "Chat with memory HTTP status: $CODE"
+          test "$CODE" = "200"
+          node -e 'const r=require("/tmp/memory-chat.json"); if(!r.memorySaved || typeof r.reply!=="string" || r.reply.length<5) throw Error("Chat did not confirm memory save"); console.log("Chat response received; memorySaved:",r.memorySaved)'
+          CODE=$(curl -sS --max-time 20 -o /tmp/memory-read.json -w '%{http_code}' "$URL/api/puntia/memory/$USER_ID")
+          echo "Memory read HTTP status: $CODE"
+          test "$CODE" = "200"
+          node -e 'const r=require("/tmp/memory-read.json"); if(!Array.isArray(r.items) || r.items.length<2) throw Error("Expected user and assistant memory entries"); const all=r.items.map(x=>x.content).join("\n"); if(!all.includes("MEMORIA_AUDIT_OK")) throw Error("Expected audit marker missing from saved memory"); console.log("PASS: user and assistant memory entries were persisted and read back")'
+          CODE=$(curl -sS --max-time 20 -o /tmp/memory-delete.json -w '%{http_code}' -X DELETE "$URL/api/puntia/memory/$USER_ID")
+          echo "Memory cleanup HTTP status: $CODE"
+          test "$CODE" = "200"
+          CODE=$(curl -sS --max-time 20 -o /tmp/memory-after-delete.json -w '%{http_code}' "$URL/api/puntia/memory/$USER_ID")
+          test "$CODE" = "200"
+          node -e 'const r=require("/tmp/memory-after-delete.json"); if(!Array.isArray(r.items) || r.items.length!==0) throw Error("Memory cleanup failed"); console.log("PASS: audit memory removed after test")'
+
+      - name: Reject invalid memory session identifiers
+        shell: bash
+        run: |
+          set -euo pipefail
+          URL="https://puntia-validation-production.up.railway.app"
+          CODE=$(curl -sS --max-time 20 -o /tmp/memory-invalid.json -w '%{http_code}' "$URL/api/puntia/memory/demo-user")
+          echo "Invalid memory ID HTTP status: $CODE"
+          test "$CODE" = "404"
+          echo "PASS: invalid/demo session ID rejected"
