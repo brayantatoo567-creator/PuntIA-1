@@ -23,7 +23,9 @@ Las rutas `GET /api/puntia/memory/:userId`, `POST /api/puntia/memory` y `DELETE 
 
 Chat, generación de patrones y diagnóstico consumen recursos externos. En el backend revisado no aparece un limitador por usuario/IP. Un endpoint público sin límites de frecuencia puede generar costes, agotar cuota o degradar el servicio.
 
-**Corrección necesaria:** límites de frecuencia y concurrencia en servidor, cuotas por usuario autenticado y límites apropiados en el proxy. No basta con un límite del lado del navegador.
+**Corrección parcial aplicada en esta rama:** se limita a 4 por defecto el número de solicitudes simultáneas en los endpoints de chat, generación de patrones, diagnóstico de imagen y diagnóstico administrativo. Puede configurarse con `MAX_ACTIVE_AI_REQUESTS` (rango 1–20); al alcanzar el límite se devuelve HTTP 429 y `Retry-After: 2`.
+
+**Pendiente:** este límite es por proceso, no un límite de frecuencia por IP/usuario ni una cuota global entre réplicas. Requiere autenticación real, control de frecuencia y límites en la plataforma para cerrar el hallazgo.
 
 ### P1 — Validación real de archivos de imagen
 
@@ -37,9 +39,9 @@ La carga está limitada a 8 MB y se filtra por el encabezado MIME declarado por 
 
 La memoria se guarda en un archivo JSON compartido. Las escrituras síncronas bloquean el event loop, y dos solicitudes de chat simultáneas pueden leer la misma versión y luego sobrescribir cambios de la otra solicitud.
 
-**Corrección aplicada en esta rama:** cada escritura usa un archivo temporal exclusivo creado con `wx`, permisos restrictivos y un nombre aleatorio, seguido de `rename`; así se evita que dos operaciones choquen sobre el mismo archivo temporal.
+**Correcciones aplicadas en esta rama:** cada escritura usa un archivo temporal exclusivo creado con `wx`, permisos restrictivos y un nombre aleatorio, seguido de `rename`. Además, el backend serializa globalmente las mutaciones de la base JSON compartida; el chat vuelve a leer la memoria más reciente al guardar sus mensajes, y los endpoints de guardar/borrar usan la misma cola. Esto reduce las pérdidas por solicitudes concurrentes dentro de un solo proceso.
 
-**Pendiente:** la escritura atómica del archivo no elimina la pérdida lógica de actualizaciones cuando dos solicitudes hacen leer-modificar-escribir en paralelo. La solución sólida es serializar el ciclo completo de modificación o migrar la memoria a una base de datos transaccional. No se modificó el volumen de producción.
+**Pendiente importante:** la cola vive en memoria del proceso y no coordina múltiples réplicas ni procesos. Para escalado multiinstancia, la solución sólida es almacenamiento transaccional (por ejemplo, PostgreSQL). No se modificó el volumen de producción.
 
 ### P1 — Configuración de diagnóstico administrativo
 
@@ -60,10 +62,15 @@ El validador reconoce una parte de la notación (`pb`, `aum`, `dis` y grupos rep
 
 ## Cambios seguros incluidos en esta rama
 
-- Se agrega un comando `npm test` para ejecutar las pruebas aritméticas de rondas existentes.
+- Se agregan comandos `npm test` y `npm run check` para comprobaciones reproducibles.
+- La carga de imagen se limita y se comprueba su firma binaria contra el MIME declarado.
+- Se agregan pruebas CI para rechazar contenido que finge ser imagen.
+- Las escrituras de memoria usan temporales únicos, permisos restrictivos y sustitución atómica.
+- Se serializan las mutaciones de memoria JSON y se evita que el chat guarde sobre una copia antigua después de esperar a la IA.
+- Se limita la concurrencia de los endpoints de IA por proceso.
 - Se añade este informe como registro trazable de hallazgos, límites y prioridades.
 
-Estos cambios no modifican endpoints ni datos persistentes.
+Estos cambios están en la rama de auditoría; no se han desplegado a producción ni han cambiado el volumen persistente.
 
 ## Pruebas y evidencia
 
@@ -77,9 +84,9 @@ La inspección de código no permite afirmar que se hayan ejecutado pruebas de p
 ## Plan recomendado
 
 1. Resolver autenticación y autorización de la memoria sin romper sesiones existentes.
-2. Añadir límites de frecuencia y concurrencia en endpoints de IA.
+2. Añadir límites de frecuencia/cuotas por usuario autenticado y controles globales de plataforma.
 3. Completar validación de imágenes con decodificación real y límites de dimensiones/píxeles.
-4. Serializar el ciclo completo de actualización de memoria o migrarlo a almacenamiento transaccional.
+4. Migrar la memoria a almacenamiento transaccional si se requiere más de un proceso o réplica.
 5. Expandir pruebas del validador y añadir casos de continuidad entre rondas.
 6. Ejecutar `npm test`, CI completa, pruebas de regresión visual y pruebas en un entorno de staging.
 7. Desplegar a producción sólo tras habilitar de forma segura la conexión de despliegue y verificar endpoints reales.
