@@ -79,7 +79,7 @@ Estos cambios están en la rama de auditoría; no se han desplegado a producció
 CI completo exitoso para la corrección del validador de la prueba de concurrencia, commit `90f4562180c40214c38e0d21018d8f7f02080926`, ejecución 147:  
 https://github.com/brayantatoo567-creator/PuntIA-1/actions/runs/40591466285
 
-Los cambios posteriores de sesión firmada y las pruebas de aislamiento aún necesitan una ejecución completa de CI antes de poder considerarse validados.
+Las defensas de sesión firmada y aislamiento cuentan con cobertura en ejecuciones recientes de CI exitosas. Esto valida los casos automatizados incluidos, no una auditoría de seguridad independiente.
 
 También se revisó el estado de Railway: servicio `puntia-validation` en línea, una réplica activa, sin fallos recientes y sin cambios pendientes. El despliegue activo corresponde a un commit anterior (`91ca2c3`), así que las pruebas de CI de la rama principal no prueban por sí solas el código nuevo en producción.
 
