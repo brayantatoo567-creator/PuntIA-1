@@ -42,8 +42,8 @@ function calculateRound(line) {
   return { status: actual === expected ? 'valid' : 'invalid', expected, actual };
 }
 function validatePattern(pattern) {
-  const lines = String(pattern || '').split(/\\r?\\n/).map(line => line.trim())
-    .filter(line => /^(?:ronda|vuelta)\\s*\\d+\\s*[:.)-]?/i.test(line));
+  const lines = String(pattern || '').split(/\r?\n/).map(line => line.trim())
+    .filter(line => /^(?:ronda|vuelta)\s*\d+\s*[:.)-]?/i.test(line));
   const results = lines.map(line => ({ line, ...calculateRound(line) }));
   return {
     checkedRounds: results.length,
@@ -65,5 +65,9 @@ assertStatus('Vuelta 2: (1 pb, 1 aum) x 6 (17)', 'invalid');
 assertStatus('Ronda 3: instrucciones especiales (12)', 'unverified');
 const report = validatePattern('Vuelta 1: 6 pb (6)\nVuelta 2: (1 pb, 1 aum) x 6 (17)\nVuelta 3: tejido especial (12)');
 if (report.checkedRounds !== 3 || report.validRounds !== 1 || report.invalidRounds !== 1 || report.unverifiedRounds !== 1) throw new Error('Resumen inesperado: ' + JSON.stringify(report));
+const report = validatePattern('Vuelta 1: 6 pb (6)\nVuelta 2: (1 pb, 1 aum) x 6 (17)\nVuelta 3: tejido especial (12)');
+if (report.checkedRounds !== 3 || report.validRounds !== 1 || report.invalidRounds !== 1 || report.unverifiedRounds !== 1) {
+  throw new Error('Resumen inesperado: ' + JSON.stringify(report));
+}
 console.log('Pruebas de aritmética de rondas: 7/7 correctas.');
 module.exports = { calculateRound, validatePattern };
