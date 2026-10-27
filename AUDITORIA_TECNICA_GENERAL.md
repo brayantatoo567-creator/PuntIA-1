@@ -76,8 +76,7 @@ Estos cambios están en la rama de auditoría; no se han desplegado a producció
 
 ## Pruebas y evidencia
 
-CI completo exitoso para la corrección del validador de la prueba de concurrencia, commit `90f4562180c40214c38e0d21018d8f7f02080926`, ejecución 147:  
-https://github.com/brayantatoo567-creator/PuntIA-1/actions/runs/40591466285
+CI exitoso en ejecuciones recientes: #156 (https://github.com/brayantatoo567-creator/PuntIA-1/actions/runs/40595442256), #157 (https://github.com/brayantatoo567-creator/PuntIA-1/actions/runs/40600228256), #158 (https://github.com/brayantatoo567-creator/PuntIA-1/actions/runs/40601841832) y #159 (https://github.com/brayantatoo567-creator/PuntIA-1/actions/runs/40602217729). La ejecución #159 corresponde al commit `1bc8a1f50065efb4d36fbd589de9e4375d11b505`.
 
 Las defensas de sesión firmada y aislamiento cuentan con cobertura en ejecuciones recientes de CI exitosas. Esto valida los casos automatizados incluidos, no una auditoría de seguridad independiente.
 
