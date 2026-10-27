@@ -82,6 +82,9 @@ jobs:
           node -e "const fs=require('fs');const html=fs.readFileSync('public/index.html','utf8');const m=html.match(/<script>([\\s\\S]*?)<\\/script>/);if(!m)throw Error('No se encontró el script de la interfaz');fs.writeFileSync('/tmp/puntia-ui.js',m[1])"
           node --check /tmp/puntia-ui.js
 
+      - name: Validar aritmética de rondas de crochet
+        run: node tests/pattern-math.cjs
+
       - name: Instalar Chromium para pruebas de interfaz
         run: |
           npm install --no-save --no-audit --no-fund playwright
