@@ -151,6 +151,25 @@ jobs:
           SESSION_ID=0123456789abcdef0123456789abcdef
           STATUS=$(curl -s -o /tmp/memory-save.json -w '%{http_code}' -H 'Content-Type: application/json' -d "{\"userId\":\"$SESSION_ID\",\"content\":\"memory isolation test\"}" http://127.0.0.1:8080/api/puntia/memory)
           test "$STATUS" = "200"
+          # Concurrent writes to the shared JSON memory must not lose entries.
+          SESSION_ID="$SESSION_ID" node <<'NODE'
+          (async()=>{
+            const id=process.env.SESSION_ID;
+            const base='http://127.0.0.1:8080/api/puntia/memory';
+            const writes=await Promise.all(Array.from({length:16},(_,i)=>fetch(base,{
+              method:'POST',
+              headers:{'Content-Type':'application/json'},
+              body:JSON.stringify({userId:id,content:'parallel memory test '+i,category:'ci'})
+            })));
+            if(writes.some(r=>!r.ok)) throw new Error('Una escritura concurrente de memoria falló');
+            const response=await fetch(base+'/'+id);
+            if(!response.ok) throw new Error('No se pudo leer la memoria tras escrituras concurrentes');
+            const items=(await response.json()).items||[];
+            const saved=items.filter(x=>/^parallel memory test \\d+$/.test(x.content));
+            if(saved.length!==16) throw new Error('Se perdieron escrituras concurrentes: '+saved.length+'/16');
+            console.log('Memoria concurrente verificada: 16/16 entradas preservadas');
+          })().catch(e=>{console.error(e);process.exit(1)});
+          NODE
           STATUS=$(curl -s -o /tmp/memory-read.json -w '%{http_code}' "http://127.0.0.1:8080/api/puntia/memory/$SESSION_ID")
           test "$STATUS" = "200"
           node -e "const m=require('/tmp/memory-read.json'); if(!m.items?.some(x=>x.content==='memory isolation test')) process.exit(1)"
