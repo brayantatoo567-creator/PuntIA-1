@@ -143,38 +143,56 @@ jobs:
           STATUS=$(curl -s -o /tmp/diagnose-empty.json -w '%{http_code}' -X POST http://127.0.0.1:8080/api/puntia/diagnose)
           test "$STATUS" = "400"
 
-          # Anonymous memory must be isolated by a high-entropy session ID.
-          STATUS=$(curl -s -o /tmp/memory-shared.json -w '%{http_code}' http://127.0.0.1:8080/api/puntia/memory/demo-user)
-          test "$STATUS" = "404"
-          STATUS=$(curl -s -o /tmp/memory-no-session.json -w '%{http_code}' -H 'Content-Type: application/json' -d '{"content":"must not be stored"}' http://127.0.0.1:8080/api/puntia/memory)
-          test "$STATUS" = "400"
-          SESSION_ID=0123456789abcdef0123456789abcdef
-          STATUS=$(curl -s -o /tmp/memory-save.json -w '%{http_code}' -H 'Content-Type: application/json' -d "{\"userId\":\"$SESSION_ID\",\"content\":\"memory isolation test\"}" http://127.0.0.1:8080/api/puntia/memory)
+          # Memory access must be bound to signed, HttpOnly cookies, not client-supplied IDs.
+          curl -fsS -c /tmp/puntia-session-a.cookie -b /tmp/puntia-session-a.cookie http://127.0.0.1:8080/api/health >/dev/null
+          curl -fsS -c /tmp/puntia-session-b.cookie -b /tmp/puntia-session-b.cookie http://127.0.0.1:8080/api/health >/dev/null
+          COOKIE_A=$(awk '$6=="puntia_sid"{print $6"="$7}' /tmp/puntia-session-a.cookie)
+          COOKIE_B=$(awk '$6=="puntia_sid"{print $6"="$7}' /tmp/puntia-session-b.cookie)
+          test -n "$COOKIE_A"
+          test -n "$COOKIE_B"
+          test "$COOKIE_A" != "$COOKIE_B"
+
+          STATUS=$(curl -s -o /tmp/memory-empty.json -w '%{http_code}' -b "$COOKIE_A" http://127.0.0.1:8080/api/puntia/memory/demo-user)
           test "$STATUS" = "200"
-          # Concurrent writes to the shared JSON memory must not lose entries.
-          SESSION_ID="$SESSION_ID" node <<'NODE'
+          node -e "const m=require('/tmp/memory-empty.json'); if((m.items||[]).length!==0) process.exit(1)"
+          STATUS=$(curl -s -o /tmp/memory-no-content.json -w '%{http_code}' -b "$COOKIE_A" -H 'Content-Type: application/json' -d '{"content":"   ","userId":"attacker-selected-id"}' http://127.0.0.1:8080/api/puntia/memory)
+          test "$STATUS" = "400"
+
+          STATUS=$(curl -s -o /tmp/memory-save.json -w '%{http_code}' -b "$COOKIE_A" -H 'Content-Type: application/json' -d '{"userId":"attacker-selected-id","content":"memory isolation test"}' http://127.0.0.1:8080/api/puntia/memory)
+          test "$STATUS" = "200"
+          COOKIE_A="$COOKIE_A" node <<'NODE'
           (async()=>{
-            const id=process.env.SESSION_ID;
+            const cookie=process.env.COOKIE_A;
             const base='http://127.0.0.1:8080/api/puntia/memory';
             const writes=await Promise.all(Array.from({length:16},(_,i)=>fetch(base,{
               method:'POST',
-              headers:{'Content-Type':'application/json'},
-              body:JSON.stringify({userId:id,content:'parallel memory test '+i,category:'ci'})
+              headers:{'Content-Type':'application/json','Cookie':cookie},
+              body:JSON.stringify({userId:'attacker-selected-id',content:'parallel memory test '+i,category:'ci'})
             })));
             if(writes.some(r=>!r.ok)) throw new Error('Una escritura concurrente de memoria falló');
-            const response=await fetch(base+'/'+id);
+            const response=await fetch(base+'/attacker-selected-id',{headers:{Cookie:cookie}});
             if(!response.ok) throw new Error('No se pudo leer la memoria tras escrituras concurrentes');
             const items=(await response.json()).items||[];
             const saved=items.filter(x=>/^parallel memory test [0-9]+$/.test(x.content));
             if(saved.length!==16) throw new Error('Se perdieron escrituras concurrentes: '+saved.length+'/16');
+            if(!items.some(x=>x.content==='memory isolation test')) throw new Error('La memoria inicial no se preservó');
             console.log('Memoria concurrente verificada: 16/16 entradas preservadas');
           })().catch(e=>{console.error(e);process.exit(1)});
           NODE
-          STATUS=$(curl -s -o /tmp/memory-read.json -w '%{http_code}' "http://127.0.0.1:8080/api/puntia/memory/$SESSION_ID")
+
+          STATUS=$(curl -s -o /tmp/memory-other-session.json -w '%{http_code}' -b "$COOKIE_B" http://127.0.0.1:8080/api/puntia/memory/demo-user)
           test "$STATUS" = "200"
-          node -e "const m=require('/tmp/memory-read.json'); if(!m.items?.some(x=>x.content==='memory isolation test')) process.exit(1)"
-          STATUS=$(curl -s -o /tmp/memory-delete.json -w '%{http_code}' -X DELETE "http://127.0.0.1:8080/api/puntia/memory/$SESSION_ID")
+          node -e "const m=require('/tmp/memory-other-session.json'); if((m.items||[]).length!==0) process.exit(1)"
+          STATUS=$(curl -s -o /tmp/memory-delete-other.json -w '%{http_code}' -X DELETE -b "$COOKIE_B" http://127.0.0.1:8080/api/puntia/memory/demo-user)
           test "$STATUS" = "200"
+          STATUS=$(curl -s -o /tmp/memory-read.json -w '%{http_code}' -b "$COOKIE_A" http://127.0.0.1:8080/api/puntia/memory/demo-user)
+          test "$STATUS" = "200"
+          node -e "const m=require('/tmp/memory-read.json'); if(!m.items?.some(x=>x.content==='memory isolation test')) process.exit(1); if(m.items.filter(x=>/^parallel memory test [0-9]+$/.test(x.content)).length!==16) process.exit(1)"
+          STATUS=$(curl -s -o /tmp/memory-delete.json -w '%{http_code}' -X DELETE -b "$COOKIE_A" http://127.0.0.1:8080/api/puntia/memory/demo-user)
+          test "$STATUS" = "200"
+          STATUS=$(curl -s -o /tmp/memory-after-delete.json -w '%{http_code}' -b "$COOKIE_A" http://127.0.0.1:8080/api/puntia/memory/demo-user)
+          test "$STATUS" = "200"
+          node -e "const m=require('/tmp/memory-after-delete.json'); if((m.items||[]).length!==0) process.exit(1)"
 
           STATUS=$(curl -s -o /tmp/chat-long.json -w '%{http_code}' -H 'Content-Type: application/json' --data-binary "$(node -e 'process.stdout.write(JSON.stringify({message: "x".repeat(8001)}))')" http://127.0.0.1:8080/api/puntia/chat)
           test "$STATUS" = "413"
