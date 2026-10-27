@@ -163,4 +163,10 @@ jobs:
           STATUS=$(curl -s -o /tmp/diagnose-invalid-type.json -w '%{http_code}' -F 'image=@.github/workflows/ci.yml;type=text/plain' http://127.0.0.1:8080/api/puntia/diagnose)
           test "$STATUS" = "415"
 
+          # A forged MIME header must not make arbitrary bytes pass as an image.
+          printf 'not-an-image' > /tmp/fake-image.png
+          STATUS=$(curl -s -o /tmp/diagnose-fake-image.json -w '%{http_code}' -F 'image=@/tmp/fake-image.png;type=image/png' http://127.0.0.1:8080/api/puntia/diagnose)
+          test "$STATUS" = "415"
+          node -e "const e=require('/tmp/diagnose-fake-image.json'); if(!e.error || !e.error.includes('no coincide')) process.exit(1)"
+
           echo "Health and negative-path API checks passed."
