@@ -160,6 +160,12 @@ jobs:
 
           STATUS=$(curl -s -o /tmp/memory-save.json -w '%{http_code}' -b "$COOKIE_A" -H 'Content-Type: application/json' -d '{"userId":"attacker-selected-id","content":"memory isolation test"}' http://127.0.0.1:8080/api/puntia/memory)
           test "$STATUS" = "200"
+
+          # Cookie-authenticated mutations must reject a foreign Origin.
+          STATUS=$(curl -s -o /tmp/memory-csrf-post.json -w '%{http_code}' -b "$COOKIE_A" -H 'Origin: https://evil.example' -H 'Content-Type: application/json' -d '{"content":"cross origin attempt"}' http://127.0.0.1:8080/api/puntia/memory)
+          test "$STATUS" = "403"
+          STATUS=$(curl -s -o /tmp/memory-csrf-delete.json -w '%{http_code}' -X DELETE -b "$COOKIE_B" -H 'Origin: https://evil.example' http://127.0.0.1:8080/api/puntia/memory/demo-user)
+          test "$STATUS" = "403"
           COOKIE_A="$COOKIE_A" node <<'NODE'
           (async()=>{
             const cookie=process.env.COOKIE_A;
@@ -206,4 +212,11 @@ jobs:
           test "$STATUS" = "415"
           node -e "const e=require('/tmp/diagnose-fake-image.json'); if(!e.error || !e.error.includes('no coincide')) process.exit(1)"
 
-          echo "Health and negative-path API checks passed."
+          # Production must fail closed if its persistent session secret is missing.
+          if env -u PUNTIA_SESSION_SECRET RAILWAY_ENVIRONMENT=production node server.js >/tmp/puntia-missing-secret.log 2>&1; then
+            echo "ERROR: production started without PUNTIA_SESSION_SECRET"
+            exit 1
+          fi
+          grep -q 'PUNTIA_SESSION_SECRET es obligatorio en producción' /tmp/puntia-missing-secret.log
+
+          echo "Health, session isolation, CSRF, production secret and negative-path API checks passed."
