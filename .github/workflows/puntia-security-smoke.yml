@@ -1,0 +1,66 @@
+name: PuntIA Security and Pattern Contract Checks
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/puntia-security-smoke.yml'
+      - 'server.js'
+      - 'package.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  security-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install runtime dependencies
+        run: npm install --no-audit --no-fund
+      - name: Check server syntax
+        run: node --check server.js
+      - name: Verify administrative diagnostics fail closed without a token
+        shell: bash
+        run: |
+          set -euo pipefail
+          PORT=8080 node server.js > /tmp/puntia-security.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
+          READY=0
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:8080/api/health >/dev/null; then READY=1; break; fi
+            sleep 1
+          done
+          test "$READY" = "1"
+          CODE=$(curl -sS -o /tmp/diag-no-token.json -w '%{http_code}' -H 'Content-Type: application/json' -X POST http://127.0.0.1:8080/api/diagnostics -d '{}')
+          echo "No-token diagnostics HTTP: $CODE"
+          test "$CODE" = "503"
+          node -e 'const r=require("/tmp/diag-no-token.json"); if(!String(r.error||"").includes("no habilitado")) process.exit(1); console.log("PASS: diagnostics disabled when token is absent")'
+          CODE=$(curl -sS -o /tmp/diag-bad-token.json -w '%{http_code}' -H 'Content-Type: application/json' -H 'Authorization: Bearer invalid-test-token' -X POST http://127.0.0.1:8080/api/diagnostics -d '{}')
+          echo "Invalid-token diagnostics HTTP: $CODE"
+          test "$CODE" = "503"
+          echo "PASS: endpoint remains fail-closed without configured token"
+      - name: Verify image upload limits and input validation
+        shell: bash
+        run: |
+          set -euo pipefail
+          PORT=8081 node server.js > /tmp/puntia-validation.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
+          READY=0
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:8081/api/health >/dev/null; then READY=1; break; fi
+            sleep 1
+          done
+          test "$READY" = "1"
+          CODE=$(curl -sS -o /tmp/diag-no-image.json -w '%{http_code}' -X POST http://127.0.0.1:8081/api/puntia/diagnose)
+          test "$CODE" = "400"
+          CODE=$(curl -sS -o /tmp/diag-bad-type.json -w '%{http_code}' -F 'image=@package.json;type=application/json' http://127.0.0.1:8081/api/puntia/diagnose)
+          test "$CODE" = "415"
+          echo "PASS: missing image and unsupported image types rejected"
