@@ -27,15 +27,19 @@ Chat, generación de patrones y diagnóstico consumen recursos externos. En el b
 
 ### P1 — Validación real de archivos de imagen
 
-La carga está limitada a 8 MB y se filtra por el encabezado MIME declarado por el cliente. Ese encabezado no demuestra que el contenido sea una imagen válida.
+La carga está limitada a 8 MB y se filtra por el encabezado MIME declarado por el cliente. Ese encabezado no demuestra por sí solo que el contenido sea una imagen válida.
 
-**Corrección necesaria:** validar firma y decodificación real de la imagen, limitar dimensiones/píxeles y número de campos multipart, y rechazar contenido malformado antes de enviarlo al modelo. El límite actual de tamaño es positivo, pero no cubre todos esos riesgos.
+**Corrección aplicada en esta rama:** se limita la carga a un archivo y un número acotado de campos multipart, y se compara la firma binaria JPEG/PNG/WEBP/GIF con el MIME declarado antes de llamar al modelo. Se añadió una prueba CI para un archivo falso con MIME `image/png`.
+
+**Pendiente:** la comprobación de firma no equivale a decodificar completamente la imagen ni verifica dimensiones/píxeles. Para cerrar este hallazgo por completo se requiere un decodificador de imágenes y pruebas con archivos truncados y malformados.
 
 ### P1 — Escritura concurrente de memoria JSON
 
-La memoria se guarda en un archivo JSON compartido. La escritura usa un archivo temporal fijo (`puntia-memory.json.tmp`) y operaciones síncronas. Dos solicitudes simultáneas pueden competir por el mismo temporal o sobrescribirse; las escrituras síncronas también bloquean el event loop.
+La memoria se guarda en un archivo JSON compartido. Las escrituras síncronas bloquean el event loop, y dos solicitudes de chat simultáneas pueden leer la misma versión y luego sobrescribir cambios de la otra solicitud.
 
-**Corrección necesaria:** almacenamiento con transacciones/concurrencia (por ejemplo, una base de datos) o, como mínimo, escrituras atómicas con exclusión mutua y manejo explícito de errores. El volumen persistente de Railway debe conservarse.
+**Corrección aplicada en esta rama:** cada escritura usa un archivo temporal exclusivo creado con `wx`, permisos restrictivos y un nombre aleatorio, seguido de `rename`; así se evita que dos operaciones choquen sobre el mismo archivo temporal.
+
+**Pendiente:** la escritura atómica del archivo no elimina la pérdida lógica de actualizaciones cuando dos solicitudes hacen leer-modificar-escribir en paralelo. La solución sólida es serializar el ciclo completo de modificación o migrar la memoria a una base de datos transaccional. No se modificó el volumen de producción.
 
 ### P1 — Configuración de diagnóstico administrativo
 
@@ -74,8 +78,8 @@ La inspección de código no permite afirmar que se hayan ejecutado pruebas de p
 
 1. Resolver autenticación y autorización de la memoria sin romper sesiones existentes.
 2. Añadir límites de frecuencia y concurrencia en endpoints de IA.
-3. Validar contenido de imagen por firma y decodificación real.
-4. Corregir persistencia concurrente de memoria o migrarla a almacenamiento transaccional.
+3. Completar validación de imágenes con decodificación real y límites de dimensiones/píxeles.
+4. Serializar el ciclo completo de actualización de memoria o migrarlo a almacenamiento transaccional.
 5. Expandir pruebas del validador y añadir casos de continuidad entre rondas.
 6. Ejecutar `npm test`, CI completa, pruebas de regresión visual y pruebas en un entorno de staging.
 7. Desplegar a producción sólo tras habilitar de forma segura la conexión de despliegue y verificar endpoints reales.
