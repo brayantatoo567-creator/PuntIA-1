@@ -41,6 +41,18 @@ function calculateRound(line) {
   }
   return { status: actual === expected ? 'valid' : 'invalid', expected, actual };
 }
+function validatePattern(pattern) {
+  const lines = String(pattern || '').split(/\\r?\\n/).map(line => line.trim())
+    .filter(line => /^(?:ronda|vuelta)\\s*\\d+\\s*[:.)-]?/i.test(line));
+  const results = lines.map(line => ({ line, ...calculateRound(line) }));
+  return {
+    checkedRounds: results.length,
+    validRounds: results.filter(x => x.status === 'valid').length,
+    invalidRounds: results.filter(x => x.status === 'invalid').length,
+    unverifiedRounds: results.filter(x => x.status === 'unverified').length,
+    results
+  };
+}
 function assertStatus(line, expectedStatus) {
   const result = calculateRound(line);
   if (result.status !== expectedStatus) throw new Error(`"${line}" esperaba ${expectedStatus}, obtuvo ${JSON.stringify(result)}`);
