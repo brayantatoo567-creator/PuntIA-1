@@ -10,8 +10,13 @@ app.use(express.json({limit:'2mb'}));
 
 // Anonymous sessions use a signed, HttpOnly cookie. Client-supplied user IDs are never
 // accepted as proof of identity for memory access.
-const sessionSecret=process.env.PUNTIA_SESSION_SECRET||crypto.randomBytes(32).toString('hex');
-if(!process.env.PUNTIA_SESSION_SECRET) console.warn('PUNTIA_SESSION_SECRET no configurado; las sesiones se invalidarán al reiniciar el proceso.');
+const isProduction=process.env.NODE_ENV==='production'||Boolean(process.env.RAILWAY_ENVIRONMENT);
+const configuredSessionSecret=String(process.env.PUNTIA_SESSION_SECRET||'');
+if(isProduction&&Buffer.byteLength(configuredSessionSecret,'utf8')<32){
+  throw new Error('PUNTIA_SESSION_SECRET es obligatorio en producción y debe tener al menos 32 bytes.');
+}
+const sessionSecret=configuredSessionSecret||crypto.randomBytes(32).toString('hex');
+if(!configuredSessionSecret) console.warn('PUNTIA_SESSION_SECRET no configurado; las sesiones se invalidarán al reiniciar el proceso.');
 const SESSION_COOKIE='puntia_sid';
 function signSessionId(id){return crypto.createHmac('sha256',sessionSecret).update(id).digest('base64url');}
 function parseCookies(header){const result={};for(const part of String(header||'').split(';')){const index=part.indexOf('=');if(index>0){const key=part.slice(0,index).trim();try{result[key]=decodeURIComponent(part.slice(index+1).trim())}catch{}}}return result;}
@@ -97,6 +102,18 @@ function deleteUserMemory(userId){
 function emotionFor(text){const t=String(text||'').toLowerCase();if(/felicidades|lo logramos|¡listo|excelente|genial|perfecto/.test(t))return 'excited';if(/no te preocupes|vamos con calma|lo corregimos|error|difícil/.test(t))return 'concerned';if(/patrón|patron|vuelta|puntos|materiales|paso a paso/.test(t))return 'focused';if(/¿qué|cuéntame|qué te gustaría|explorar/.test(t))return 'curious';return 'happy'}
 app.get('/api/puntia/memory/:userId',(req,res)=>{const userId=req.puntiaUserId;const db=readMemory();res.json({items:(db[userId]||[]).slice(-50)})});
 app.post('/api/puntia/memory',(req,res)=>{const userId=req.puntiaUserId;const content=String(req.body?.content||'').trim().slice(0,2000);const category=String(req.body?.category||'note').slice(0,40);if(!content)return res.status(400).json({error:'La memoria está vacía.'});mutateMemory(userId,current=>{current.push({content,category,createdAt:new Date().toISOString()});return current.slice(-200)}).then(count=>res.json({saved:true,count})).catch(()=>res.status(500).json({error:'No se pudo guardar la memoria.'}))});
+function rejectCrossOriginMutation(req,res,next){
+  const origin=req.get('origin');
+  if(!origin)return next();
+  const forwardedProto=String(req.get('x-forwarded-proto')||req.protocol).split(',')[0].trim();
+  const expectedOrigin=forwardedProto+'://'+req.get('host');
+  if(origin!==expectedOrigin)return res.status(403).json({error:'Solicitud de otro origen bloqueada.'});
+  next();
+}
+app.use('/api/puntia/memory',(req,res,next)=>{
+  if(req.method==='POST'||req.method==='DELETE')return rejectCrossOriginMutation(req,res,next);
+  next();
+});
 app.delete('/api/puntia/memory/:userId',(req,res)=>{const userId=req.puntiaUserId;deleteUserMemory(userId).then(()=>res.json({deleted:true})).catch(()=>res.status(500).json({error:'No se pudo borrar la memoria.'}))});
 app.get(/.*/,(req,res)=>res.sendFile(path.join(__dirname,'public','index.html')));
 app.use((err,req,res,next)=>{if(err instanceof multer.MulterError){const status=err.code==='LIMIT_FILE_SIZE'?413:400;return res.status(status).json({error:err.code==='LIMIT_FILE_SIZE'?'La imagen supera el límite de 8 MB.':'No se pudo recibir la imagen.'});}if(err?.message==='Formato de imagen no admitido. Usa JPG, PNG, WEBP o GIF.')return res.status(415).json({error:err.message});console.error('PuntIA request error:',err?.name||'unknown');return res.status(500).json({error:'Error interno del servidor.'});});
