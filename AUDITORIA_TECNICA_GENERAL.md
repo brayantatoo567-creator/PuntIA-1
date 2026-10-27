@@ -15,9 +15,9 @@ La auditoría estática identificó riesgos que requieren corrección y validaci
 
 ### P0 — Identidad y aislamiento de la memoria
 
-Las rutas `GET /api/puntia/memory/:userId`, `POST /api/puntia/memory` y `DELETE /api/puntia/memory/:userId` usan un identificador enviado por el cliente como control de acceso. Validar el formato del identificador no demuestra que el solicitante sea su propietario. Si los identificadores son conocidos o predecibles, una persona podría leer, insertar o borrar memorias ajenas.
+Las rutas de memoria ahora derivan la identidad de una cookie de sesión `HttpOnly`, `SameSite=Lax`, firmada con HMAC-SHA256; los identificadores enviados en el cuerpo o la URL ya no seleccionan la memoria. La firma se compara en tiempo constante y la cookie se marca `Secure` en producción/Railway. Se añadieron pruebas CI para dos sesiones independientes, escrituras concurrentes y borrado aislado.
 
-**Corrección necesaria:** autenticar las sesiones y derivar el propietario de la identidad validada en el servidor. Hasta que exista autenticación real, no tratar el identificador de sesión como una barrera de seguridad. No se cambió este contrato automáticamente porque introducir autenticación sin revisar el cliente puede romper memoria, chat y mascota.
+**Pendiente:** configurar `PUNTIA_SESSION_SECRET` con un secreto aleatorio persistente en Railway antes de desplegar. Si falta, el servidor usa un secreto efímero y avisa en los logs; eso invalida sesiones tras reinicios. También falta validar CSRF y revisar las políticas de sesión antes de producción. Esta cookie identifica una sesión anónima; no equivale a una cuenta autenticada.
 
 ### P1 — Protección contra abuso de endpoints de IA
 
@@ -37,7 +37,7 @@ La carga está limitada a 8 MB y se filtra por el encabezado MIME declarado por 
 
 ### P1 — Escritura concurrente de memoria JSON
 
-La memoria se guarda en un archivo JSON compartido. Las escrituras síncronas bloquean el event loop, y dos solicitudes de chat simultáneas pueden leer la misma versión y luego sobrescribir cambios de la otra solicitud.
+La memoria se guarda en un archivo JSON compartido. Las escrituras síncronas bloquean el event loop; la cola global serializa las mutaciones dentro de un único proceso.
 
 **Correcciones aplicadas en esta rama:** cada escritura usa un archivo temporal exclusivo creado con `wx`, permisos restrictivos y un nombre aleatorio, seguido de `rename`. Además, el backend serializa globalmente las mutaciones de la base JSON compartida; el chat vuelve a leer la memoria más reciente al guardar sus mensajes, y los endpoints de guardar/borrar usan la misma cola. Esto reduce las pérdidas por solicitudes concurrentes dentro de un solo proceso.
 
@@ -68,14 +68,18 @@ El validador reconoce una parte de la notación (`pb`, `aum`, `dis` y grupos rep
 - Las escrituras de memoria usan temporales únicos, permisos restrictivos y sustitución atómica.
 - Se serializan las mutaciones de memoria JSON y se evita que el chat guarde sobre una copia antigua después de esperar a la IA.
 - Se limita la concurrencia de los endpoints de IA por proceso.
+- Las memorias se vinculan a cookies de sesión firmadas, no a identificadores arbitrarios enviados por el cliente.
+- Se amplían las pruebas de CI para comprobar aislamiento entre sesiones y escrituras concurrentes.
 - Se añade este informe como registro trazable de hallazgos, límites y prioridades.
 
 Estos cambios están en la rama de auditoría; no se han desplegado a producción ni han cambiado el volumen persistente.
 
 ## Pruebas y evidencia
 
-En la base auditada se registró un CI exitoso para el commit `837c18e`:  
-https://github.com/brayantatoo567-creator/PuntIA-1/actions/runs/40542291966
+CI completo exitoso para la corrección del validador de la prueba de concurrencia, commit `90f4562180c40214c38e0d21018d8f7f02080926`, ejecución 147:  
+https://github.com/brayantatoo567-creator/PuntIA-1/actions/runs/40591466285
+
+Los cambios posteriores de sesión firmada y las pruebas de aislamiento aún necesitan una ejecución completa de CI antes de poder considerarse validados.
 
 También se revisó el estado de Railway: servicio `puntia-validation` en línea, una réplica activa, sin fallos recientes y sin cambios pendientes. El despliegue activo corresponde a un commit anterior (`91ca2c3`), así que las pruebas de CI de la rama principal no prueban por sí solas el código nuevo en producción.
 
@@ -83,12 +87,12 @@ La inspección de código no permite afirmar que se hayan ejecutado pruebas de p
 
 ## Plan recomendado
 
-1. Resolver autenticación y autorización de la memoria sin romper sesiones existentes.
-2. Añadir límites de frecuencia/cuotas por usuario autenticado y controles globales de plataforma.
+1. Configurar `PUNTIA_SESSION_SECRET` como secreto aleatorio persistente en Railway; no desplegar el cambio antes de configurarlo.
+2. Añadir defensa CSRF y límites de frecuencia/cuotas por IP/sesión, más controles globales de plataforma.
 3. Completar validación de imágenes con decodificación real y límites de dimensiones/píxeles.
 4. Migrar la memoria a almacenamiento transaccional si se requiere más de un proceso o réplica.
 5. Expandir pruebas del validador y añadir casos de continuidad entre rondas.
-6. Ejecutar `npm test`, CI completa, pruebas de regresión visual y pruebas en un entorno de staging.
+6. Ejecutar CI completa después de los cambios recientes, pruebas de regresión visual y pruebas en staging.
 7. Desplegar a producción sólo tras habilitar de forma segura la conexión de despliegue y verificar endpoints reales.
 
 ## Referencias técnicas
