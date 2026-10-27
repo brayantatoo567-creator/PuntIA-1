@@ -1,59 +1,67 @@
 # PuntIA — plan de validación end-to-end en staging
 
 **Fecha:** 2026-10-27  
-**Rama de trabajo:** `audit/general-audit-2026-10`  
-**Objetivo:** verificar el flujo real de la app sin modificar producción ni su volumen de memoria.
+**Rama:** `audit/general-audit-2026-10`  
+**Objetivo:** verificar las funciones reales de PuntIA sin modificar producción ni su volumen de memoria.
 
-## Estado previo comprobado
+## Estado comprobado
 
-- CI GitHub Actions #156: **éxito** en commit `c6e5a8dff6b64c22ffd0042a3dfdb56367cbbefc`.
-- Evidencia: https://github.com/brayantatoo567-creator/PuntIA-1/actions/runs/40595442256
-- La suite reporta validaciones de sintaxis, pruebas de interfaz de escritorio/móvil, endpoints y defensas de sesión/solicitudes.
-- Esto no equivale a una prueba en Railway ni demuestra que las llamadas reales a OpenAI funcionen con las variables del entorno.
-- Producción debe permanecer intacta hasta completar este plan.
+- CI #158: **éxito**, commit `dea7ae0b1c4193cfa05e21bd7391a1dd06d2535a`.  
+  Evidencia: https://github.com/brayantatoo567-creator/PuntIA-1/actions/runs/40601841832
+- Pasaron las comprobaciones de archivos, dependencias, sintaxis, aritmética de crochet, pruebas de interfaz en escritorio/móvil y pruebas de endpoints/validaciones de seguridad incluidas en el workflow.
+- Railway reporta los cuatro servicios actuales en línea, sin fallos recientes ni alertas activas en el estado consultado.
+- El proyecto Railway consultado sólo tiene el entorno `production`; no existe todavía un entorno de staging separado.
+- El servicio `puntia-validation` está en producción y monta el volumen persistente `puntia-assistant-memory` en `/app/data`. **No modificar ni compartir ese volumen con staging.**
+- El despliegue activo corresponde a un commit anterior a la rama de auditoría. El éxito de CI no prueba que el código auditado esté funcionando en Railway.
+- La lista de variables del servicio de producción no incluye `PUNTIA_SESSION_SECRET`. No añadirla ni desplegar código que la requiera en producción como parte de estas pruebas.
+- La comprobación HTTP directa del endpoint público no pudo confirmarse desde la herramienta web disponible; no se marca el health endpoint como probado en vivo.
 
-## Bloqueos antes de iniciar staging
+## Bloqueo actual para staging
 
-- [ ] Crear/seleccionar un entorno Railway **separado** de producción.
-- [ ] Confirmar que staging no monta ni comparte el volumen `puntia-assistant-memory` de producción.
-- [ ] Configurar en staging un `PUNTIA_SESSION_SECRET` aleatorio, persistente y de al menos 32 bytes; no reutilizar el secreto de producción.
-- [ ] Configurar una credencial de IA válida y de prueba; no registrar ni publicar su valor.
-- [ ] Confirmar que las variables administrativas opcionales se configuran conscientemente y no se inventan.
-- [ ] Verificar que el servicio despliega la rama de auditoría y registrar el SHA exacto.
+Se necesita crear un entorno Railway separado de producción. En las acciones disponibles para esta sesión no hay una operación de creación de entorno que pueda ejecutar de forma segura. No voy a sustituirla por cambios en producción ni a crear un servicio improvisado dentro del único entorno actual.
 
-## Pruebas manuales de extremo a extremo
+Una vez que exista staging, preparar:
+- [ ] servicio conectado a la rama `audit/general-audit-2026-10` y SHA exacto registrado;
+- [ ] almacenamiento exclusivo de staging; nunca montar el volumen de producción;
+- [ ] `PUNTIA_SESSION_SECRET` aleatorio y persistente de al menos 32 bytes, diferente del secreto de producción;
+- [ ] credencial de IA de prueba válida y protegida;
+- [ ] variables administrativas configuradas sólo si se van a usar;
+- [ ] límites de gasto/uso para pruebas.
 
-Registrar resultado, hora, SHA, endpoint, estado HTTP y evidencia sin incluir secretos ni datos personales.
+## Matriz de pruebas de extremo a extremo
 
-| ID | Prueba | Criterio de aceptación | Estado inicial |
+Registrar SHA, hora, resultado, código HTTP y evidencia sin secretos ni datos personales.
+
+| ID | Prueba | Criterio de aceptación | Estado |
 |---|---|---|---|
-| ST-01 | Arranque del servicio | Despliegue saludable; logs sin excepciones de inicio | Pendiente |
-| ST-02 | Health endpoint | Respuesta saludable del servicio desplegado desde staging | Pendiente |
-| ST-03 | Chat con IA real | Respuesta útil; errores de proveedor controlados; sin exponer secretos | Pendiente |
-| ST-04 | Generar patrón | Patrón generado; recuentos del validador visibles y estados no verificados conservados | Pendiente |
-| ST-05 | Diagnóstico de imagen | Imagen válida aceptada; formato no compatible, archivo falso y archivo malformado rechazados de forma segura | Pendiente |
-| ST-06 | Aislamiento de sesión | Dos sesiones independientes no pueden leer ni borrar la memoria de la otra | Pendiente |
-| ST-07 | Persistencia | Guardar memoria, reiniciar staging y comprobar que persiste en su almacenamiento aislado | Pendiente |
-| ST-08 | CSRF/origen | Mutaciones con origen externo rechazadas; llamadas legítimas same-origin funcionan | Pendiente |
-| ST-09 | Saturación de IA | Superar concurrencia configurada devuelve 429 y Retry-After sin tumbar el proceso | Pendiente |
-| ST-10 | UI móvil | Navegación, chat, generación, biblioteca, mascota y controles principales funcionan en Android/móvil | Pendiente |
-| ST-11 | Regresión visual | La interfaz y la mascota conservan el diseño acordado; no hay desbordamientos ni botones inaccesibles | Pendiente |
-| ST-12 | Reinicio y logs | Servicio se recupera; no se filtran claves, cookies completas ni contenido sensible en logs | Pendiente |
+| ST-01 | Arranque | Servicio saludable y sin excepción de inicio | Bloqueada: falta staging |
+| ST-02 | Health endpoint | Respuesta saludable desde el servicio de staging | Pendiente |
+| ST-03 | Chat con IA real | Respuesta útil; errores de proveedor controlados | Pendiente |
+| ST-04 | Generación de patrón | Patrón generado y validación reportada sin fingir certeza | Pendiente |
+| ST-05 | Diagnóstico de imagen | Imagen válida procesada; archivos falsos/malformados rechazados | Pendiente |
+| ST-06 | Aislamiento de sesión | Dos sesiones no pueden leer ni borrar la memoria ajena | CI pasa; staging pendiente |
+| ST-07 | Persistencia | Memoria persiste tras reiniciar staging con almacenamiento aislado | Pendiente |
+| ST-08 | CSRF/origen | Origen externo rechazado; solicitudes legítimas funcionan | CI pasa; staging pendiente |
+| ST-09 | Saturación de IA | Respuesta 429 y Retry-After al exceder concurrencia | Pendiente |
+| ST-10 | UI móvil | Chat, patrón, biblioteca, mascota y navegación usables en Android | CI pasa en navegador; dispositivo real pendiente |
+| ST-11 | Regresión visual | Diseño conservado; controles accesibles y sin desbordamientos | CI pasa en navegador; revisión final pendiente |
+| ST-12 | Reinicio y logs | Servicio se recupera; no expone secretos ni cookies | Pendiente |
 
-## Condiciones de aprobación
+## Riesgos conocidos que requieren seguimiento
 
-- Todas las pruebas críticas ST-01 a ST-09 pasan en staging real.
-- Cualquier fallo se corrige en la rama, se repite la prueba afectada y se vuelve a ejecutar CI.
-- Adjuntar evidencias sin secretos y actualizar esta tabla con resultados reales.
-- No marcar pruebas como aprobadas por inferencia ni sólo porque CI pase.
+- La concurrencia de IA se limita por proceso; no es cuota por usuario/IP ni global entre réplicas.
+- La firma binaria de imagen no sustituye decodificación completa ni límites de dimensiones/píxeles.
+- La memoria JSON y su cola son locales al proceso; no coordinan varias réplicas.
+- El validador de patrones cubre sólo parte de la notación de crochet.
+- CI no confirma la integración real con el proveedor de IA ni la instalación de la APK en un dispositivo físico.
 
-## Riesgos aún conocidos
+## Criterio de aprobación
 
-- La limitación de concurrencia es por proceso, no una cuota por IP/sesión ni una cuota global distribuida.
-- La validación de firma de imagen no sustituye decodificación completa ni límites de dimensiones/píxeles.
-- La memoria JSON y su cola son locales al proceso; no ofrecen coordinación multi-réplica.
-- El validador de patrones sólo cubre parte de la notación de crochet.
+- Ejecutar las pruebas críticas en staging real.
+- Corregir cualquier fallo, repetir las pruebas afectadas y volver a ejecutar CI.
+- No marcar una prueba como aprobada por inferencia o por el solo hecho de que CI pase.
+- Validar la APK en Android y registrar versión, firma, instalación y resultados antes de considerar un lanzamiento.
 
-## Decisión de despliegue
+## Decisión
 
-**No desplegar esta rama a producción todavía.** Primero se necesita un entorno de staging aislado, secreto de sesión persistente configurado y evidencia de pruebas reales. El despliegue de producción y su volumen no deben modificarse como parte de esta validación.
+**No desplegar la rama de auditoría a producción todavía.** El siguiente paso de infraestructura es crear staging aislado; hasta entonces, continuar con revisiones y pruebas no destructivas del código. La instancia de producción y sus volúmenes deben permanecer intactos.
