@@ -27,13 +27,13 @@ jobs:
 
       - name: Validate API URL configuration
         env:
-          PUNTIA_API_BASE_URL: ${{ vars.PUNTIA_API_BASE_URL }}
+          PUNTIA_API_BASE_URL: ${{ vars.PUNTIA_API_BASE_URL || 'https://puntia-validation-production.up.railway.app' }}
         run: |
           if [ -z "$PUNTIA_API_BASE_URL" ]; then
-            echo "::error::Define the repository variable PUNTIA_API_BASE_URL with the deployed PuntIA backend URL (for example, https://your-service.up.railway.app). Without it, API features cannot work in the Android app."
+            echo "::error::Define the repository variable PUNTIA_API_BASE_URL with the deployed PuntIA backend URL."
             exit 1
           fi
-          node -e "const u=new URL(process.env.PUNTIA_API_BASE_URL); if(!['https:'].includes(u.protocol)) process.exit(1)"
+          node -e "const u=new URL(process.env.PUNTIA_API_BASE_URL); if(u.protocol!=='https:') process.exit(1)"
 
       - name: Install Capacitor tooling
         run: |
@@ -42,7 +42,7 @@ jobs:
 
       - name: Prepare web assets
         env:
-          PUNTIA_API_BASE_URL: ${{ vars.PUNTIA_API_BASE_URL }}
+          PUNTIA_API_BASE_URL: ${{ vars.PUNTIA_API_BASE_URL || 'https://puntia-validation-production.up.railway.app' }}
         run: |
           rm -rf www
           cp -R public www
