@@ -1,13 +1,14 @@
 # PuntIA — plan de validación end-to-end en staging
 
-**Fecha:** 2026-10-27  
+**Fecha:** 2026-10-28  
 **Rama:** `audit/general-audit-2026-10`  
 **Objetivo:** verificar las funciones reales de PuntIA sin modificar producción ni su volumen de memoria.
 
 ## Estado comprobado
 
-- CI #158: **éxito**, commit `dea7ae0b1c4193cfa05e21bd7391a1dd06d2535a`.  
-  Evidencia: https://github.com/brayantatoo567-creator/PuntIA-1/actions/runs/40601841832
+- CI #161: **éxito**, commit `30de430e532acbef32bb58425a97828f78560ef9`.  
+  Evidencia: https://github.com/brayantatoo567-creator/PuntIA-1/actions/runs/40602829427
+- La ejecución incluyó sintaxis, aritmética de rondas, interfaz E2E en escritorio/móvil y pruebas de endpoints/validaciones.
 - Pasaron las comprobaciones de archivos, dependencias, sintaxis, aritmética de crochet, pruebas de interfaz en escritorio/móvil y pruebas de endpoints/validaciones de seguridad incluidas en el workflow.
 - Railway reporta los cuatro servicios actuales en línea, sin fallos recientes ni alertas activas en el estado consultado.
 - El proyecto Railway consultado sólo tiene el entorno `production`; no existe todavía un entorno de staging separado.
@@ -18,7 +19,7 @@
 
 ## Bloqueo actual para staging
 
-Se necesita crear un entorno Railway separado de producción. En las acciones disponibles para esta sesión no hay una operación de creación de entorno que pueda ejecutar de forma segura. No voy a sustituirla por cambios en producción ni a crear un servicio improvisado dentro del único entorno actual.
+Se necesita crear un entorno Railway separado de producción. La creación de un proyecto Railway aislado se intentó mediante la integración disponible, pero Railway la rechazó por el límite de recursos del plan gratuito (`Free plan resource provision limit exceeded`). Las acciones disponibles tampoco ofrecen una operación directa para añadir un entorno a este proyecto. No voy a sustituir staging por cambios en producción ni a crear un servicio improvisado dentro del único entorno actual. Para desbloquearlo se necesita liberar recursos en Railway o ampliar el plan; después se puede crear el proyecto aislado y conectar esta rama.
 
 Una vez que exista staging, preparar:
 - [ ] servicio conectado a la rama `audit/general-audit-2026-10` y SHA exacto registrado;
