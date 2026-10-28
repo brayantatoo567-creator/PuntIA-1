@@ -1,0 +1,8 @@
+{
+  "appId": "com.puntia.crochet",
+  "appName": "PuntIA",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https"
+  }
+}
