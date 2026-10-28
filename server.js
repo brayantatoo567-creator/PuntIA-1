@@ -72,7 +72,22 @@ app.post('/api/puntia/diagnose',upload.single('image'),async(req,res)=>{try{if(!
 const fs=require('fs');
 const MEMORY_FILE=path.join(__dirname,'data','puntia-memory.json');
 function detectImageMime(buffer){if(!Buffer.isBuffer(buffer))return null;if(buffer.length>=3&&buffer[0]===0xff&&buffer[1]===0xd8&&buffer[2]===0xff)return 'image/jpeg';if(buffer.length>=8&&buffer.subarray(0,8).equals(Buffer.from([0x89,0x50,0x4e,0x47,0x0d,0x0a,0x1a,0x0a])))return 'image/png';if(buffer.length>=12&&buffer.toString('ascii',0,4)==='RIFF'&&buffer.toString('ascii',8,12)==='WEBP')return 'image/webp';if(buffer.length>=6&&['GIF87a','GIF89a'].includes(buffer.toString('ascii',0,6)))return 'image/gif';return null;}
-function readMemory(){try{return JSON.parse(fs.readFileSync(MEMORY_FILE,'utf8'))}catch{return {}}}
+function readMemory(){
+  try{
+    const raw=fs.readFileSync(MEMORY_FILE,'utf8');
+    const parsed=JSON.parse(raw);
+    if(!parsed||typeof parsed!=='object'||Array.isArray(parsed))throw new Error('Formato de memoria JSON inválido');
+    for(const [userId,items] of Object.entries(parsed)){
+      if(!Array.isArray(items))throw new Error('La memoria de una sesión no es una lista');
+      if(items.some(item=>!item||typeof item!=='object'||typeof item.content!=='string'))throw new Error('Registro de memoria inválido');
+    }
+    return parsed;
+  }catch(error){
+    if(error?.code==='ENOENT')return {};
+    console.error('PuntIA memory read failed:',error?.code||error?.name||'invalid-data');
+    throw new Error('No se pudo leer la memoria persistente; se cancela la operación para evitar sobrescribir datos dañados.');
+  }
+}
 function writeMemory(data){fs.mkdirSync(path.dirname(MEMORY_FILE),{recursive:true});const tmp=MEMORY_FILE+'.'+process.pid+'.'+crypto.randomBytes(8).toString('hex')+'.tmp';try{fs.writeFileSync(tmp,JSON.stringify(data,null,2),{encoding:'utf8',flag:'wx',mode:0o600});fs.renameSync(tmp,MEMORY_FILE);}finally{try{if(fs.existsSync(tmp))fs.unlinkSync(tmp)}catch{}}}
 // The JSON file stores all users together, so mutations must be serialized globally.
 let memoryQueue=Promise.resolve();
