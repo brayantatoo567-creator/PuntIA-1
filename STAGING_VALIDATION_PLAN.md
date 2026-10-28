@@ -8,7 +8,11 @@
 
 - CI #161: **éxito**, commit `30de430e532acbef32bb58425a97828f78560ef9`.  
   Evidencia: https://github.com/brayantatoo567-creator/PuntIA-1/actions/runs/40602829427
-- La ejecución incluyó sintaxis, aritmética de rondas, interfaz E2E en escritorio/móvil y pruebas de endpoints/validaciones.
+- CI #162: **éxito**, incluye el cambio para fallar de forma segura si la memoria persistente está dañada.  
+  Evidencia: https://github.com/brayantatoo567-creator/PuntIA-1/actions/runs/40610007831
+- CI #163: **éxito**, actualización de documentación y validación de CI.  
+  Evidencia: https://github.com/brayantatoo567-creator/PuntIA-1/actions/runs/40610024424
+- Las ejecuciones #161–#163 incluyeron comprobaciones de sintaxis, aritmética de rondas, interfaz E2E en escritorio/móvil y endpoints/validaciones.
 - Pasaron las comprobaciones de archivos, dependencias, sintaxis, aritmética de crochet, pruebas de interfaz en escritorio/móvil y pruebas de endpoints/validaciones de seguridad incluidas en el workflow.
 - Railway reporta los cuatro servicios actuales en línea, sin fallos recientes ni alertas activas en el estado consultado.
 - El proyecto Railway consultado sólo tiene el entorno `production`; no existe todavía un entorno de staging separado.
