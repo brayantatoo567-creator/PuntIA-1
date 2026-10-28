@@ -1,1 +1,16 @@
-{"name":"puntia","version":"3.0.0","private":true,"type":"commonjs","scripts":{"start":"node server.js"},"dependencies":{"express":"^5.1.0","multer":"^2.0.2","openai":"^6.0.0"}}
+{
+  "name": "puntia",
+  "version": "3.0.0",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node tests/pattern-math.cjs && node tests/memory-store.cjs",
+    "check": "node --check server.js && node --check pattern-validator.cjs && node --check memory-store.cjs && node tests/pattern-math.cjs && node tests/memory-store.cjs"
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "multer": "^2.0.2",
+    "openai": "^6.0.0"
+  }
+}
