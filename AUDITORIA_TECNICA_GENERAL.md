@@ -37,7 +37,7 @@ La carga está limitada a 8 MB y se filtra por el encabezado MIME declarado por 
 
 ### P1 — Escritura concurrente de memoria JSON
 
-La memoria se guarda en un archivo JSON compartido. Las escrituras síncronas bloquean el event loop; la cola global serializa las mutaciones dentro de un único proceso.
+La memoria se guarda en un archivo JSON compartido. Las escrituras síncronas bloquean el event loop; la cola global serializa las mutaciones dentro de un único proceso. La lectura ahora valida la estructura JSON y, si detecta datos corruptos o una estructura inesperada, falla de forma cerrada en vez de devolver una base vacía que una escritura posterior pudiera sobrescribir.
 
 **Correcciones aplicadas en esta rama:** cada escritura usa un archivo temporal exclusivo creado con `wx`, permisos restrictivos y un nombre aleatorio, seguido de `rename`. Además, el backend serializa globalmente las mutaciones de la base JSON compartida; el chat vuelve a leer la memoria más reciente al guardar sus mensajes, y los endpoints de guardar/borrar usan la misma cola. Esto reduce las pérdidas por solicitudes concurrentes dentro de un solo proceso.
 
@@ -67,6 +67,7 @@ El validador reconoce una parte de la notación (`pb`, `aum`, `dis` y grupos rep
 - Se agregan pruebas CI para rechazar contenido que finge ser imagen.
 - Las escrituras de memoria usan temporales únicos, permisos restrictivos y sustitución atómica.
 - Se serializan las mutaciones de memoria JSON y se evita que el chat guarde sobre una copia antigua después de esperar a la IA.
+- La lectura de memoria valida la estructura del JSON y detiene las operaciones ante corrupción, para reducir el riesgo de sobrescribir silenciosamente datos dañados.
 - Se limita la concurrencia de los endpoints de IA por proceso.
 - Las memorias se vinculan a cookies de sesión firmadas, no a identificadores arbitrarios enviados por el cliente.
 - Se amplían las pruebas de CI para comprobar aislamiento entre sesiones, escrituras concurrentes, rechazo de mutaciones con origen cruzado y cierre seguro al faltar el secreto de producción.
@@ -76,11 +77,11 @@ Estos cambios están en la rama de auditoría; no se han desplegado a producció
 
 ## Pruebas y evidencia
 
-CI exitoso en ejecuciones recientes: #156 (https://github.com/brayantatoo567-creator/PuntIA-1/actions/runs/40595442256), #157 (https://github.com/brayantatoo567-creator/PuntIA-1/actions/runs/40600228256), #158 (https://github.com/brayantatoo567-creator/PuntIA-1/actions/runs/40601841832) y #159 (https://github.com/brayantatoo567-creator/PuntIA-1/actions/runs/40602217729). La ejecución #159 corresponde al commit `1bc8a1f50065efb4d36fbd589de9e4375d11b505`.
+CI exitoso en ejecuciones recientes: #156 (https://github.com/brayantatoo567-creator/PuntIA-1/actions/runs/40595442256), #157 (https://github.com/brayantatoo567-creator/PuntIA-1/actions/runs/40600228256), #158 (https://github.com/brayantatoo567-creator/PuntIA-1/actions/runs/40601841832), #159 (https://github.com/brayantatoo567-creator/PuntIA-1/actions/runs/40602217729) y #161 (https://github.com/brayantatoo567-creator/PuntIA-1/actions/runs/40602829427). La ejecución #161 corresponde al commit `30de430e532acbef32bb58425a97828f78560ef9`.
 
 Las defensas de sesión firmada y aislamiento cuentan con cobertura en ejecuciones recientes de CI exitosas. Esto valida los casos automatizados incluidos, no una auditoría de seguridad independiente.
 
-También se revisó el estado de Railway: servicio `puntia-validation` en línea, una réplica activa, sin fallos recientes y sin cambios pendientes. El despliegue activo corresponde a un commit anterior (`91ca2c3`), así que las pruebas de CI de la rama principal no prueban por sí solas el código nuevo en producción.
+También se revisó el estado de Railway: los cuatro servicios aparecen en línea, con una réplica cada uno y sin fallos recientes ni cambios pendientes en la consulta. El despliegue activo de `puntia-validation` corresponde a un commit anterior (`91ca2c3`), así que las pruebas de CI de la rama de auditoría no prueban por sí solas el código nuevo en producción. El intento de crear un proyecto de staging separado fue rechazado por Railway debido al límite de recursos del plan gratuito. No se modificaron producción ni su volumen.
 
 La inspección de código no permite afirmar que se hayan ejecutado pruebas de penetración, pruebas de carga, validación real de imágenes en producción ni pruebas de supervivencia de la memoria tras reinicio.
 
