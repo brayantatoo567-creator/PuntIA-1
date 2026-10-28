@@ -77,7 +77,7 @@ Estos cambios están en la rama de auditoría; no se han desplegado a producció
 
 ## Pruebas y evidencia
 
-CI exitoso en ejecuciones recientes: #156 (https://github.com/brayantatoo567-creator/PuntIA-1/actions/runs/40595442256), #157 (https://github.com/brayantatoo567-creator/PuntIA-1/actions/runs/40600228256), #158 (https://github.com/brayantatoo567-creator/PuntIA-1/actions/runs/40601841832), #159 (https://github.com/brayantatoo567-creator/PuntIA-1/actions/runs/40602217729) y #161 (https://github.com/brayantatoo567-creator/PuntIA-1/actions/runs/40602829427). La ejecución #161 corresponde al commit `30de430e532acbef32bb58425a97828f78560ef9`.
+CI exitoso en ejecuciones recientes: #156 (https://github.com/brayantatoo567-creator/PuntIA-1/actions/runs/40595442256), #157 (https://github.com/brayantatoo567-creator/PuntIA-1/actions/runs/40600228256), #158 (https://github.com/brayantatoo567-creator/PuntIA-1/actions/runs/40601841832), #159 (https://github.com/brayantatoo567-creator/PuntIA-1/actions/runs/40602217729), #161 (https://github.com/brayantatoo567-creator/PuntIA-1/actions/runs/40602829427), #162 (https://github.com/brayantatoo567-creator/PuntIA-1/actions/runs/40610007831) y #163 (https://github.com/brayantatoo567-creator/PuntIA-1/actions/runs/40610024424). Las ejecuciones #162 y #163 completaron con éxito todos los pasos del job de CI; #162 incluye el cambio de lectura segura de memoria.
 
 Las defensas de sesión firmada y aislamiento cuentan con cobertura en ejecuciones recientes de CI exitosas. Esto valida los casos automatizados incluidos, no una auditoría de seguridad independiente.
 
