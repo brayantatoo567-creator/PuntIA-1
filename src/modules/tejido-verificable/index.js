@@ -8,7 +8,7 @@
  */
 'use strict';
 
-const STITCHES = new Set(['sc', 'hdc', 'dc', 'tr', 'ch', 'slst']);
+const STITCHES = new Set(['sc', 'hdc', 'dc', 'tr', 'ch', 'slst', 'inc', 'dec']);
 const STATUS = Object.freeze({
   VERIFIED_ARITHMETIC: 'verified_arithmetic',
   NEEDS_REVIEW: 'needs_review',
@@ -32,7 +32,9 @@ function stitchCount(instructions) {
     }
     assertInteger(item.count, 'instruction count', 0);
     // Chains are included only when the row explicitly says they count as stitches.
-    if (item.stitch !== 'ch' || item.countsAsStitch === true) total += item.count;
+    if (item.stitch === 'inc') total += item.count * 2;
+    else if (item.stitch === 'dec') total += item.count;
+    else if (item.stitch !== 'ch' || item.countsAsStitch === true) total += item.count;
   }
   return total;
 }
