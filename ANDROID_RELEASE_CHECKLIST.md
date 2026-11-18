@@ -8,7 +8,7 @@ Esta rama prepara la interfaz web para Android mediante Capacitor y añade cach�
 
 ### Variable de GitHub Actions
 
-Crear la variable de repositorio `PUNTIA_API_BASE_URL` con la URL HTTPS del backend activo. El workflow falla deliberadamente si no existe, para evitar generar un APK que apunte a una dirección inventada o vacía.
+Recomendado: configurar la variable de repositorio `PUNTIA_API_BASE_URL` con la URL HTTPS del backend que realmente esté desplegado. Si no existe, el workflow usa como respaldo `https://puntia-validation-production.up.railway.app`; ese dominio debe estar activo y verificado antes de entregar el APK a usuarios. La compilación por sí sola no comprueba que el servidor responda.
 
 ### Variables del servicio backend en Railway
 
@@ -39,4 +39,4 @@ La cookie de sesión usa `HttpOnly`, `Secure` y `SameSite=None` en producción p
 
 ## Construcción
 
-El workflow `.github/workflows/android-apk.yml` genera `puntia-debug-apk` y conserva el artefacto durante 14 días. Para distribución pública falta configurar firma Android y generar un AAB/APK de release.
+El workflow `.github/workflows/android-apk.yml` genera `puntia-debug-apk` y conserva el artefacto durante 14 días. La CI ejecuta pruebas de sintaxis, aritmética, interfaz de escritorio/móvil y endpoints negativos; las respuestas de IA en la prueba de interfaz están simuladas. Para distribución pública falta configurar firma Android fuera del repositorio, generar un AAB de release, validar la política de privacidad y probar en dispositivos físicos.
