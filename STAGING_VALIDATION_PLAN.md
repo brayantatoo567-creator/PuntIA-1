@@ -14,12 +14,13 @@
   Evidencia: https://github.com/brayantatoo567-creator/PuntIA-1/actions/runs/40610024424
 - Las ejecuciones #161–#163 incluyeron comprobaciones de sintaxis, aritmética de rondas, interfaz E2E en escritorio/móvil y endpoints/validaciones.
 - Pasaron las comprobaciones de archivos, dependencias, sintaxis, aritmética de crochet, pruebas de interfaz en escritorio/móvil y pruebas de endpoints/validaciones de seguridad incluidas en el workflow.
-- Railway reporta los cuatro servicios actuales en línea, sin fallos recientes ni alertas activas en el estado consultado.
-- El proyecto Railway consultado sólo tiene el entorno `production`; no existe todavía un entorno de staging separado.
-- El servicio `puntia-validation` está en producción y monta el volumen persistente `puntia-assistant-memory` en `/app/data`. **No modificar ni compartir ese volumen con staging.**
-- El despliegue activo corresponde a un commit anterior a la rama de auditoría. El éxito de CI no prueba que el código auditado esté funcionando en Railway.
-- La lista de variables del servicio de producción no incluye `PUNTIA_SESSION_SECRET`. No añadirla ni desplegar código que la requiera en producción como parte de estas pruebas.
-- La comprobación HTTP directa del endpoint público no pudo confirmarse desde la herramienta web disponible; no se marca el health endpoint como probado en vivo.
+- Consulta actual de Railway (2026-11-18): los cuatro servicios de `production` (`Redis`, `Postgres`, `puntia-9-14-runtime` y `puntia-validation`) aparecen **offline**, sin despliegues activos. `puntia-9-14-runtime` conserva un último deployment `FAILED` del 2026-10-07; `puntia-validation` no tiene un deployment reciente. No hay cambios pendientes en el entorno.
+- El proyecto Railway consultado sólo tiene el entorno `production`; no existe un entorno de staging separado.
+- `puntia-validation` conserva el volumen `puntia-assistant-memory` montado en `/app/data`. También existen volúmenes de Postgres, Redis y `puntia-data`. **No modificar, borrar ni compartir esos volúmenes.**
+- El proyecto tiene cuatro servicios y cuatro volúmenes, por lo que no se debe intentar una migración al plan Free ni eliminar recursos sin una revisión de impacto y autorización.
+- La instancia no está disponible para pruebas en vivo. El éxito de CI no prueba que el código auditado esté funcionando en Railway.
+- El bloqueo de despliegue por expiración de prueba de Railway ya fue reportado en la sesión anterior; no se realizó ningún cambio de plan ni cargo.
+- No se ha confirmado una prueba HTTP exitosa del endpoint público; no se marca el health endpoint como probado en vivo.
 
 ## Bloqueo actual para staging
 
