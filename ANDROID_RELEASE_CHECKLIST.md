@@ -8,9 +8,9 @@ Esta rama prepara la interfaz web para Android mediante Capacitor y añade cach�
 
 ### Variable de GitHub Actions
 
-Recomendado: configurar la variable de repositorio `PUNTIA_API_BASE_URL` con la URL HTTPS del backend que realmente esté desplegado. Si no existe, el workflow usa como respaldo `https://puntia-validation-production.up.railway.app`; ese dominio debe estar activo y verificado antes de entregar el APK a usuarios. La compilación por sí sola no comprueba que el servidor responda.
+Recomendado: configurar la variable de repositorio `PUNTIA_API_BASE_URL` con la URL HTTPS del backend desplegado. El valor predeterminado del workflow es `https://puntia-beta.onrender.com`, servicio actual de la beta. La compilación por sí sola no comprueba que el servidor responda. La compilación por sí sola no comprueba que el servidor responda.
 
-### Variables del servicio backend en Railway
+### Variables del servicio backend en Render
 
 - `OPENAI_API_KEY`: clave real de OpenAI, guardada como variable secreta.
 - `PUNTIA_SESSION_SECRET`: secreto aleatorio de al menos 32 bytes. No guardarlo en Git ni en comentarios.
@@ -20,7 +20,7 @@ La cookie de sesión usa `HttpOnly`, `Secure` y `SameSite=None` en producción p
 
 ## Pruebas obligatorias
 
-1. Confirmar que el servicio Railway está activo y que `GET /api/health` responde `200` con `ok: true` y `ai: true`.
+1. Confirmar que el servicio Render está activo y que `GET /api/health` responde `200` con `ok: true` y `ai: true`.
 2. Probar chat, generación de patrón, diagnóstico de imagen y memoria desde una sesión nueva.
 3. Probar que dos sesiones no pueden leer ni borrar la memoria de la otra.
 4. Probar la preflight CORS desde `https://localhost` y rechazar un origen ajeno.
