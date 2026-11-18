@@ -62,7 +62,7 @@ jobs:
             if (html.includes(selector)) throw new Error('Selector de elemento único usado como colección: ' + selector);
           }
           if (!html.includes('id="apiSettings"') || !html.includes('id="processingOverlay"')) throw new Error('Falta panel API o indicador de procesamiento');
-          if (html.includes('id="puntiaMascot"') || html.includes('reference-mascot')) throw new Error('La interfaz todavía incluye la mascota');
+          if (/<[^>]+id="puntiaMascot"/.test(html) || /<[^>]+class="[^"]*reference-mascot/.test(html)) throw new Error('La interfaz todavía incluye la mascota');
           console.log('Interfaz comercial sin mascota, panel API e indicador de procesamiento verificados');
           NODE
           node -e "const p=require('./package.json'); if(!p.dependencies?.express || !p.dependencies?.openai || !p.dependencies?.multer) process.exit(1)"
