@@ -4,11 +4,6 @@ on:
   workflow_dispatch:
   push:
     branches: [audit/general-audit-2026-10]
-    paths:
-      - "public/**"
-      - "capacitor.config.json"
-      - ".github/workflows/android-apk.yml"
-      - "package.json"
 
 permissions:
   contents: read
@@ -33,10 +28,10 @@ jobs:
 
       - name: Validate API URL configuration
         env:
-          PUNTIA_API_BASE_URL: ${{ vars.PUNTIA_API_BASE_URL }}
+          PUNTIA_API_BASE_URL: ${{ vars.PUNTIA_API_BASE_URL || 'https://puntia-validation-production.up.railway.app' }}
         run: |
           if [ -z "$PUNTIA_API_BASE_URL" ]; then
-            echo "::error::Configura la variable PUNTIA_API_BASE_URL con la URL HTTPS real del backend PuntIA antes de compilar."
+            echo "::error::La URL HTTPS del backend PuntIA no está configurada."
             exit 1
           fi
           node -e "const u=new URL(process.env.PUNTIA_API_BASE_URL); if(u.protocol!=='https:' || u.username || u.password) process.exit(1)"
