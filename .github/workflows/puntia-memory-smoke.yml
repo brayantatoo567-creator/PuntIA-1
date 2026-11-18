@@ -1,11 +1,7 @@
 name: PuntIA Memory Persistence Smoke Test
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - '.github/workflows/puntia-memory-smoke.yml'
-      - 'server.js'
+  # Manual only: calls the live AI provider and may consume paid credits.
   workflow_dispatch:
 
 permissions:
