@@ -4,6 +4,10 @@ PuntIA es una aplicación web progresiva y Android (Capacitor) para aprender cro
 
 ## Estado del proyecto
 
+- Plan de estabilización y lanzamiento beta: [RELEASE_MVP_PLAN.md](RELEASE_MVP_PLAN.md).
+- Casos de aceptación para la beta: [BETA_ACCEPTANCE_MATRIX.md](BETA_ACCEPTANCE_MATRIX.md).
+- Rama de trabajo de lanzamiento: `release/mvp-beta-2026-11`; no confundir con producción.
+
 - La rama de auditoría tiene CI automatizada para sintaxis, cálculos de rondas, interfaz en escritorio/móvil y pruebas de API.
 - Android se compila como APK de depuración mediante GitHub Actions.
 - El shell de la PWA y recursos locales tienen caché offline; las funciones que usan IA requieren conexión.
