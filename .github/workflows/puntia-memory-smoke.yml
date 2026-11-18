@@ -33,34 +33,33 @@ jobs:
           echo "Production health did not become ready"
           exit 1
 
-      - name: Verify chat memory is written and readable
+      - name: Verify chat memory is written and readable in the same signed session
         shell: bash
         run: |
           set -euo pipefail
           URL="https://puntia-validation-production.up.railway.app"
-          USER_ID="auditmemory${GITHUB_RUN_ID}${GITHUB_RUN_ATTEMPT}0123456789abcdef"
-          export USER_ID
-          CODE=$(curl -sS --max-time 150 -o /tmp/memory-chat.json -w '%{http_code}' -H 'Content-Type: application/json' -X POST "$URL/api/puntia/chat" --data "$(node -e 'console.log(JSON.stringify({message:"Responde exactamente con la frase MEMORIA_AUDIT_OK",userId:process.env.USER_ID}))')")
+          COOKIE_JAR="/tmp/puntia-memory-session.cookies"
+          CODE=$(curl -sS --max-time 150 -c "$COOKIE_JAR" -b "$COOKIE_JAR" -o /tmp/memory-chat.json -w '%{http_code}' -H 'Content-Type: application/json' -X POST "$URL/api/puntia/chat" --data '{"message":"Responde exactamente con la frase MEMORIA_AUDIT_OK"}')
           echo "Chat with memory HTTP status: $CODE"
           test "$CODE" = "200"
           node -e 'const r=require("/tmp/memory-chat.json"); if(!r.memorySaved || typeof r.reply!=="string" || r.reply.length<5) throw Error("Chat did not confirm memory save"); console.log("Chat response received; memorySaved:",r.memorySaved)'
-          CODE=$(curl -sS --max-time 20 -o /tmp/memory-read.json -w '%{http_code}' "$URL/api/puntia/memory/$USER_ID")
+          # The URL segment is intentionally not an identity selector; the signed HttpOnly cookie is.
+          CODE=$(curl -sS --max-time 20 -c "$COOKIE_JAR" -b "$COOKIE_JAR" -o /tmp/memory-read.json -w '%{http_code}' "$URL/api/puntia/memory/session")
           echo "Memory read HTTP status: $CODE"
           test "$CODE" = "200"
-          node -e 'const r=require("/tmp/memory-read.json"); if(!Array.isArray(r.items) || r.items.length<2) throw Error("Expected user and assistant memory entries"); const all=r.items.map(x=>x.content).join("\n"); if(!all.includes("MEMORIA_AUDIT_OK")) throw Error("Expected audit marker missing from saved memory"); console.log("PASS: user and assistant memory entries were persisted and read back")'
-          CODE=$(curl -sS --max-time 20 -o /tmp/memory-delete.json -w '%{http_code}' -X DELETE "$URL/api/puntia/memory/$USER_ID")
+          node -e 'const r=require("/tmp/memory-read.json"); if(!Array.isArray(r.items) || r.items.length<2) throw Error("Expected user and assistant memory entries"); const all=r.items.map(x=>x.content).join("\n"); if(!all.includes("MEMORIA_AUDIT_OK")) throw Error("Expected audit marker missing from saved memory"); console.log("PASS: signed session memory persisted and was read back")'
+          CODE=$(curl -sS --max-time 20 -c "$COOKIE_JAR" -b "$COOKIE_JAR" -o /tmp/memory-delete.json -w '%{http_code}' -X DELETE "$URL/api/puntia/memory/session")
           echo "Memory cleanup HTTP status: $CODE"
           test "$CODE" = "200"
-          CODE=$(curl -sS --max-time 20 -o /tmp/memory-after-delete.json -w '%{http_code}' "$URL/api/puntia/memory/$USER_ID")
+          CODE=$(curl -sS --max-time 20 -c "$COOKIE_JAR" -b "$COOKIE_JAR" -o /tmp/memory-after-delete.json -w '%{http_code}' "$URL/api/puntia/memory/session")
           test "$CODE" = "200"
           node -e 'const r=require("/tmp/memory-after-delete.json"); if(!Array.isArray(r.items) || r.items.length!==0) throw Error("Memory cleanup failed"); console.log("PASS: audit memory removed after test")'
 
-      - name: Reject invalid memory session identifiers
+      - name: Verify separate sessions cannot read the audit session
         shell: bash
         run: |
           set -euo pipefail
           URL="https://puntia-validation-production.up.railway.app"
-          CODE=$(curl -sS --max-time 20 -o /tmp/memory-invalid.json -w '%{http_code}' "$URL/api/puntia/memory/demo-user")
-          echo "Invalid memory ID HTTP status: $CODE"
-          test "$CODE" = "404"
-          echo "PASS: invalid/demo session ID rejected"
+          CODE=$(curl -sS --max-time 20 -o /tmp/memory-isolated.json -w '%{http_code}' "$URL/api/puntia/memory/session")
+          test "$CODE" = "200"
+          node -e 'const r=require("/tmp/memory-isolated.json"); if(!Array.isArray(r.items) || r.items.length!==0) throw Error("A fresh session unexpectedly saw another session memory"); console.log("PASS: fresh anonymous session is isolated")'
