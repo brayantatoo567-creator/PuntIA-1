@@ -417,7 +417,7 @@ $('#openLibrary').onclick=()=>{
   $('#exportProjectBackup').addEventListener('click',exportProjectBackup);
   $('#importProjectBackupBtn').addEventListener('click',()=>$('#projectBackupFile').click());
   $('#projectBackupFile').addEventListener('change',e=>importProjectBackup(e.target.files?.[0]));
-  $('#modalBody [data-library-open]').forEach(b=>b.addEventListener('click',()=>showProject(b.dataset.libraryOpen)));
+  $$('#modalBody [data-library-open]').forEach(b=>b.addEventListener('click',()=>showProject(b.dataset.libraryOpen)));
 };
 function printPattern(name,pattern){
   const w=window.open('','_blank');if(!w){toast('Permite ventanas emergentes para imprimir el patrón');return}
