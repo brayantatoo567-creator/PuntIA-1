@@ -78,6 +78,7 @@ jobs:
         run: |
           node --check server.js
           node --check public/service-worker.js
+          node --check public/config.js
           node -e "const fs=require('fs');const manifest=JSON.parse(fs.readFileSync('public/manifest.webmanifest','utf8'));if(manifest.start_url!=='/'||manifest.display!=='standalone'||!manifest.icons?.length)throw Error('Manifest de PuntIA incompleto');const html=fs.readFileSync('public/index.html','utf8');if(!html.includes('rel="manifest" href="/manifest.webmanifest"')||!html.includes('navigator.serviceWorker.register("/service-worker.js")'))throw Error('Falta registrar manifest o service worker');if(fs.readFileSync('index.html','utf8')!==html)throw Error('index.html y public/index.html deben ser idénticos');console.log('PuntIA PWA manifest, service worker y entrypoints verificados');"
           cp public/puntia-virtual.js /tmp/puntia-virtual.mjs
           node --check /tmp/puntia-virtual.mjs
@@ -118,6 +119,14 @@ jobs:
             sleep 2
           done
           if [ "$READY" -ne 1 ]; then cat /tmp/puntia.log; exit 1; fi
+
+          # Capacitor Android uses a separate WebView origin and credentialed CORS.
+          STATUS=$(curl -s -o /tmp/cors-preflight.txt -D /tmp/cors-headers.txt -w '%{http_code}' -X OPTIONS http://127.0.0.1:8080/api/puntia/chat -H 'Origin: https://localhost' -H 'Access-Control-Request-Method: POST' -H 'Access-Control-Request-Headers: content-type')
+          test "$STATUS" = "204"
+          grep -qi '^Access-Control-Allow-Origin: https://localhost' /tmp/cors-headers.txt
+          grep -qi '^Access-Control-Allow-Credentials: true' /tmp/cors-headers.txt
+          STATUS=$(curl -s -o /tmp/cors-denied.json -w '%{http_code}' http://127.0.0.1:8080/api/health -H 'Origin: https://evil.example')
+          test "$STATUS" = "403"
 
           STATUS=$(curl -s -o /tmp/home.html -w '%{http_code}' http://127.0.0.1:8080/)
           test "$STATUS" = "200"
