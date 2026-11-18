@@ -94,10 +94,14 @@ async function waitForServer() {
 
     // Pattern generation: verify form -> API -> result modal.
     await page.locator('#patternName').fill('Conejito de prueba');
+    const patternResponsePromise = page.waitForResponse(response => response.url().includes('/api/puntia/generate-pattern'), { timeout: 8000 });
     await page.locator('#generateBtn').click();
-    await page.locator('#modal.show').waitFor({ state: 'visible' });
+    let patternResponse;
+    try { patternResponse = await patternResponsePromise; } catch { throw new Error('El botón no llamó a la API de patrones. onclick=' + await page.locator('#generateBtn').evaluate(el => typeof el.onclick) + '; errores JS=' + errors.join(' | ')); }
+    if (!patternResponse.ok() || !patternIntercepted) throw new Error('La API de patrones no fue interceptada correctamente. HTTP=' + patternResponse.status());
+    await page.locator('#modal').waitFor({ state: 'visible', timeout: 8000 });
     const generatedModalText = await page.locator('#modalBody').innerText();
-    if (!patternIntercepted || !generatedModalText.includes('Patrón de prueba: 6 pb en anillo mágico.')) throw new Error('La generación no mostró el patrón esperado. Interceptada=' + patternIntercepted + '; modal=' + generatedModalText);
+    if (!generatedModalText.includes('Patrón de prueba: 6 pb en anillo mágico.')) throw new Error('La generación no mostró el patrón esperado. modal=' + generatedModalText);
     await page.locator('#modalClose').click();
 
     // Saved-project lifecycle: save full pattern, reload, reopen, rename and delete.
