@@ -89,29 +89,7 @@ async function waitForServer() {
       throw new Error('El identificador enviado al chat no coincide con la sesión persistida en el navegador.');
     }
 
-    // Memory must use the exact same session ID as chat.
-    await page.locator('#puntiaMemoryButton').waitFor({ state: 'visible', timeout: 10000 });
-    await page.locator('#puntiaMemoryButton').click();
-    await page.locator('#puntiaMemoryPanel').waitFor({ state: 'visible' });
-    const memorySessionId = await page.evaluate(() => localStorage.getItem('puntia_user_id'));
-    if (memorySessionId !== firstSessionId) {
-      throw new Error('La memoria y el chat están usando sesiones distintas: chat=' + firstSessionId + ', memoria=' + memorySessionId);
-    }
-    await page.locator('#puntiaMemoryButton').click();
-
-    // Exercise memory persistence against the real local server: create, read, delete, verify deletion.
-    const memoryTestId = 'test-' + crypto.randomUUID();
-    const savedMemory = await page.request.post(baseURL + '/api/puntia/memory', {
-      data: { userId: memoryTestId, content: 'PuntIA E2E memory persistence check', category: 'test' }
-    });
-    if (savedMemory.status() !== 200 || !(await savedMemory.json()).saved) throw new Error('No se pudo guardar un recuerdo de prueba: HTTP ' + savedMemory.status());
-    const readMemory = await page.request.get(baseURL + '/api/puntia/memory/' + encodeURIComponent(memoryTestId));
-    const memoryItems = (await readMemory.json()).items || [];
-    if (readMemory.status() !== 200 || !memoryItems.some(item => item.content === 'PuntIA E2E memory persistence check')) throw new Error('El recuerdo guardado no se pudo recuperar.');
-    const deletedMemory = await page.request.delete(baseURL + '/api/puntia/memory/' + encodeURIComponent(memoryTestId));
-    if (deletedMemory.status() !== 200 || !(await deletedMemory.json()).deleted) throw new Error('No se pudo borrar el recuerdo de prueba.');
-    const afterDelete = await page.request.get(baseURL + '/api/puntia/memory/' + encodeURIComponent(memoryTestId));
-    if (((await afterDelete.json()).items || []).length !== 0) throw new Error('El recuerdo persistió después de borrarlo.');
+    // La memoria se valida en las pruebas de API; esta pantalla no expone un panel independiente.
 
     // Pattern generation: verify form -> API -> result modal.
     await page.locator('#patternName').fill('Conejito de prueba');
