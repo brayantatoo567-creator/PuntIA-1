@@ -46,3 +46,14 @@ Diagnóstico del despliegue:
 ## Seguridad
 
 Los nombres y valores de variables no deben copiarse a issues, commits, capturas o documentación pública. Las claves se revisan únicamente desde el gestor de secretos. Una sesión anónima por cookie no debe describirse como una cuenta de usuario con correo/contraseña.
+
+
+## Actualización del 18 de noviembre de 2026 — bloqueo de cuenta
+
+- La rama `release/mvp-beta-2026-11` quedó configurada como fuente del servicio `puntia-validation`.
+- Se aplicaron el comando de inicio `node server.js`, el healthcheck `/api/health` y timeout de 120 segundos.
+- Se conservaron el volumen existente y las variables; no se editaron secretos ni se borraron recursos.
+- Al solicitar el primer despliegue, Railway respondió: **“Your trial has expired. Please select a plan to continue using Railway.”**
+- Por tanto, no se creó una nueva instancia ni se pudo ejecutar una prueba HTTP de la aplicación.
+- El servicio sigue sin despliegue activo confirmado. La URL pública no debe compartirse como beta funcional.
+- Siguiente paso del propietario: seleccionar/activar un plan de Railway para permitir el despliegue. Después, volver a lanzar el build desde esta rama y continuar con healthcheck, llamada real a OpenAI, persistencia y prueba Android.
