@@ -159,6 +159,31 @@ async function waitForServer() {
       throw new Error('El proyecto reapareció después de eliminarlo y recargar.');
     }
 
+    // Backup portability: export a JSON archive and import it into an empty library.
+    await page.locator('#openLibrary').click();
+    await page.locator('#exportProjectBackup').waitFor({ state: 'visible' });
+    const backupDownload = page.waitForEvent('download');
+    await page.locator('#exportProjectBackup').click();
+    const downloadedBackup = await backupDownload;
+    if (!downloadedBackup.suggestedFilename().startsWith('puntia-respaldo-') || !downloadedBackup.suggestedFilename().endsWith('.json')) {
+      throw new Error('El respaldo descargado no tiene el nombre/formato esperado.');
+    }
+    const backupPayload = JSON.stringify({
+      app: 'PuntIA', schemaVersion: 1, exportedAt: new Date().toISOString(),
+      projects: [{ id: 'backup-test-1', name: 'Proyecto importado', pattern: 'Patrón importado: 12 pb.', createdAt: new Date().toISOString() }]
+    });
+    await page.locator('#projectBackupFile').setInputFiles({ name: 'puntia-test-backup.json', mimeType: 'application/json', buffer: Buffer.from(backupPayload) });
+    await page.getByText('Proyecto importado', { exact: true }).waitFor({ state: 'visible' });
+    const importedProjects = await page.evaluate(() => JSON.parse(localStorage.getItem('puntia_projects') || '[]'));
+    if (importedProjects.length !== 1 || importedProjects[0].pattern !== 'Patrón importado: 12 pb.') {
+      throw new Error('La importación no restauró el patrón completo: ' + JSON.stringify(importedProjects));
+    }
+    await page.locator('#modalClose').click();
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    if (await page.evaluate(() => JSON.parse(localStorage.getItem('puntia_projects') || '[]')[0]?.name) !== 'Proyecto importado') {
+      throw new Error('El proyecto importado no persistió después de recargar.');
+    }
+
     // Crochet validator: compare computed counts with declared round totals.
     await page.locator('#patternToValidate').fill('1: 6 pb (6)\n2: 6 aum (12)\n3: (1 pb, 1 aum) x6 (18)');
     await page.locator('#validateBtn').click();
@@ -235,7 +260,7 @@ async function waitForServer() {
     await page.screenshot({ path: 'test-artifacts/puntia-mobile.png' });
 
     if (errors.length) throw new Error('Errores JavaScript en navegador: ' + errors.join(' | '));
-    console.log('E2E PASS: mascota original, cinco categorías, chat, generación, guardar/abrir/renombrar/eliminar proyectos, validador, diagnóstico y menú móvil.');
+    console.log('E2E PASS: mascota original, cinco categorías, chat, generación, guardar/abrir/renombrar/eliminar y respaldar/importar proyectos, validador, diagnóstico y menú móvil.');
   } catch (error) {
     console.error(error.stack || error);
     process.exitCode = 1;
