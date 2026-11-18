@@ -380,10 +380,44 @@ function showProject(id){
 }
 $('#projectsList').addEventListener('click',e=>{const b=e.target.closest('[data-project-id]');if(b?.dataset.projectId)showProject(b.dataset.projectId)});
 $('#projectSearch').addEventListener('input',renderProjects);
+function exportProjectBackup(){
+  const backup={app:'PuntIA',schemaVersion:1,exportedAt:new Date().toISOString(),projects};
+  const blob=new Blob([JSON.stringify(backup,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download='puntia-respaldo-'+new Date().toISOString().slice(0,10)+'.json';
+  document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
+  toast('Respaldo descargado');
+}
+function importProjectBackup(file){
+  if(!file||file.size>5*1024*1024){toast('El archivo está vacío o supera el límite de 5 MB');return}
+  const reader=new FileReader();
+  reader.onerror=()=>toast('No se pudo leer el archivo de respaldo');
+  reader.onload=()=>{
+    try{
+      const data=JSON.parse(String(reader.result||''));
+      if(data?.app!=='PuntIA'||data?.schemaVersion!==1||!Array.isArray(data.projects))throw new Error('Formato de respaldo no compatible');
+      const incoming=data.projects.filter(p=>p&&typeof p.name==='string'&&typeof p.pattern==='string'&&p.name.length<=100&&p.pattern.length<=200000).map(p=>({
+        id:typeof p.id==='string'&&p.id.length<=100?p.id:'import-'+Math.random().toString(36).slice(2),
+        name:p.name,pattern:p.pattern,createdAt:Number.isFinite(Date.parse(p.createdAt))?new Date(p.createdAt).toISOString():new Date().toISOString()
+      }));
+      if(!incoming.length)throw new Error('El respaldo no contiene proyectos válidos');
+      const existingIds=new Set(projects.map(p=>p.id));
+      const merged=[...projects,...incoming.filter(p=>!existingIds.has(p.id))].slice(0,30);
+      const previous=projects;projects=merged;
+      if(!persistProjects()){projects=previous;return}
+      renderProjects();toast('Respaldo importado: '+(merged.length-previous.length)+' proyecto(s) agregado(s)');
+      $('#openLibrary').click();
+    }catch(error){toast(error.message||'El respaldo no es válido')}
+  };
+  reader.readAsText(file);
+}
 $('#openLibrary').onclick=()=>{
   const rows=projects.map(p=>`<div class="library-row" style="display:flex;gap:8px;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--line)"><div style="min-width:0"><b>${escapeHtml(p.name)}</b><div class="small">${p.pattern?'Patrón completo':'Solo nombre'} · ${escapeHtml(p.createdAt?new Date(p.createdAt).toLocaleDateString('es-MX'):'Fecha no disponible')}</div></div><button class="primary" data-library-open="${escapeHtml(p.id)}" style="width:auto;padding:7px 10px">Abrir</button></div>`).join('');
-  modal('Biblioteca de proyectos',rows||'<p>Aún no tienes proyectos guardados. Genera un patrón y pulsa Guardar.</p><p class="small">Los proyectos se guardan localmente en este dispositivo; no se sincronizan entre equipos.</p>');
-  $$('#modalBody [data-library-open]').forEach(b=>b.addEventListener('click',()=>showProject(b.dataset.libraryOpen)));
+  modal('Biblioteca de proyectos',`<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px"><button type="button" class="primary" id="exportProjectBackup" style="width:auto">Exportar respaldo</button><button type="button" class="primary" id="importProjectBackupBtn" style="width:auto;background:#7456d9">Importar respaldo</button><input type="file" id="projectBackupFile" accept="application/json,.json" hidden></div><p class="small">El respaldo permite transferir tus proyectos entre dispositivos. Los datos siguen guardándose localmente; no se sincronizan automáticamente.</p>${rows||'<p>Aún no tienes proyectos guardados. Genera uno y pulsa Guardar.</p>'}`);
+  $('#exportProjectBackup').addEventListener('click',exportProjectBackup);
+  $('#importProjectBackupBtn').addEventListener('click',()=>$('#projectBackupFile').click());
+  $('#projectBackupFile').addEventListener('change',e=>importProjectBackup(e.target.files?.[0]));
+  $('#modalBody [data-library-open]').forEach(b=>b.addEventListener('click',()=>showProject(b.dataset.libraryOpen)));
 };
 function printPattern(name,pattern){
   const w=window.open('','_blank');if(!w){toast('Permite ventanas emergentes para imprimir el patrón');return}
