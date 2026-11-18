@@ -30,12 +30,11 @@ jobs:
           cmp -s index.html public/index.html
           grep -q 'OPENAI_TIMEOUT_MS=45000' .env.example
           grep -q '/data/puntia-memory.json' .gitignore
-          test -f public/puntia-mascota.svg
-          test -f public/puntia-mascota-original.webp.b64
-          grep -q 'src="/puntia-mascota.svg"' public/index.html
-          grep -q '<link rel="icon" type="image/svg+xml" href="/puntia-mascota.svg">' public/index.html
-          grep -q 'loadPuntiaOriginalMascot' public/index.html
-          grep -q 'reference-mascot' public/index.html
+          grep -q 'id="apiSettings"' public/index.html
+          grep -q 'id="processingOverlay"' public/index.html
+          grep -q 'refreshApiStatus' public/index.html
+          ! grep -q 'id="puntiaMascot"' public/index.html
+          ! grep -q 'reference-mascot' public/index.html
           grep -q 'const escapeHtml=' public/index.html
           grep -q 'formatAssistantText(j.pattern' public/index.html
           grep -q 'formatAssistantText(j.analysis' public/index.html
@@ -61,13 +60,9 @@ jobs:
           for (const selector of invalid) {
             if (html.includes(selector)) throw new Error('Selector de elemento único usado como colección: ' + selector);
           }
-          const encoded = fs.readFileSync('public/puntia-mascota-original.webp.b64', 'utf8').trim();
-          if (!encoded || !/^[A-Za-z0-9+/]+={0,2}$/.test(encoded)) throw new Error('El recurso de la mascota no es base64 válido');
-          const image = Buffer.from(encoded, 'base64');
-          if (image.length < 1000 || image.toString('ascii', 0, 4) !== 'RIFF' || image.toString('ascii', 8, 12) !== 'WEBP') {
-            throw new Error('El recurso decodificado no tiene una firma WebP válida');
-          }
-          console.log('Mascota WebP validada:', image.length, 'bytes');
+          if (!html.includes('id="apiSettings"') || !html.includes('id="processingOverlay"')) throw new Error('Falta panel API o indicador de procesamiento');
+          if (html.includes('id="puntiaMascot"') || html.includes('reference-mascot')) throw new Error('La interfaz todavía incluye la mascota');
+          console.log('Interfaz comercial sin mascota, panel API e indicador de procesamiento verificados');
           NODE
           node -e "const p=require('./package.json'); if(!p.dependencies?.express || !p.dependencies?.openai || !p.dependencies?.multer) process.exit(1)"
 
@@ -146,13 +141,6 @@ jobs:
           test "$STATUS" = "200"
           grep -q 'PuntIA' /tmp/home.html
 
-          STATUS=$(curl -s -o /tmp/mascot.svg -w '%{http_code}' http://127.0.0.1:8080/puntia-mascota.svg)
-          test "$STATUS" = "200"
-          grep -q '<svg' /tmp/mascot.svg
-
-          STATUS=$(curl -s -o /tmp/mascot-webp-b64.txt -w '%{http_code}' http://127.0.0.1:8080/puntia-mascota-original.webp.b64)
-          test "$STATUS" = "200"
-          cmp public/puntia-mascota-original.webp.b64 /tmp/mascot-webp-b64.txt
 
           node -e "const h=require('/tmp/health.json'); if(h.ok!==true) process.exit(1); if(typeof h.ai!=='boolean') process.exit(1); console.log('Health endpoint schema OK; AI key configured:',h.ai)"
 
