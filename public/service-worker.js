@@ -1,5 +1,5 @@
-const CACHE_NAME = "puntia-shell-v2";
-const APP_SHELL = ["/", "/puntia-mascota.svg", "/manifest.webmanifest", "/config.js"];
+const CACHE_NAME = "puntia-shell-v3";
+const APP_SHELL = ["/", "/manifest.webmanifest", "/config.js"];
 
 self.addEventListener("install", event => {
   event.waitUntil(
