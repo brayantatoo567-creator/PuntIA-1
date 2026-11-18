@@ -2,7 +2,7 @@ name: PuntIA CI
 
 on:
   push:
-    branches: [main, audit/general-audit-2026-10]
+    branches: [main, audit/general-audit-2026-10, release/mvp-beta-2026-11]
   pull_request:
     branches: [main]
   workflow_dispatch:
