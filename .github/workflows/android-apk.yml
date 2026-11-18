@@ -43,7 +43,7 @@ jobs:
 
       - name: Prepare web assets
         env:
-          PUNTIA_API_BASE_URL: ${{ vars.PUNTIA_API_BASE_URL }}
+          PUNTIA_API_BASE_URL: ${{ vars.PUNTIA_API_BASE_URL || 'https://puntia-validation-production.up.railway.app' }}
         run: |
           rm -rf www
           cp -R public www
