@@ -1,0 +1,20 @@
+{
+  "id": "/",
+  "name": "PuntIA — Asistente de crochet",
+  "short_name": "PuntIA",
+  "description": "Asistente de crochet y amigurumi con patrones, aprendizaje y proyectos.",
+  "lang": "es-MX",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f7f2ec",
+  "theme_color": "#e84f87",
+  "icons": [
+    {
+      "src": "/puntia-mascota.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

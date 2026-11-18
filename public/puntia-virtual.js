@@ -1,4 +1,11 @@
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js';
+let THREE;
+try {
+  THREE = await import('https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js');
+} catch (error) {
+  // El modo 3D es opcional: si no hay red o falla el CDN, conserva la mascota SVG
+  // y permite que continúen funcionando la sesión y la memoria de PuntIA.
+  console.warn('PuntIA 3D no disponible; se usará la mascota de respaldo.', error);
+}
 
 (() => {
   const $ = (selector) => document.querySelector(selector);
@@ -236,19 +243,19 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.m
     panel.innerHTML='<h4>Lo que PuntIA recuerda</h4><p id="puntiaMemoryStatus">Memoria guardada en el servidor de la aplicación.</p><div id="puntiaMemoryItems"></div><button type="button" id="puntiaSavePreference">Guardar preferencia</button><button type="button" id="puntiaClearMemory">Borrar memoria</button>';nav.appendChild(panel);
     async function refreshMemory(){
       const status=$('#puntiaMemoryStatus'),items=$('#puntiaMemoryItems');status.textContent='Cargando recuerdos…';items.replaceChildren();
-      try{const r=await originalFetch('/api/puntia/memory/'+encodeURIComponent(getUserId()));if(!r.ok)throw Error('API');const rows=(await r.json()).items||[];status.textContent=rows.length?'Hay '+rows.length+' recuerdos recientes guardados.':'Todavía no hay recuerdos guardados.';rows.slice(-8).reverse().forEach(row=>{const p=document.createElement('p');p.textContent='• '+row.content;items.appendChild(p)})}
+      try{const r=await originalFetch((window.PUNTIA_API_BASE_URL||'').replace(/\/+$/,'')+'/api/puntia/memory/'+encodeURIComponent(getUserId()),{credentials:'include'});if(!r.ok)throw Error('API');const rows=(await r.json()).items||[];status.textContent=rows.length?'Hay '+rows.length+' recuerdos recientes guardados.':'Todavía no hay recuerdos guardados.';rows.slice(-8).reverse().forEach(row=>{const p=document.createElement('p');p.textContent='• '+row.content;items.appendChild(p)})}
       catch{status.textContent='No se pudo consultar la memoria. Comprueba que el backend esté actualizado.'}
     }
     button.addEventListener('click',async()=>{panel.hidden=!panel.hidden;if(!panel.hidden){await refreshMemory();panel.scrollIntoView({behavior:'smooth',block:'nearest'})}});
     $('#puntiaSavePreference').addEventListener('click',async()=>{
       const value=window.prompt('¿Qué debería recordar PuntIA? Ejemplo: prefiero patrones para principiantes.');
       if(!value||!value.trim())return;
-      try{const r=await originalFetch('/api/puntia/memory',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({userId:getUserId(),content:value,category:'preference'})});if(!r.ok)throw Error();await refreshMemory();showToast('Preferencia guardada')}
+      try{const r=await originalFetch((window.PUNTIA_API_BASE_URL||'').replace(/\/+$/,'')+'/api/puntia/memory',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify({userId:getUserId(),content:value,category:'preference'})});if(!r.ok)throw Error();await refreshMemory();showToast('Preferencia guardada')}
       catch{showToast('No se pudo guardar la preferencia')}
     });
     $('#puntiaClearMemory').addEventListener('click',async()=>{
       if(!window.confirm('¿Borrar los recuerdos del usuario de demostración? Esta acción no se puede deshacer.'))return;
-      try{const r=await originalFetch('/api/puntia/memory/'+encodeURIComponent(getUserId()),{method:'DELETE'});if(!r.ok)throw Error();await refreshMemory();showToast('Memoria borrada')}
+      try{const r=await originalFetch((window.PUNTIA_API_BASE_URL||'').replace(/\/+$/,'')+'/api/puntia/memory/'+encodeURIComponent(getUserId()),{method:'DELETE',credentials:'include'});if(!r.ok)throw Error();await refreshMemory();showToast('Memoria borrada')}
       catch{showToast('No se pudo borrar la memoria')}
     });
   }
