@@ -173,7 +173,7 @@ async function waitForServer() {
       projects: [{ id: 'backup-test-1', name: 'Proyecto importado', pattern: 'Patrón importado: 12 pb.', createdAt: new Date().toISOString() }]
     });
     await page.locator('#projectBackupFile').setInputFiles({ name: 'puntia-test-backup.json', mimeType: 'application/json', buffer: Buffer.from(backupPayload) });
-    await page.getByText('Proyecto importado', { exact: true }).waitFor({ state: 'visible' });
+    await page.locator('#modalBody').getByText('Proyecto importado', { exact: true }).waitFor({ state: 'visible' });
     const importedProjects = await page.evaluate(() => JSON.parse(localStorage.getItem('puntia_projects') || '[]'));
     if (importedProjects.length !== 1 || importedProjects[0].pattern !== 'Patrón importado: 12 pb.') {
       throw new Error('La importación no restauró el patrón completo: ' + JSON.stringify(importedProjects));
