@@ -3,7 +3,7 @@ name: PuntIA Android APK
 on:
   workflow_dispatch:
   push:
-    branches: [audit/general-audit-2026-10]
+    branches: [release/mvp-beta-2026-11, audit/general-audit-2026-10]
 
 permissions:
   contents: read
@@ -28,7 +28,7 @@ jobs:
 
       - name: Validate API URL configuration
         env:
-          PUNTIA_API_BASE_URL: ${{ vars.PUNTIA_API_BASE_URL || 'https://puntia-validation-production.up.railway.app' }}
+          PUNTIA_API_BASE_URL: ${{ vars.PUNTIA_API_BASE_URL || 'https://puntia-beta.onrender.com' }}
         run: |
           if [ -z "$PUNTIA_API_BASE_URL" ]; then
             echo "::error::La URL HTTPS del backend PuntIA no está configurada."
@@ -43,7 +43,7 @@ jobs:
 
       - name: Prepare web assets
         env:
-          PUNTIA_API_BASE_URL: ${{ vars.PUNTIA_API_BASE_URL || 'https://puntia-validation-production.up.railway.app' }}
+          PUNTIA_API_BASE_URL: ${{ vars.PUNTIA_API_BASE_URL || 'https://puntia-beta.onrender.com' }}
         run: |
           rm -rf www
           cp -R public www
