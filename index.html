@@ -385,7 +385,7 @@ function exportProjectBackup(){
   const blob=new Blob([JSON.stringify(backup,null,2)],{type:'application/json'});
   const url=URL.createObjectURL(blob),a=document.createElement('a');
   a.href=url;a.download='puntia-respaldo-'+new Date().toISOString().slice(0,10)+'.json';
-  document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
+  document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
   toast('Respaldo descargado');
 }
 function importProjectBackup(file){
