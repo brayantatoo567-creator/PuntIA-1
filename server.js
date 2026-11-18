@@ -6,6 +6,23 @@ const crypto=require('crypto');
 const { validatePattern } = require('./pattern-validator.cjs');
 const { parseMemory } = require('./memory-store.cjs');
 const app=express();
+const allowedOrigins=new Set(String(process.env.PUNTIA_ALLOWED_ORIGINS||'https://localhost,capacitor://localhost').split(',').map(value=>value.trim()).filter(Boolean));
+function requestOrigin(req){const proto=String(req.get('x-forwarded-proto')||req.protocol).split(',')[0].trim();return proto+'://'+req.get('host');}
+app.use((req,res,next)=>{
+  const origin=req.get('origin');
+  if(!origin)return next();
+  if(origin!==requestOrigin(req)&&!allowedOrigins.has(origin))return res.status(403).json({error:'Origen no autorizado.'});
+  res.set('Access-Control-Allow-Origin',origin);
+  res.set('Access-Control-Allow-Credentials','true');
+  res.vary('Origin');
+  if(req.method==='OPTIONS'){
+    res.set('Access-Control-Allow-Methods','GET,POST,DELETE,OPTIONS');
+    res.set('Access-Control-Allow-Headers','Content-Type,Authorization');
+    res.set('Access-Control-Max-Age','600');
+    return res.status(204).end();
+  }
+  next();
+});
 const upload=multer({storage:multer.memoryStorage(),limits:{fileSize:8*1024*1024,files:1,fields:4,parts:5},fileFilter:(req,file,cb)=>{if(!['image/jpeg','image/png','image/webp','image/gif'].includes(file.mimetype))return cb(new Error('Formato de imagen no admitido. Usa JPG, PNG, WEBP o GIF.'));cb(null,true);}});
 app.use(express.json({limit:'2mb'}));
 
@@ -35,7 +52,7 @@ function establishSession(req,res,next){
   req.puntiaUserId=sessionId;
   if(!valid){
     const secure=process.env.NODE_ENV==='production'||Boolean(process.env.RAILWAY_ENVIRONMENT);
-    res.append('Set-Cookie',SESSION_COOKIE+'='+encodeURIComponent(sessionId+'.'+signSessionId(sessionId))+'; Path=/; HttpOnly; SameSite=Lax; Max-Age=2592000'+(secure?'; Secure':''));
+    res.append('Set-Cookie',SESSION_COOKIE+'='+encodeURIComponent(sessionId+'.'+signSessionId(sessionId))+'; Path=/; HttpOnly; SameSite='+(secure?'None':'Lax')+'; Max-Age=2592000'+(secure?'; Secure':''));
   }
   next();
 }
@@ -112,9 +129,7 @@ function emotionFor(text){const t=String(text||'').toLowerCase();if(/felicidades
 function rejectCrossOriginMutation(req,res,next){
   const origin=req.get('origin');
   if(!origin)return next();
-  const forwardedProto=String(req.get('x-forwarded-proto')||req.protocol).split(',')[0].trim();
-  const expectedOrigin=forwardedProto+'://'+req.get('host');
-  if(origin!==expectedOrigin)return res.status(403).json({error:'Solicitud de otro origen bloqueada.'});
+  if(origin!==requestOrigin(req)&&!allowedOrigins.has(origin))return res.status(403).json({error:'Solicitud de otro origen bloqueada.'});
   next();
 }
 app.use('/api/puntia/memory',(req,res,next)=>{
