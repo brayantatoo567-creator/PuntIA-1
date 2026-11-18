@@ -363,6 +363,11 @@ function renderProjects(){
   if(!query&&all.length<4)all.push(...defaults.slice(0,4-all.length));
   $('#projectsList').innerHTML=all.map(p=>`<button type="button" class="project" data-project-id="${p[4]||''}" style="width:100%;border:0;background:transparent;text-align:left;color:inherit;cursor:${p[4]?'pointer':'default'}"><div class="thumb">${p[1]}</div><div style="flex:1;min-width:0"><b>${escapeHtml(p[0])}</b><small>${p[2]}</small><div class="bar"><span style="width:${p[3]}"></span></div></div><span>›</span></button>`).join('')||'<p class="small">No hay proyectos que coincidan con la búsqueda.</p>';
   $('#projectCount').textContent=projects.length+' proyecto(s) guardado(s) en este dispositivo'+(filtered.length>4?' · muestra 4 de '+filtered.length:'');
+  const detail=$('#projectDetail');
+  if(detail){
+    const rows=projects.slice(0,8).map(p=>'<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 0;border-bottom:1px solid var(--line)"><span style="min-width:0;overflow-wrap:anywhere"><b>'+escapeHtml(p.name)+'</b><small style="display:block">'+(p.pattern?'Patrón guardado':'Solo nombre')+'</small></span><button type="button" class="primary" data-open-project="'+escapeHtml(p.id)+'" style="width:auto;padding:7px 10px">Abrir</button></div>').join('');
+    detail.innerHTML='<button class="primary" id="saveProject" type="button">Guardar patrón actual</button><div id="projectDetailRows" style="margin-top:9px">'+(rows||'<p class="small">Aún no tienes patrones guardados. Genera uno y pulsa Guardar.</p>')+'</div>';
+  }
 }
 function showProject(id){
   const p=projects.find(x=>x.id===id);if(!p)return;
@@ -393,7 +398,7 @@ function saveProject(name=$('#patternName').value,pattern=latestGeneratedPattern
   renderProjects();toast('Patrón completo guardado en este dispositivo');
 }
 renderProjects();
-$('#saveProject').onclick=()=>saveProject();
+$('#projectDetail').addEventListener('click',e=>{if(e.target.closest('#saveProject'))saveProject();const open=e.target.closest('[data-open-project]');if(open)showProject(open.dataset.openProject)});
 $('#newProject').onclick=()=>{if(!latestGeneratedPattern){toast('Primero genera un patrón para crear un proyecto.');return}const n=prompt('Nombre del proyecto',$('#patternName').value);if(n)saveProject(n)};
 $('#pdfBtn').onclick=()=>{if(!latestGeneratedPattern){toast('Genera o abre un patrón guardado antes de exportar');return}printPattern($('#patternName').value||'Mi patrón PuntIA',latestGeneratedPattern)};
 
