@@ -127,6 +127,38 @@ async function waitForServer() {
     await page.getByText(/Patrón de prueba: 6 pb en anillo mágico/).waitFor({ state: 'visible' });
     await page.locator('#modalClose').click();
 
+    // Saved-project lifecycle: save full pattern, reload, reopen, rename and delete.
+    await page.locator('#desktopNav button[data-section="projects"]').click();
+    await page.locator('#projects').waitFor({ state: 'visible' });
+    await page.locator('#projectDetail #saveProject').click();
+    let savedProjects = await page.evaluate(() => JSON.parse(localStorage.getItem('puntia_projects') || '[]'));
+    if (savedProjects.length !== 1 || savedProjects[0].pattern !== 'Patrón de prueba: 6 pb en anillo mágico.') {
+      throw new Error('El proyecto no guardó el patrón completo: ' + JSON.stringify(savedProjects));
+    }
+    const savedProjectId = savedProjects[0].id;
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    savedProjects = await page.evaluate(() => JSON.parse(localStorage.getItem('puntia_projects') || '[]'));
+    if (savedProjects.length !== 1 || savedProjects[0].id !== savedProjectId) {
+      throw new Error('El proyecto guardado no persistió tras recargar la página.');
+    }
+    await page.locator('#projectsList [data-project-id="' + savedProjectId + '"]').click();
+    await page.locator('#renameSavedPattern').waitFor({ state: 'visible' });
+    if (!(await page.locator('#modalBody').innerText()).includes('Patrón de prueba: 6 pb en anillo mágico.')) {
+      throw new Error('El patrón guardado no se pudo volver a abrir completo.');
+    }
+    page.once('dialog', dialog => dialog.accept('Conejito renombrado'));
+    await page.locator('#renameSavedPattern').click();
+    savedProjects = await page.evaluate(() => JSON.parse(localStorage.getItem('puntia_projects') || '[]'));
+    if (savedProjects[0]?.name !== 'Conejito renombrado') throw new Error('No se guardó el nuevo nombre del proyecto.');
+    page.once('dialog', dialog => dialog.accept());
+    await page.locator('#deleteSavedPattern').click();
+    savedProjects = await page.evaluate(() => JSON.parse(localStorage.getItem('puntia_projects') || '[]'));
+    if (savedProjects.length !== 0) throw new Error('El proyecto no se eliminó del almacenamiento local.');
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    if (await page.evaluate(() => JSON.parse(localStorage.getItem('puntia_projects') || '[]').length) !== 0) {
+      throw new Error('El proyecto reapareció después de eliminarlo y recargar.');
+    }
+
     // Crochet validator: compare computed counts with declared round totals.
     await page.locator('#patternToValidate').fill('1: 6 pb (6)\n2: 6 aum (12)\n3: (1 pb, 1 aum) x6 (18)');
     await page.locator('#validateBtn').click();
@@ -203,7 +235,7 @@ async function waitForServer() {
     await page.screenshot({ path: 'test-artifacts/puntia-mobile.png' });
 
     if (errors.length) throw new Error('Errores JavaScript en navegador: ' + errors.join(' | '));
-    console.log('E2E PASS: mascota original, cinco categorías, chat, generación de patrón, menú móvil y desbordamiento horizontal.');
+    console.log('E2E PASS: mascota original, cinco categorías, chat, generación, guardar/abrir/renombrar/eliminar proyectos, validador, diagnóstico y menú móvil.');
   } catch (error) {
     console.error(error.stack || error);
     process.exitCode = 1;
