@@ -71,6 +71,20 @@ jobs:
           NODE
           node -e "const p=require('./package.json'); if(!p.dependencies?.express || !p.dependencies?.openai || !p.dependencies?.multer) process.exit(1)"
 
+      - name: Verificar configuración Android y backend de despliegue
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          const workflow = fs.readFileSync('.github/workflows/android-apk.yml', 'utf8');
+          if (!workflow.includes('https://puntia-beta.onrender.com')) throw new Error('El APK no apunta al backend Render actual');
+          if (workflow.includes('puntia-validation-production.up.railway.app')) throw new Error('El APK conserva una URL antigua de Railway');
+          if (!workflow.includes('release/mvp-beta-2026-11')) throw new Error('El workflow Android no se activa desde la rama release');
+          const root = fs.readFileSync('index.html', 'utf8');
+          const web = fs.readFileSync('public/index.html', 'utf8');
+          if (root !== web) throw new Error('Los puntos de entrada raíz y público están desincronizados');
+          console.log('Configuración Android, URL Render y entrypoints verificados');
+          NODE
+
       - name: Instalar dependencias
         run: npm install --no-audit --no-fund
 
