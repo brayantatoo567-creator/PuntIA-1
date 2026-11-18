@@ -44,10 +44,11 @@ async function waitForServer() {
       try { chatPayload = route.request().postDataJSON(); } catch {}
       return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ reply: 'Respuesta de prueba del asistente.' }) });
     });
-    await page.route('**/api/puntia/generate-pattern', route => route.fulfill({
-      status: 200, contentType: 'application/json',
-      body: JSON.stringify({ pattern: 'Patrón de prueba: 6 pb en anillo mágico.' })
-    }));
+    let patternIntercepted = false;
+    await page.route('**/api/puntia/generate-pattern', route => {
+      patternIntercepted = true;
+      return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ pattern: 'Patrón de prueba: 6 pb en anillo mágico.', validation: { validRounds: 1, invalidRounds: 0, unverifiedRounds: 0 } }) });
+    });
     await page.route('**/api/puntia/diagnose', route => route.fulfill({
       status: 200, contentType: 'application/json',
       body: JSON.stringify({ analysis: 'Diagnóstico visual simulado para prueba.' })
@@ -94,7 +95,9 @@ async function waitForServer() {
     // Pattern generation: verify form -> API -> result modal.
     await page.locator('#patternName').fill('Conejito de prueba');
     await page.locator('#generateBtn').click();
-    await page.getByText(/Patrón de prueba: 6 pb en anillo mágico/).waitFor({ state: 'visible' });
+    await page.locator('#modal.show').waitFor({ state: 'visible' });
+    const generatedModalText = await page.locator('#modalBody').innerText();
+    if (!patternIntercepted || !generatedModalText.includes('Patrón de prueba: 6 pb en anillo mágico.')) throw new Error('La generación no mostró el patrón esperado. Interceptada=' + patternIntercepted + '; modal=' + generatedModalText);
     await page.locator('#modalClose').click();
 
     // Saved-project lifecycle: save full pattern, reload, reopen, rename and delete.
