@@ -1,4 +1,11 @@
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js';
+let THREE;
+try {
+  THREE = await import('https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js');
+} catch (error) {
+  // El modo 3D es opcional: si no hay red o falla el CDN, conserva la mascota SVG
+  // y permite que continúen funcionando la sesión y la memoria de PuntIA.
+  console.warn('PuntIA 3D no disponible; se usará la mascota de respaldo.', error);
+}
 
 (() => {
   const $ = (selector) => document.querySelector(selector);
