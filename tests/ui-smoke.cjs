@@ -56,24 +56,16 @@ async function waitForServer() {
     const errors = [];
     page.on('pageerror', error => errors.push(error.message));
     await page.goto(baseURL, { waitUntil: 'domcontentloaded' });
-    await page.locator('#puntiaMascot').waitFor({ state: 'visible' });
-    // Verify the actual Three.js renderer, not only the fallback illustration.
-    await page.waitForFunction(() => window.PuntIAAvatar?.getRenderStatus?.().lastRenderAt > 0, null, { timeout: 15000 }).catch(async () => {
-      const status = await page.evaluate(() => window.PuntIAAvatar?.getRenderStatus?.() || null);
-      throw new Error('El avatar 3D no completó un render WebGL. Estado: ' + JSON.stringify(status) + '; errores JS=' + errors.join(' | '));
-    });
-    const renderStatus = await page.evaluate(() => window.PuntIAAvatar.getRenderStatus());
-    if (!renderStatus.rendererReady || !renderStatus.canvasConnected || renderStatus.width < 1 || renderStatus.height < 1) {
-      throw new Error('Estado de renderizado 3D inválido: ' + JSON.stringify(renderStatus));
-    }
-    await page.evaluate(() => window.PuntIAAvatar.setEmotion('curious'));
-    if (await page.evaluate(() => window.PuntIAAvatar.getEmotion()) !== 'curious') throw new Error('El cambio de expresión a curiosa no funcionó.');
-    await page.evaluate(() => window.PuntIAAvatar.setEmotion('happy'));
-    await page.locator('.reference-mascot').evaluate(img => img.decode());
-    await page.waitForFunction(() => document.querySelector('.reference-mascot')?.src.startsWith('blob:'));
-    if (!(await page.locator('.reference-mascot').evaluate(img => img.naturalWidth > 0))) {
-      throw new Error('La ilustración original de la mascota no se decodificó.');
-    }
+    // La nueva interfaz es deliberadamente libre de personaje y avatar.
+    if (await page.locator('#puntiaMascot, .reference-mascot, .hero-person').count()) throw new Error('La mascota todavía aparece en la interfaz.');
+    await page.locator('#processingOverlay').waitFor({ state: 'attached' });
+    if (await page.locator('#processingOverlay').getAttribute('aria-hidden') !== 'true') throw new Error('El indicador de procesamiento debe iniciar oculto.');
+    await page.locator('#desktopNav button[data-section="apiSettings"]').click();
+    await page.locator('#apiSettings').waitFor({ state: 'visible' });
+    await page.locator('#refreshApiStatus').click();
+    await page.getByText(/falta OPENAI_API_KEY en Render/i).waitFor({ state: 'visible' });
+    await page.locator('#desktopNav button[data-section="chat"]').click();
+
 
     for (const category of ['ASISTENTE', 'PATRONES', 'APRENDIZAJE', 'MIS PROYECTOS', 'HERRAMIENTAS']) {
       if (!(await page.locator('#desktopNav').getByText(category, { exact: true }).count())) {
@@ -210,32 +202,12 @@ async function waitForServer() {
     if (await page.evaluate(() => localStorage.getItem('puntia_session_id')) !== firstSessionId) {
       throw new Error('El identificador de sesión no persistió después de recargar la página.');
     }
-    await page.locator('.reference-mascot').evaluate(img => img.decode());
-    await page.waitForFunction(() => document.querySelector('.reference-mascot')?.src.startsWith('blob:'));
     const dimensions = await page.evaluate(() => ({
       viewport: document.documentElement.clientWidth,
       content: document.documentElement.scrollWidth
     }));
-    // Regression checks for the mobile hero: controls must not overlap the mascot face area.
-    const mobileLayout = await page.evaluate(() => {
-      const hero = document.querySelector('.hero');
-      const mascot = document.querySelector('.hero-person');
-      const motion = document.querySelector('.puntia-motion-toggle');
-      const nav = document.querySelector('.bottom-nav');
-      const rect = el => {
-        if (!el) return null;
-        const r = el.getBoundingClientRect();
-        return { x:r.x, y:r.y, width:r.width, height:r.height, bottom:r.bottom, right:r.right };
-      };
-      return { hero:rect(hero), mascot:rect(mascot), motion:rect(motion), nav:rect(nav),
-        motionBottom:getComputedStyle(motion || document.body).bottom,
-        navHeight:nav ? nav.getBoundingClientRect().height : 0 };
-    });
-    if (!mobileLayout.motion || !mobileLayout.nav || mobileLayout.navHeight < 55) {
-      throw new Error('Faltan controles móviles o la navegación inferior es demasiado pequeña: ' + JSON.stringify(mobileLayout));
-    }
-    if (mobileLayout.motion.bottom > mobileLayout.nav.y - 4) {
-      throw new Error('El control de movimiento puede quedar tapado por la navegación inferior: ' + JSON.stringify(mobileLayout));
+    if (await page.locator('#puntiaMascot, .reference-mascot, .hero-person, #motionToggle').count()) {
+      throw new Error('La interfaz móvil todavía contiene elementos de mascota o controles de movimiento.');
     }
     if (dimensions.content > dimensions.viewport + 2) {
       throw new Error('Desbordamiento horizontal móvil: ' + JSON.stringify(dimensions));
@@ -260,7 +232,7 @@ async function waitForServer() {
     await page.screenshot({ path: 'test-artifacts/puntia-mobile.png', animations: 'disabled', timeout: 60000 });
 
     if (errors.length) throw new Error('Errores JavaScript en navegador: ' + errors.join(' | '));
-    console.log('E2E PASS: mascota original, cinco categorías, chat, generación, guardar/abrir/renombrar/eliminar y respaldar/importar proyectos, validador, diagnóstico y menú móvil.');
+    console.log('E2E PASS: interfaz sin mascota, conexión API, indicador de procesamiento, cinco categorías, chat, generación, proyectos, validador, diagnóstico y menú móvil.');
   } catch (error) {
     console.error(error.stack || error);
     process.exitCode = 1;
