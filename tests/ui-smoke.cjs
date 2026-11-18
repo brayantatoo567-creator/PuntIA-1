@@ -202,7 +202,7 @@ async function waitForServer() {
 
     // Responsive desktop screenshot.
     fs.mkdirSync(path.join(process.cwd(), 'test-artifacts'), { recursive: true });
-    await page.screenshot({ path: 'test-artifacts/puntia-desktop.png', fullPage: true });
+    await page.screenshot({ path: 'test-artifacts/puntia-desktop.png', fullPage: false, animations: 'disabled', timeout: 60000 });
 
     // Mobile: verify layout does not overflow horizontally and drawer keeps grouped nav.
     await page.setViewportSize({ width: 390, height: 844 });
@@ -257,7 +257,7 @@ async function waitForServer() {
       if (toast) toast.style.display = 'none';
     });
     await page.waitForTimeout(200);
-    await page.screenshot({ path: 'test-artifacts/puntia-mobile.png' });
+    await page.screenshot({ path: 'test-artifacts/puntia-mobile.png', animations: 'disabled', timeout: 60000 });
 
     if (errors.length) throw new Error('Errores JavaScript en navegador: ' + errors.join(' | '));
     console.log('E2E PASS: mascota original, cinco categorías, chat, generación, guardar/abrir/renombrar/eliminar y respaldar/importar proyectos, validador, diagnóstico y menú móvil.');
