@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#e84f87">
 <link rel="manifest" href="/manifest.webmanifest">
 <script src="/config.js"></script>
-<link rel="icon" type="image/svg+xml" href="/puntia-mascota.svg">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22%3E%3Crect width=%2264%22 height=%2264%22 rx=%2216%22 fill=%22%23f4e6e9%22/%3E%3Cpath d=%22M18 34c0-12 28-12 28 0s-28 12-28 0zm0 0c0-12 28-12 28 0%22 fill=%22none%22 stroke=%22%23986b7c%22 stroke-width=%224%22/%3E%3C/svg%3E">
 <title>PuntIA — Asistente de crochet</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Quicksand:wght@600;700;800&display=swap');
@@ -486,36 +486,10 @@ $('#lessonNext').onclick=()=>{if(lessonIndex<crochetLessons.length-1){lessonInde
 $('#lessonRepeat').onclick=()=>{renderLesson();const line='Paso '+(lessonIndex+1)+'. '+crochetLessons[lessonIndex].title+'. '+crochetLessons[lessonIndex].desc;$('#lessonFeedback').textContent='PuntIA repite: '+crochetLessons[lessonIndex].desc;if('speechSynthesis'in window){window.speechSynthesis.cancel();const utterance=new SpeechSynthesisUtterance(line);utterance.lang='es-MX';utterance.rate=.9;window.speechSynthesis.speak(utterance)}};
 $$('[data-action="teacher"]').forEach(b=>b.onclick=()=>{scrollToId('tutorial');$('#lessonFeedback').textContent='Aquí tienes la explicación paso a paso.'});
 renderLesson();
-/* Interacción de la mascota y control de movimiento */
-const mascot=$('#puntiaMascot'),motionToggle=$('#motionToggle');
-function mascotGreeting(){if(!mascot)return;mascot.classList.remove('is-listening');mascot.classList.add('is-speaking');const speech=$('.speech');if(speech){speech.querySelector('strong').textContent='¡Hola, te escucho!';speech.querySelector('p').innerHTML='Soy <b>PuntIA</b>. Pregúntame por un punto o elige un tutorial para aprender conmigo.'}setTimeout(()=>mascot.classList.remove('is-speaking'),1500)}
-mascot?.addEventListener('click',mascotGreeting);mascot?.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();mascotGreeting()}});
-motionToggle?.addEventListener('click',()=>{const paused=document.body.classList.toggle('motion-paused');motionToggle.setAttribute('aria-pressed',String(paused));motionToggle.textContent=paused?'▶ Reanudar movimiento':'⏸ Pausar movimiento';window.PuntIAAvatar?.setMotion(!paused)});
-const heroInput=$('#heroInput');heroInput?.addEventListener('focus',()=>{mascot?.classList.add('is-listening')});heroInput?.addEventListener('blur',()=>mascot?.classList.remove('is-listening'));
+/* La interfaz ya no utiliza personaje ni controles de mascota. */
 </script>
 
-<script>
-/* Cargar la ilustración original optimizada; el SVG queda como fallback si falla la carga. */
-(async function loadPuntiaOriginalMascot(){
-  const img=document.querySelector('.reference-mascot');
-  if(!img)return;
-  try{
-    const response=await fetch('/puntia-mascota-original.webp.b64',{cache:'force-cache'});
-    if(!response.ok)throw new Error('HTTP '+response.status);
-    const encoded=(await response.text()).trim();
-    const binary=atob(encoded);
-    const bytes=new Uint8Array(binary.length);
-    for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);
-    const objectUrl=URL.createObjectURL(new Blob([bytes],{type:'image/webp'}));
-    const probe=new Image();
-    probe.onload=()=>{img.src=objectUrl;img.parentElement?.classList.add('uses-reference-art');};
-    probe.onerror=()=>URL.revokeObjectURL(objectUrl);
-    probe.src=objectUrl;
-  }catch(error){
-    console.warn('Se conserva la mascota SVG de respaldo.',error);
-  }
-})();
-</script>
+
 
 
 <style id="puntia-mobile-touch-hotfix">
