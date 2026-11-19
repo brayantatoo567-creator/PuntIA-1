@@ -57,6 +57,10 @@ jobs:
         run: |
           npx cap add android
           npx cap sync android
+          # Android 10 (API 29) and newer: pin Capacitor's minimum SDK explicitly.
+          grep -q 'minSdkVersion' android/variables.gradle
+          sed -i 's/minSdkVersion = .*/minSdkVersion = 23/' android/variables.gradle
+          grep -q 'minSdkVersion = 23' android/variables.gradle
 
       - name: Build debug APK
         run: cd android && ./gradlew --no-daemon assembleDebug
