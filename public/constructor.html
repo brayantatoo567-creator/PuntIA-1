@@ -17,36 +17,17 @@
 <div class="notice">Este constructor calcula estructuras básicas. No diseña figuras completas, no calcula medidas exactas y no sustituye una muestra tejida. Ajusta tensión, relleno y proporciones según tu material.</div></section>
 <section class="panel result"><div class="resulthead"><h2>Tu patrón base</h2><div class="buttons"><button class="btn secondary" id="save" type="button" disabled>Guardar</button><button class="btn secondary" id="print" type="button" disabled>Imprimir / PDF</button></div></div><pre id="output" aria-live="polite">Configura tu pieza y pulsa “Generar instrucciones”.</pre><section class="saved"><h2>Mis patrones guardados</h2><div class="saved-list" id="savedList"><span class="help">Todavía no hay patrones guardados en este dispositivo.</span></div></section></section></div>
 <p class="foot">PuntIA · Herramienta local gratuita. Los datos se guardan en el almacenamiento de este navegador; borrar sus datos puede eliminarlos.</p></main>
+<script src="/pattern-builder.js"></script>
 <script>
 (()=>{'use strict';
 const $=id=>document.getElementById(id);let current='';
 const STORE='puntia_free_patterns_v1';
 const safeName=s=>String(s||'').replace(/[<>]/g,'').trim().slice(0,70)||'Proyecto sin nombre';
-function round(n,label,formula,total){return label+' '+formula+' ('+total+' pts)';}
-function makePattern(v){
- const base=Number(v.base),inc=Number(v.inc),straight=Number(v.straight),dec=Number(v.dec),shape=v.shape;
- if(![6,8].includes(base)||!Number.isInteger(inc)||inc<1||inc>10||!Number.isInteger(straight)||straight<0||straight>40||!Number.isInteger(dec)||dec<1||dec>10)throw Error('Revisa los valores. Aumentos: 1–10; vueltas rectas: 0–40; disminuciones: 1–10.');
- if(shape==='sphere'&&dec!==inc)throw Error('Para una esfera con '+inc+' vueltas de aumento, usa '+inc+' vueltas de disminución.');
- const lines=['PUNTIA · PATRÓN BASE','Proyecto: '+safeName(v.name),'Pieza: '+({sphere:'Esfera / cabeza cerrada',cylinder:'Cilindro / cuerpo tubular',flat:'Círculo plano'}[shape]),'Hilo y gancho: '+v.yarn,'Puntos iniciales: '+base+' pb en anillo mágico (AM).','Abreviaturas: AM = anillo mágico; pb = punto bajo; aum = aumento (2 pb en un punto); dis = disminución invisible.','','INSTRUCCIONES'];
- let total=base;
- lines.push(round(1,'Vuelta','AM, '+base+' pb',total));
- for(let i=1;i<=inc;i++){total=base*(i+1);lines.push(round(i+1,'Vuelta','('+i+' pb, 1 aum) × '+base,total));}
- if(shape==='flat'){lines.push('Continuar aumentando de la misma forma si necesitas un diámetro mayor.');}
- else{
-  for(let i=1;i<=straight;i++)lines.push(round(inc+1+i,'Vuelta',total+' pb',total));
-  if(shape==='sphere'){
-   for(let i=inc-1;i>=0;i--){total=base*(i+1);const formula=i===0?base+' dis':'('+i+' pb, 1 dis) × '+base;lines.push(round(inc+straight+(inc-1-i)+2,'Vuelta',formula,total));}
-   lines.push('Rellenar gradualmente antes de cerrar. Cortar dejando hebra y cerrar los puntos restantes con aguja lanera.');
-  }else lines.push('El cilindro queda abierto por arriba. Añade una tapa o continúa el cuerpo según tu diseño.');
- }
- lines.push('','REVISIÓN','Los totales de las rondas generadas son coherentes con las operaciones básicas indicadas.','No incluye muestra de tensión, medidas garantizadas, uniones, detalles ni prueba física. Teje una muestra y adapta el patrón.');
- return lines.join('\n');
-}
 function values(){return {name:$('name').value,shape:$('shape').value,base:$('base').value,inc:$('inc').value,straight:$('straight').value,dec:$('dec').value,yarn:$('yarn').value};}
 function saved(){try{const x=JSON.parse(localStorage.getItem(STORE)||'[]');return Array.isArray(x)?x.filter(p=>p&&typeof p.text==='string'&&typeof p.name==='string'):[]}catch{return []}}
 function renderSaved(){const list=$('savedList');list.replaceChildren();const items=saved();if(!items.length){list.textContent='Todavía no hay patrones guardados en este dispositivo.';list.className='saved-list help';return;}list.className='saved-list';items.forEach((p,i)=>{const row=document.createElement('div');row.className='saved-item';const label=document.createElement('span');label.textContent=p.name+' · '+p.date;const actions=document.createElement('span');const open=document.createElement('button');open.textContent='Abrir';open.onclick=()=>{$('output').textContent=p.text;current=p.text;$('save').disabled=false;$('print').disabled=false;};const del=document.createElement('button');del.textContent='Eliminar';del.onclick=()=>{const next=saved();next.splice(i,1);localStorage.setItem(STORE,JSON.stringify(next));renderSaved();};actions.append(open,del);row.append(label,actions);list.append(row);});}
 $('shape').addEventListener('change',()=>{const sphere=$('shape').value==='sphere';$('decField').hidden=!sphere;$('straightField').hidden=$('shape').value==='flat';});
-$('builder').addEventListener('submit',e=>{e.preventDefault();try{current=makePattern(values());$('output').textContent=current;$('save').disabled=false;$('print').disabled=false;}catch(err){$('output').textContent='No se pudo generar el patrón: '+err.message;$('save').disabled=true;$('print').disabled=true;}});
+$('builder').addEventListener('submit',e=>{e.preventDefault();try{current=window.PuntiaPatternBuilder.makePattern(values());$('output').textContent=current;$('save').disabled=false;$('print').disabled=false;}catch(err){$('output').textContent='No se pudo generar el patrón: '+err.message;$('save').disabled=true;$('print').disabled=true;}});
 $('save').onclick=()=>{if(!current)return;const items=saved();items.unshift({name:safeName($('name').value),text:current,date:new Date().toLocaleDateString('es-MX')});localStorage.setItem(STORE,JSON.stringify(items.slice(0,30)));renderSaved();};
 $('print').onclick=()=>window.print();
 $('builder').addEventListener('reset',()=>setTimeout(()=>{$('shape').dispatchEvent(new Event('change'));current='';$('output').textContent='Configura tu pieza y pulsa “Generar instrucciones”.';$('save').disabled=true;$('print').disabled=true;},0));
