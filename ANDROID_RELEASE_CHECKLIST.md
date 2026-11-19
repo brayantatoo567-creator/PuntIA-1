@@ -8,7 +8,7 @@ Esta rama prepara la interfaz web para Android mediante Capacitor y añade cach�
 
 ### Variable de GitHub Actions
 
-Recomendado: configurar la variable de repositorio `PUNTIA_API_BASE_URL` con la URL HTTPS del backend desplegado. El valor predeterminado del workflow es `https://puntia-beta.onrender.com`, servicio actual de la beta. La compilación por sí sola no comprueba que el servidor responda. La compilación por sí sola no comprueba que el servidor responda.
+Recomendado: configurar la variable de repositorio `PUNTIA_API_BASE_URL` con la URL HTTPS del backend desplegado. El valor predeterminado del workflow es `https://puntia-beta.onrender.com`, servicio actual de la beta. La compilación por sí sola no comprueba que el servidor responda.
 
 ### Variables del servicio backend en Render
 
@@ -25,7 +25,7 @@ La cookie de sesión usa `HttpOnly`, `Secure` y `SameSite=None` en producción p
 3. Probar que dos sesiones no pueden leer ni borrar la memoria de la otra.
 4. Probar la preflight CORS desde `https://localhost` y rechazar un origen ajeno.
 5. Instalar el APK en Android 10 y 11; comprobar navegación, sesión, chat, patrones, cámara/galería y memoria.
-6. Bloquear el CDN de Three.js y confirmar que se muestra la mascota SVG y que el resto de la interfaz continúa funcionando.
+6. Bloquear el CDN de Three.js y confirmar que no se rompe la navegación ni las funciones principales; el avatar 3D está fuera del alcance de esta beta.
 7. Abrir PuntIA sin red después de la primera carga. El shell y los recursos locales deben abrir; las funciones de IA deben mostrar claramente que requieren conexión.
 
 ## Limitaciones conocidas que impiden declarar producción
@@ -33,7 +33,7 @@ La cookie de sesión usa `HttpOnly`, `Secure` y `SameSite=None` en producción p
 - La caché offline conserva el shell y recursos locales; no almacena patrones, mensajes ni resultados de IA para uso offline.
 - El limitador actual de IA es de concurrencia por proceso; falta rate limiting distribuido y cuotas por sesión/IP.
 - La comprobación de imágenes valida firma y MIME, pero falta decodificación completa y límites de dimensiones/píxeles.
-- La memoria JSON está protegida frente a escrituras concurrentes en un proceso, pero no coordina varias réplicas. Mantener una sola réplica hasta migrar a almacenamiento transaccional.
+- La memoria JSON está protegida frente a escrituras concurrentes en un proceso, pero el servicio Render actual no tiene volumen persistente ni base de datos. La memoria puede perderse al reiniciar o desplegar. Mantener una sola réplica hasta migrar a almacenamiento transaccional.
 - Los patrones solo tienen validación matemática parcial; los resultados no verificados deben mostrarse como tales.
 - No se debe desplegar la rama de auditoría sobre producción hasta completar configuración, pruebas reales y revisión de PR.
 
