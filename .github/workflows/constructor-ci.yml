@@ -22,7 +22,13 @@ jobs:
         run: npm install --no-audit --no-fund
       - name: Validar motor y pruebas del proyecto
         run: npm test
-      - name: Instalar navegador para pruebas reales\n        run: |\n          npm install --no-save --no-audit --no-fund playwright\n          npx playwright install --with-deps chromium\n      - name: Probar interfaz en escritorio y móvil\n        run: node tests/constructor-ui.cjs\n      - name: Validar sintaxis del motor y del script HTML
+      - name: Instalar navegador para pruebas reales
+        run: |
+          npm install --no-save --no-audit --no-fund playwright
+          npx playwright install --with-deps chromium
+      - name: Probar interfaz en escritorio y móvil
+        run: node tests/constructor-ui.cjs
+      - name: Validar sintaxis del motor y del script HTML
         run: |
           node --check public/pattern-builder.js
           node <<'NODE'
