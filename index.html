@@ -283,6 +283,44 @@ body{background:var(--craft-cream);color:var(--craft-ink)}
 .yarn-loader:after{content:'✿';position:absolute;inset:0;display:grid;place-items:center;color:#a8758b;font-size:19px;animation:craft-spin 3s linear infinite reverse}
 @keyframes craft-spin{to{transform:rotate(360deg)}}#processingTitle{font-weight:800;color:#51434c}#processingMessage{margin:7px 0 0;color:#897780;font-size:14px}
 @media(prefers-reduced-motion:reduce){.yarn-loader,.yarn-loader:after{animation:none}}
+
+/* PuntIA responsive audit 2026-11-19: stack dashboard cards on narrow phones. */
+@media (max-width: 780px) {
+  .hero-grid > .stack,
+  .hero-grid > .stack:last-child {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-column: auto !important;
+    width: 100%;
+    min-width: 0;
+  }
+  .hero-grid > .stack > .card { width: 100%; min-width: 0; }
+  .model {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: center;
+    gap: 12px;
+  }
+  .model > span { min-width: 0; white-space: normal; overflow-wrap: anywhere; }
+  .model .status-dot { text-align: right; }
+  .sys {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: start;
+    gap: 10px;
+  }
+  .sys > span { min-width: 0; overflow-wrap: anywhere; }
+  .sys > span:last-child { text-align: right; }
+  .card h3 { overflow-wrap: anywhere; }
+  main { padding-bottom: calc(140px + env(safe-area-inset-bottom)) !important; }
+  .bottom-nav {
+    position: fixed !important;
+    left: 10px !important;
+    right: 10px !important;
+    bottom: calc(8px + env(safe-area-inset-bottom)) !important;
+  }
+}
+
 </style>
 </head>
 <body>
