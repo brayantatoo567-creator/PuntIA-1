@@ -1,12 +1,13 @@
 'use strict';
 (function(root){
 const safeName=s=>String(s||'').replace(/[<>]/g,'').trim().slice(0,70)||'Proyecto sin nombre';
-function round(n,label,formula,total){return label+' '+formula+' ('+total+' pts)';}
+function round(n,label,formula,total){return label+' '+n+': '+formula+' ('+total+' pts)';}
 function makePattern(v){
  const base=Number(v.base),inc=Number(v.inc),straight=Number(v.straight),dec=Number(v.dec),shape=v.shape;
  if(![6,8].includes(base)||!Number.isInteger(inc)||inc<1||inc>10||!Number.isInteger(straight)||straight<0||straight>40||!Number.isInteger(dec)||dec<1||dec>10)throw Error('Revisa los valores. Aumentos: 1–10; vueltas rectas: 0–40; disminuciones: 1–10.');
+ if(!['sphere','cylinder','flat'].includes(shape))throw Error('Selecciona una forma válida.');
  if(shape==='sphere'&&dec!==inc)throw Error('Para una esfera con '+inc+' vueltas de aumento, usa '+inc+' vueltas de disminución.');
- const lines=['PUNTIA · PATRÓN BASE','Proyecto: '+safeName(v.name),'Pieza: '+({sphere:'Esfera / cabeza cerrada',cylinder:'Cilindro / cuerpo tubular',flat:'Círculo plano'}[shape]),'Hilo y gancho: '+v.yarn,'Puntos iniciales: '+base+' pb en anillo mágico (AM).','Abreviaturas: AM = anillo mágico; pb = punto bajo; aum = aumento (2 pb en un punto); dis = disminución invisible.','','INSTRUCCIONES'];
+ const lines=['PUNTIA · PATRÓN BASE','Proyecto: '+safeName(v.name),'Pieza: '+({sphere:'Esfera / cabeza cerrada',cylinder:'Cilindro / cuerpo tubular',flat:'Círculo plano'}[shape]),'Hilo y gancho: '+String(v.yarn||'Sin especificar').slice(0,100),'Puntos iniciales: '+base+' pb en anillo mágico (AM).','Abreviaturas: AM = anillo mágico; pb = punto bajo; aum = aumento (2 pb en un punto); dis = disminución invisible.','','INSTRUCCIONES'];
  let total=base;
  lines.push(round(1,'Vuelta','AM, '+base+' pb',total));
  for(let i=1;i<=inc;i++){total=base*(i+1);const formula=i===1?base+' aum':'('+(i-1)+' pb, 1 aum) × '+base;lines.push(round(i+1,'Vuelta',formula,total));}
@@ -21,7 +22,6 @@ function makePattern(v){
  lines.push('','REVISIÓN','Los totales de las rondas generadas son coherentes con las operaciones básicas indicadas.','No incluye muestra de tensión, medidas garantizadas, uniones, detalles ni prueba física. Teje una muestra y adapta el patrón.');
  return lines.join('\n');
 }
-
 root.PuntiaPatternBuilder={makePattern};
 if(typeof module!=='undefined'&&module.exports)module.exports=root.PuntiaPatternBuilder;
 })(typeof window!=='undefined'?window:globalThis);
