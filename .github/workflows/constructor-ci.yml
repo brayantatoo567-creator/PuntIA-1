@@ -1,0 +1,49 @@
+name: PuntIA Constructor CI
+
+on:
+  push:
+    branches: [feature/puntia-commercial-landing]
+  pull_request:
+    branches: [release/mvp-beta-2026-11]
+
+permissions:
+  contents: read
+
+jobs:
+  constructor:
+    name: Probar constructor gratuito
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Instalar dependencias
+        run: npm install --no-audit --no-fund
+      - name: Validar motor y pruebas del proyecto
+        run: npm test
+      - name: Instalar navegador para pruebas reales
+        run: |
+          npm install --no-save --no-audit --no-fund playwright
+          npx playwright install --with-deps chromium
+      - name: Probar interfaz en escritorio y móvil
+        run: node tests/constructor-ui.cjs
+      - name: Validar sintaxis del motor y del script HTML
+        run: |
+          node --check public/pattern-builder.js
+          node <<'NODE'
+          const fs = require('fs');
+          const html = fs.readFileSync('public/constructor.html', 'utf8');
+          const start = html.indexOf('<script>');
+          const end = html.indexOf('</script>', start);
+          if (start < 0 || end < 0) throw new Error('No se encontró el script inline');
+          if (html.indexOf('<script>', start + 1) >= 0) throw new Error('Se encontró más de un script inline');
+          if (!html.includes('<script src="/pattern-builder.js"></script>')) throw new Error('Falta cargar el motor del constructor');
+          fs.writeFileSync('/tmp/puntia-constructor.js', html.slice(start + 8, end));
+          NODE
+          node --check /tmp/puntia-constructor.js
+      - name: Comprobar integridad básica del constructor
+        run: |
+          grep -q 'Vuelta ' public/pattern-builder.js
+          grep -q 'PuntiaPatternBuilder.makePattern' public/constructor.html
+          node -e "const fs=require('fs');const h=fs.readFileSync('public/constructor.html','utf8');const s=h.slice(h.indexOf('<script>'),h.indexOf('</script>'));if((s.match(/const safeName=/g)||[]).length!==1)throw Error('Declaración safeName duplicada o ausente')"

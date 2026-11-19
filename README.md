@@ -2,6 +2,13 @@
 
 PuntIA es una aplicación web progresiva y Android (Capacitor) para aprender crochet y amigurumi. Incluye asistente conversacional, generador y validador de patrones, diagnóstico de imágenes, biblioteca de aprendizaje y mascota virtual.
 
+## Constructor gratuito sin IA
+
+- Abre `/constructor.html` para generar bases de esfera, cilindro y círculo plano sin consumir una API de IA.
+- Los cálculos se ejecutan localmente en el navegador; los patrones se pueden guardar en el almacenamiento local del dispositivo e imprimir.
+- Es una herramienta matemática básica: no genera figuras completas, no estima medidas garantizadas y no certifica que una pieza funcione físicamente.
+- No requiere cuentas, claves API ni servicios adicionales.
+
 ## Estado del proyecto
 
 - Plan de estabilización y lanzamiento beta: [RELEASE_MVP_PLAN.md](RELEASE_MVP_PLAN.md).

@@ -2,7 +2,7 @@ name: PuntIA CI
 
 on:
   push:
-    branches: [main, audit/general-audit-2026-10, release/mvp-beta-2026-11]
+    branches: [main, audit/general-audit-2026-10, release/mvp-beta-2026-11, feature/puntia-commercial-landing]
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -28,6 +28,35 @@ jobs:
           test -f index.html
           test -f public/index.html
           test -f public/puntia-yarn.svg
+          test -f public/ventas.html
+          test -f public/constructor.html
+          test -f public/pattern-builder.js
+          test -f tests/pattern-builder.cjs
+          node <<'NODE'
+          const fs = require('fs');
+          const html = fs.readFileSync('public/ventas.html', 'utf8');
+          const checks = [
+            ['HTML5 document', /<!doctype html>/i],
+            ['Spanish language', /<html lang="es">/],
+            ['Responsive viewport', /name="viewport"/],
+            ['Main CTA', /href="\/">Probar PuntIA/],
+            ['Free no-AI constructor CTA', /href="\/constructor.html">Usar constructor gratuito/],
+            ['Pattern generator offer', /Generador de patrones/],
+            ['Crochet assistant offer', /Asistente de crochet/],
+            ['Plan section', /id="planes"/],
+            ['FAQ section', /id="preguntas"/],
+            ['No fake payment claim', /Los precios, cobros y suscripciones aún no están habilitados/],
+            ['No invented contact address', !html.includes('hola@puntia.app')],
+            ['Mobile layout rules', /@media\(max-width:560px\)/]
+          ];
+          for (const [name, rule] of checks) {
+            if (rule instanceof RegExp ? !rule.test(html) : !rule) throw new Error('Landing check failed: ' + name);
+          }
+          for (const id of ['inicio','herramientas','como-funciona','planes','preguntas']) {
+            if (!html.includes('id="' + id + '"')) throw new Error('Missing section: ' + id);
+          }
+          console.log('PuntIA commercial landing checks passed (' + checks.length + ' checks).');
+          NODE
           cmp -s index.html public/index.html
           grep -q 'OPENAI_TIMEOUT_MS=45000' .env.example
           grep -q '/data/puntia-memory.json' .gitignore
