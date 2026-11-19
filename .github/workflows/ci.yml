@@ -33,7 +33,10 @@ jobs:
           grep -q '/data/puntia-memory.json' .gitignore
           grep -q 'id="apiSettings"' public/index.html
           grep -q 'id="processingOverlay"' public/index.html
-          grep -q 'refreshApiStatus' public/index.html
+          grep -q 'id="openAiKeyInput"' public/index.html
+          grep -q 'id="testApiKey"' public/index.html
+          grep -q 'X-PuntIA-OpenAI-Key' public/index.html
+          grep -q '/api/puntia/test-key' server.js
           ! grep -q 'id="puntiaMascot"' public/index.html
           ! grep -q 'reference-mascot' public/index.html
           grep -q 'const escapeHtml=' public/index.html
