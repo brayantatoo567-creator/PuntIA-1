@@ -9,7 +9,7 @@ function makePattern(v){
  const lines=['PUNTIA · PATRÓN BASE','Proyecto: '+safeName(v.name),'Pieza: '+({sphere:'Esfera / cabeza cerrada',cylinder:'Cilindro / cuerpo tubular',flat:'Círculo plano'}[shape]),'Hilo y gancho: '+v.yarn,'Puntos iniciales: '+base+' pb en anillo mágico (AM).','Abreviaturas: AM = anillo mágico; pb = punto bajo; aum = aumento (2 pb en un punto); dis = disminución invisible.','','INSTRUCCIONES'];
  let total=base;
  lines.push(round(1,'Vuelta','AM, '+base+' pb',total));
- for(let i=1;i<=inc;i++){total=base*(i+1);lines.push(round(i+1,'Vuelta','('+i+' pb, 1 aum) × '+base,total));}
+ for(let i=1;i<=inc;i++){total=base*(i+1);const formula=i===1?base+' aum':'('+(i-1)+' pb, 1 aum) × '+base;lines.push(round(i+1,'Vuelta',formula,total));}
  if(shape==='flat'){lines.push('Continuar aumentando de la misma forma si necesitas un diámetro mayor.');}
  else{
   for(let i=1;i<=straight;i++)lines.push(round(inc+1+i,'Vuelta',total+' pb',total));
