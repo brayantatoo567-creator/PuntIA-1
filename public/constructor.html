@@ -20,7 +20,7 @@
 <script src="/pattern-builder.js"></script>
 <script>
 (()=>{'use strict';
-const $=id=>document.getElementById(id);let current='';
+const $=id=>document.getElementById(id);const safeName=s=>String(s||'').replace(/[<>]/g,'').trim().slice(0,70)||'Proyecto sin nombre';let current='';
 const STORE='puntia_free_patterns_v1';
 const safeName=s=>String(s||'').replace(/[<>]/g,'').trim().slice(0,70)||'Proyecto sin nombre';
 function values(){return {name:$('name').value,shape:$('shape').value,base:$('base').value,inc:$('inc').value,straight:$('straight').value,dec:$('dec').value,yarn:$('yarn').value};}
