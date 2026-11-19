@@ -1,5 +1,6 @@
 'use strict';
 (function(root){
+const safeName=s=>String(s||'').replace(/[<>]/g,'').trim().slice(0,70)||'Proyecto sin nombre';
 function round(n,label,formula,total){return label+' '+formula+' ('+total+' pts)';}
 function makePattern(v){
  const base=Number(v.base),inc=Number(v.inc),straight=Number(v.straight),dec=Number(v.dec),shape=v.shape;
