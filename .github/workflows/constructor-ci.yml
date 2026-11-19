@@ -28,14 +28,16 @@ jobs:
           node <<'NODE'
           const fs = require('fs');
           const html = fs.readFileSync('public/constructor.html', 'utf8');
-          const scripts = [...html.matchAll(/<script>([\\s\\S]*?)<\\/script>/gi)];
-          if (scripts.length !== 1) throw new Error('Se esperaba un único script inline en el constructor');
+          const start = html.indexOf('<script>');
+          const end = html.indexOf('</script>', start);
+          if (start < 0 || end < 0) throw new Error('No se encontró el script inline');
+          if (html.indexOf('<script>', start + 1) >= 0) throw new Error('Se encontró más de un script inline');
           if (!html.includes('<script src="/pattern-builder.js"></script>')) throw new Error('Falta cargar el motor del constructor');
-          fs.writeFileSync('/tmp/puntia-constructor.js', scripts[0][1]);
+          fs.writeFileSync('/tmp/puntia-constructor.js', html.slice(start + 8, end));
           NODE
           node --check /tmp/puntia-constructor.js
       - name: Comprobar integridad básica del constructor
         run: |
           grep -q 'Vuelta ' public/pattern-builder.js
           grep -q 'PuntiaPatternBuilder.makePattern' public/constructor.html
-          ! grep -q 'const safeName=.*const safeName=' public/constructor.html
+          node -e "const fs=require('fs');const h=fs.readFileSync('public/constructor.html','utf8');const s=h.slice(h.indexOf('<script>'),h.indexOf('</script>'));if((s.match(/safeName/g)||[]).length!==1)throw Error('Declaración safeName duplicada o ausente')"
