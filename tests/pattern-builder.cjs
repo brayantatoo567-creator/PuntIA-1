@@ -13,4 +13,4 @@ assert.ok(flat.includes('Continuar aumentando de la misma forma'));
 assert.ok(!flat.includes('Rellenar gradualmente'));
 assert.ok(makePattern({name:'<script>mal</script>',shape:'flat',base:6,inc:1,straight:0,dec:1,yarn:'x'}).includes('Proyecto: scriptmal/script'));
 assert.throws(()=>makePattern({name:'x',shape:'otro',base:6,inc:1,straight:0,dec:1,yarn:'x'}),/forma válida/);
-console.log('Constructor gratuito: 13 comprobaciones correctas.');
+console.log('Constructor gratuito: 15 comprobaciones correctas.');
