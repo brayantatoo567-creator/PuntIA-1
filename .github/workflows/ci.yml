@@ -42,7 +42,7 @@ jobs:
             ['Plan section', /id="planes"/],
             ['FAQ section', /id="preguntas"/],
             ['No fake payment claim', /Los precios, cobros y suscripciones aún no están habilitados/],
-            ['No invented contact address', !/hola@puntia\.app/],
+            ['No invented contact address', !html.includes('hola@puntia.app')],
             ['Mobile layout rules', /@media\(max-width:560px\)/]
           ];
           for (const [name, rule] of checks) {
