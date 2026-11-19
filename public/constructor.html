@@ -11,7 +11,7 @@
 <div class="field"><label for="base">Puntos iniciales</label><select id="base"><option value="6">6 puntos (recomendado)</option><option value="8">8 puntos</option></select><span class="help">Para mantener los cálculos correctos, esta versión usa 6 u 8 puntos iniciales.</span></div>
 <div class="field"><label for="inc">Vueltas de aumentos</label><input id="inc" type="number" min="1" max="10" value="4" required><span class="help">Cada vuelta agrega una repetición más entre aumentos. Para esfera, las disminuciones se calculan automáticamente al bajar el contador.</span></div>
 <div class="field" id="straightField"><label for="straight">Vueltas rectas</label><input id="straight" type="number" min="0" max="40" value="3" required></div>
-<div class="field" id="decField"><label for="dec">Vueltas de disminuciones</label><input id="dec" type="number" min="1" max="9" value="3" required><span class="help">Solo para esfera. En una esfera se requieren una menos que las vueltas de aumento.</span></div>
+<div class="field" id="decField"><label for="dec">Vueltas de disminuciones</label><input id="dec" type="number" min="1" max="10" value="4" required><span class="help">Solo para esfera. En una esfera se usa el mismo número de vueltas de disminución que de aumento.</span></div>
 <div class="field"><label for="yarn">Hilo y gancho</label><input id="yarn" maxlength="100" value="Hilo de algodón · gancho según tensión"></div>
 <div class="buttons"><button class="btn" type="submit">Generar instrucciones</button><button class="btn secondary" type="reset">Restablecer</button></div></form>
 <div class="notice">Este constructor calcula estructuras básicas. No diseña figuras completas, no calcula medidas exactas y no sustituye una muestra tejida. Ajusta tensión, relleno y proporciones según tu material.</div></section>
@@ -26,7 +26,7 @@ function round(n,label,formula,total){return label+' '+formula+' ('+total+' pts)
 function makePattern(v){
  const base=Number(v.base),inc=Number(v.inc),straight=Number(v.straight),dec=Number(v.dec),shape=v.shape;
  if(![6,8].includes(base)||!Number.isInteger(inc)||inc<1||inc>10||!Number.isInteger(straight)||straight<0||straight>40||!Number.isInteger(dec)||dec<1||dec>10)throw Error('Revisa los valores. Aumentos: 1–10; vueltas rectas: 0–40; disminuciones: 1–10.');
- if(shape==='sphere'&&(inc<2||dec!==inc-1))throw Error('Para una esfera con '+inc+' vueltas de aumento, usa '+(inc-1)+' vueltas de disminución.');
+ if(shape==='sphere'&&dec!==inc)throw Error('Para una esfera con '+inc+' vueltas de aumento, usa '+inc+' vueltas de disminución.');
  const lines=['PUNTIA · PATRÓN BASE','Proyecto: '+safeName(v.name),'Pieza: '+({sphere:'Esfera / cabeza cerrada',cylinder:'Cilindro / cuerpo tubular',flat:'Círculo plano'}[shape]),'Hilo y gancho: '+v.yarn,'Puntos iniciales: '+base+' pb en anillo mágico (AM).','Abreviaturas: AM = anillo mágico; pb = punto bajo; aum = aumento (2 pb en un punto); dis = disminución invisible.','','INSTRUCCIONES'];
  let total=base;
  lines.push(round(1,'Vuelta','AM, '+base+' pb',total));
@@ -35,7 +35,7 @@ function makePattern(v){
  else{
   for(let i=1;i<=straight;i++)lines.push(round(inc+1+i,'Vuelta',total+' pb',total));
   if(shape==='sphere'){
-   for(let i=inc-2;i>=0;i--){total=base*(i+1);const formula=i===0?base+' dis':'('+i+' pb, 1 dis) × '+base;lines.push(round(inc+straight+(inc-2-i)+2,'Vuelta',formula,total));}
+   for(let i=inc-1;i>=0;i--){total=base*(i+1);const formula=i===0?base+' dis':'('+i+' pb, 1 dis) × '+base;lines.push(round(inc+straight+(inc-1-i)+2,'Vuelta',formula,total));}
    lines.push('Rellenar gradualmente antes de cerrar. Cortar dejando hebra y cerrar los puntos restantes con aguja lanera.');
   }else lines.push('El cilindro queda abierto por arriba. Añade una tapa o continúa el cuerpo según tu diseño.');
  }
