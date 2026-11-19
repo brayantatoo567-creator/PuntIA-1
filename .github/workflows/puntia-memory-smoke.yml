@@ -18,7 +18,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          URL="https://puntia-validation-production.up.railway.app"
+          URL="https://puntia-beta.onrender.com"
           for attempt in $(seq 1 24); do
             if curl -fsS --max-time 10 "$URL/api/health" -o /tmp/health.json; then
               node -e 'const h=require("/tmp/health.json"); if(!h.ok || !h.ai) process.exit(1); console.log("Production health and AI configuration OK")'
@@ -33,7 +33,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          URL="https://puntia-validation-production.up.railway.app"
+          URL="https://puntia-beta.onrender.com"
           COOKIE_JAR="/tmp/puntia-memory-session.cookies"
           CODE=$(curl -sS --max-time 150 -c "$COOKIE_JAR" -b "$COOKIE_JAR" -o /tmp/memory-chat.json -w '%{http_code}' -H 'Content-Type: application/json' -X POST "$URL/api/puntia/chat" --data '{"message":"Responde exactamente con la frase MEMORIA_AUDIT_OK"}')
           echo "Chat with memory HTTP status: $CODE"
@@ -55,7 +55,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          URL="https://puntia-validation-production.up.railway.app"
+          URL="https://puntia-beta.onrender.com"
           CODE=$(curl -sS --max-time 20 -o /tmp/memory-isolated.json -w '%{http_code}' "$URL/api/puntia/memory/session")
           test "$CODE" = "200"
           node -e 'const r=require("/tmp/memory-isolated.json"); if(!Array.isArray(r.items) || r.items.length!==0) throw Error("A fresh session unexpectedly saw another session memory"); console.log("PASS: fresh anonymous session is isolated")'
