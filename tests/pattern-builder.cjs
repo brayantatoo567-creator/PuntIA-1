@@ -1,0 +1,14 @@
+'use strict';
+const assert=require('node:assert/strict');
+const {makePattern}=require('../public/pattern-builder.js');
+const sphere=makePattern({name:'Osito',shape:'sphere',base:6,inc:4,straight:3,dec:4,yarn:'Algodón'});
+for(const expected of ['Vuelta AM, 6 pb (6 pts)','Vuelta (1 pb, 1 aum) × 6 (12 pts)','Vuelta (4 pb, 1 aum) × 6 (30 pts)','Vuelta 30 pb (30 pts)','Vuelta (3 pb, 1 dis) × 6 (24 pts)','Vuelta 6 dis (6 pts)','Rellenar gradualmente']) assert.ok(sphere.includes(expected),'Falta: '+expected);
+assert.throws(()=>makePattern({name:'Test',shape:'sphere',base:6,inc:4,straight:2,dec:3,yarn:'x'}),/usa 4 vueltas de disminución/);
+const cylinder=makePattern({name:'Cuerpo',shape:'cylinder',base:8,inc:2,straight:5,dec:2,yarn:'Acrílico'});
+assert.ok(cylinder.includes('Vuelta (2 pb, 1 aum) × 8 (24 pts)'));
+assert.ok(cylinder.includes('El cilindro queda abierto por arriba'));
+const flat=makePattern({name:'Base',shape:'flat',base:6,inc:3,straight:0,dec:3,yarn:'Algodón'});
+assert.ok(flat.includes('Continuar aumentando de la misma forma'));
+assert.ok(!flat.includes('Rellenar gradualmente'));
+assert.ok(makePattern({name:'<script>mal</script>',shape:'flat',base:6,inc:1,straight:0,dec:1,yarn:'x'}).includes('Proyecto: scriptmal/script'));
+console.log('Constructor gratuito: 10 comprobaciones correctas.');
