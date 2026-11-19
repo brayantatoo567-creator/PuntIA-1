@@ -37,6 +37,11 @@ async function waitForServer() {
       status: 200, contentType: 'application/json',
       body: JSON.stringify({ ok: true, ai: false, model: 'test-model', vision: 'test-vision' })
     }));
+    let keyTestHeader = '';
+    await page.route('**/api/puntia/test-key', route => {
+      keyTestHeader = route.request().headers()['x-puntia-openai-key'] || '';
+      return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ ok: true, message: 'Conexión con OpenAI correcta.' }) });
+    });
     let chatIntercepted = false;
     let chatPayload = null;
     await page.route('**/api/puntia/chat**', route => {
@@ -63,8 +68,12 @@ async function waitForServer() {
     if (await page.locator('#processingOverlay').getAttribute('aria-hidden') !== 'true') throw new Error('El indicador de procesamiento debe iniciar oculto.');
     await page.locator('#desktopNav button[data-section="apiSettings"]').click();
     await page.locator('#apiSettings').waitFor({ state: 'visible' });
-    await page.locator('#refreshApiStatus').click();
-    await page.getByText(/falta OPENAI_API_KEY en Render/i).waitFor({ state: 'visible' });
+    await page.locator('#openAiKeyInput').fill('sk-test-puntia-key-12345678901234567890');
+    await page.locator('#saveApiKey').click();
+    await page.locator('#testApiKey').click();
+    await page.getByText(/Conexión con OpenAI correcta/i).waitFor({ state: 'visible' });
+    if (keyTestHeader !== 'sk-test-puntia-key-12345678901234567890') throw new Error('La clave no se envió en el encabezado privado de prueba.');
+    if (await page.evaluate(() => localStorage.getItem('puntia_openai_api_key')) !== keyTestHeader) throw new Error('La clave no quedó guardada en el dispositivo.');
     await page.locator('#desktopNav button[data-section="chat"]').click();
 
 
