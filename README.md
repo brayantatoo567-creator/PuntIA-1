@@ -1,12 +1,12 @@
 # PuntIA v3
 
-PuntIA es una aplicación web progresiva y Android (Capacitor) para aprender crochet y amigurumi. Incluye asistente conversacional, generador y validador de patrones, diagnóstico de imágenes, biblioteca de aprendizaje y mascota virtual.
+PuntIA es una aplicación web progresiva y Android (Capacitor) para aprender crochet y amigurumi. Incluye asistente conversacional, generador y validador de patrones, diagnóstico de imágenes y biblioteca de aprendizaje.
 
 ## Estado del proyecto
 
 - Plan de estabilización y lanzamiento beta: [RELEASE_MVP_PLAN.md](RELEASE_MVP_PLAN.md).
 - Casos de aceptación para la beta: [BETA_ACCEPTANCE_MATRIX.md](BETA_ACCEPTANCE_MATRIX.md).
-- Rama de trabajo de lanzamiento: `release/mvp-beta-2026-11`; no confundir con producción.
+- Render `puntia-beta` despliega automáticamente la rama `release/mvp-beta-2026-11` en https://puntia-beta.onrender.com. La rama `main` está separada y no es la fuente del servicio Render.
 
 - La rama de auditoría tiene CI automatizada para sintaxis, cálculos de rondas, interfaz en escritorio/móvil y pruebas de API.
 - Android se compila como APK de depuración mediante GitHub Actions.
@@ -61,13 +61,13 @@ La CI completa también ejecuta pruebas de navegador con Chromium y validaciones
 
 ## Android
 
-El workflow `.github/workflows/android-apk.yml` compila `puntia-debug-apk`. Configura la variable GitHub `PUNTIA_API_BASE_URL` con el dominio HTTPS real del backend. Como respaldo técnico, el workflow utiliza el host de validación de Railway; no se debe distribuir la app hasta verificar que ese host esté activo.
+El workflow `.github/workflows/android-apk.yml` compila `puntia-debug-apk`. Configura la variable GitHub `PUNTIA_API_BASE_URL` con el dominio HTTPS real del backend. El workflow utiliza `https://puntia-beta.onrender.com` como URL de respaldo. No se debe distribuir la app hasta verificar el backend y las pruebas reales en Android.
 
 El APK debug es para pruebas internas. La publicación requiere firma de release/AAB, pruebas en Android físico, política de privacidad, ficha de Google Play y cuenta de desarrollador.
 
 ## Persistencia y escalado
 
-La memoria actual usa un archivo JSON compartido y serializa escrituras dentro de un único proceso. Mantén una sola réplica y un volumen persistente hasta migrar a una base de datos transaccional. No escales horizontalmente esta implementación de memoria.
+La memoria actual usa un archivo JSON compartido y serializa escrituras dentro de un único proceso. La configuración actual de Render no tiene Postgres ni volumen persistente: la memoria puede perderse al reiniciar o volver a desplegar. No guardes información importante en esta beta. Mantén una sola réplica y añade almacenamiento persistente antes de ofrecer continuidad entre sesiones o dispositivos. No escales horizontalmente esta implementación de memoria.
 
 ## Limitaciones conocidas
 
