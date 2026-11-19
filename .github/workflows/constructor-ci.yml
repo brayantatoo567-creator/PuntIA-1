@@ -28,7 +28,7 @@ jobs:
           node <<'NODE'
           const fs = require('fs');
           const html = fs.readFileSync('public/constructor.html', 'utf8');
-          const scripts = [...html.matchAll(/<script(?:\\s[^>]*)?>([\\s\\S]*?)<\\/script>/gi)];
+          const scripts = [...html.matchAll(/<script>([\\s\\S]*?)<\\/script>/gi)];
           if (scripts.length !== 1) throw new Error('Se esperaba un único script inline en el constructor');
           if (!html.includes('<script src="/pattern-builder.js"></script>')) throw new Error('Falta cargar el motor del constructor');
           fs.writeFileSync('/tmp/puntia-constructor.js', scripts[0][1]);
