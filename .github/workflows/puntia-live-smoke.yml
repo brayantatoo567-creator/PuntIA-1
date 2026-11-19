@@ -18,7 +18,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          URL="https://puntia-validation-production.up.railway.app"
+          URL="https://puntia-beta.onrender.com"
           for attempt in $(seq 1 24); do
             if curl -fsS --max-time 10 "$URL/api/health" -o /tmp/health.json; then
               cat /tmp/health.json
@@ -35,7 +35,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          URL="https://puntia-validation-production.up.railway.app"
+          URL="https://puntia-beta.onrender.com"
           CODE=$(curl -sS --max-time 150 -o /tmp/chat.json -w '%{http_code}' -H 'Content-Type: application/json' -X POST "$URL/api/puntia/chat" --data '{"message":"Responde en español en una frase breve: ¿qué es un punto bajo en crochet?"}')
           echo "Chat API HTTP status: $CODE"
           test "$CODE" = "200"
@@ -45,7 +45,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          URL="https://puntia-validation-production.up.railway.app"
+          URL="https://puntia-beta.onrender.com"
           CODE=$(curl -sS --max-time 150 -o /tmp/pattern.json -w '%{http_code}' -H 'Content-Type: application/json' -X POST "$URL/api/puntia/generate-pattern" --data '{"name":"conejito amigurumi de prueba","level":"Principiante","height":"12 cm","style":"simple y tierno"}')
           echo "Pattern API HTTP status: $CODE"
           if [ "$CODE" != "200" ]; then node -e 'try { console.error(require("/tmp/pattern.json").error || "No error detail") } catch {}'; exit 1; fi
@@ -69,7 +69,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          URL="https://puntia-validation-production.up.railway.app"
+          URL="https://puntia-beta.onrender.com"
           # Build a valid 128x128 PNG with Python stdlib to exercise the actual vision endpoint.
           python3 <<'PY'
           import struct, zlib
