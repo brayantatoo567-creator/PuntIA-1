@@ -1,4 +1,4 @@
-const CACHE_NAME = "puntia-shell-v3";
+const CACHE_NAME = "puntia-shell-v4";
 const APP_SHELL = ["/", "/manifest.webmanifest", "/config.js"];
 
 self.addEventListener("install", event => {
@@ -39,16 +39,15 @@ self.addEventListener("fetch", event => {
     return;
   }
 
+  // Network-first: deployed CSS/JS must refresh after a release.
+  // Fall back to the last cached response only when the device is offline.
   event.respondWith(
-    caches.match(request).then(cached => {
-      const network = fetch(request).then(response => {
-        if (response.ok && response.type === "basic") {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(request, copy));
-        }
-        return response;
-      }).catch(() => cached);
-      return cached || network;
-    })
+    fetch(request).then(response => {
+      if (response.ok && response.type === "basic") {
+        const copy = response.clone();
+        caches.open(CACHE_NAME).then(cache => cache.put(request, copy));
+      }
+      return response;
+    }).catch(async () => (await caches.match(request)))
   );
 });
