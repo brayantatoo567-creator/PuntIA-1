@@ -1,0 +1,65 @@
+name: PuntIA Render PostgreSQL Smoke Test
+
+on:
+  push:
+    branches: [release/mvp-beta-2026-11]
+    paths:
+      - "server.js"
+      - "package.json"
+      - ".github/workflows/puntia-render-memory-smoke.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  production-memory:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Wait for Render health and PostgreSQL
+        shell: bash
+        run: |
+          set -euo pipefail
+          URL="https://puntia-beta.onrender.com"
+          READY=0
+          for attempt in $(seq 1 24); do
+            CODE=$(curl -sS --max-time 10 -o /tmp/health.json -w '%{http_code}' "$URL/api/health" || true)
+            if [ "$CODE" = "200" ]; then
+              node -e 'const h=require("/tmp/health.json"); if(!h.ok || !h.database) throw Error("PostgreSQL health is not ready"); console.log("PASS: Render API and PostgreSQL are connected")'
+              READY=1
+              break
+            fi
+            echo "Render not ready yet (attempt $attempt/24, HTTP $CODE)"
+            sleep 5
+          done
+          test "$READY" = "1"
+
+      - name: Verify session memory write, read, delete and isolation
+        shell: bash
+        run: |
+          set -euo pipefail
+          URL="https://puntia-beta.onrender.com"
+          JAR="/tmp/puntia-render-memory.cookies"
+          MARKER="PUNTIA_RENDER_DB_SMOKE_$(date +%s)"
+          CODE=$(curl -sS --max-time 20 -c "$JAR" -b "$JAR" -o /tmp/write.json -w '%{http_code}' -H 'Content-Type: application/json' -X POST "$URL/api/puntia/memory" --data "{\"content\":\"$MARKER\",\"category\":\"audit\"}")
+          test "$CODE" = "200"
+          node -e 'const r=require("/tmp/write.json"); if(!r.saved || r.count<1) throw Error("Memory write was not confirmed"); console.log("PASS: memory write")'
+
+          CODE=$(curl -sS --max-time 20 -c "$JAR" -b "$JAR" -o /tmp/read.json -w '%{http_code}' "$URL/api/puntia/memory/session")
+          test "$CODE" = "200"
+          MARKER="$MARKER" node -e 'const r=require("/tmp/read.json"); if(!Array.isArray(r.items) || !r.items.some(x=>x.content===process.env.MARKER)) throw Error("Memory read did not return the saved marker"); console.log("PASS: memory read from the same signed session")'
+
+          CODE=$(curl -sS --max-time 20 -c "$JAR" -b "$JAR" -o /tmp/delete.json -w '%{http_code}' -X DELETE "$URL/api/puntia/memory/session")
+          test "$CODE" = "200"
+          node -e 'const r=require("/tmp/delete.json"); if(!r.deleted) throw Error("Memory deletion was not confirmed")'
+
+          CODE=$(curl -sS --max-time 20 -c "$JAR" -b "$JAR" -o /tmp/empty.json -w '%{http_code}' "$URL/api/puntia/memory/session")
+          test "$CODE" = "200"
+          node -e 'const r=require("/tmp/empty.json"); if(!Array.isArray(r.items) || r.items.length!==0) throw Error("Memory was not empty after deletion"); console.log("PASS: memory delete")'
+
+          CODE=$(curl -sS --max-time 20 -o /tmp/isolation.json -w '%{http_code}' "$URL/api/puntia/memory/session")
+          test "$CODE" = "200"
+          node -e 'const r=require("/tmp/isolation.json"); if(!Array.isArray(r.items) || r.items.length!==0) throw Error("A new anonymous session read another session memory"); console.log("PASS: session isolation")'
