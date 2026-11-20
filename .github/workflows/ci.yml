@@ -231,7 +231,7 @@ jobs:
           node -e "const e=require('/tmp/diagnose-fake-image.json'); if(!e.error || !e.error.includes('no coincide')) process.exit(1)"
 
           # Production must fail closed if its persistent session secret is missing.
-          if env -u PUNTIA_SESSION_SECRET RAILWAY_ENVIRONMENT=production node server.js >/tmp/puntia-missing-secret.log 2>&1; then
+          if env -u PUNTIA_SESSION_SECRET DATABASE_URL='postgresql://ci:ci@127.0.0.1:5432/ci' RAILWAY_ENVIRONMENT=production node server.js >/tmp/puntia-missing-secret.log 2>&1; then
             echo "ERROR: production started without PUNTIA_SESSION_SECRET"
             exit 1
           fi
