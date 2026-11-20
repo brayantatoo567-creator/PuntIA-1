@@ -13,6 +13,7 @@ Recomendado: configurar la variable de repositorio `PUNTIA_API_BASE_URL` con la 
 ### Variables del servicio backend en Render
 
 - `OPENAI_API_KEY`: clave real de OpenAI, guardada como variable secreta.
+- `DATABASE_URL`: conexión de PostgreSQL/Neon de PuntIA; no reutilizar la base de Comerzia.
 - `PUNTIA_SESSION_SECRET`: secreto aleatorio de al menos 32 bytes. No guardarlo en Git ni en comentarios.
 - `PUNTIA_ALLOWED_ORIGINS`: por defecto se permiten `https://localhost` y `capacitor://localhost` para el WebView de Capacitor. Añadir aquí el origen web real si la aplicación se sirve desde otro dominio.
 
@@ -22,7 +23,7 @@ La cookie de sesión usa `HttpOnly`, `Secure` y `SameSite=None` en producción p
 
 1. Confirmar que el servicio Render está activo y que `GET /api/health` responde `200` con `ok: true` y `ai: true`.
 2. Probar chat, generación de patrón, diagnóstico de imagen y memoria desde una sesión nueva.
-3. Probar que dos sesiones no pueden leer ni borrar la memoria de la otra.
+3. Probar que dos sesiones no pueden leer ni borrar la memoria de la otra; confirmar que la memoria permanece después de un reinicio y un nuevo despliegue.
 4. Probar la preflight CORS desde `https://localhost` y rechazar un origen ajeno.
 5. Instalar el APK en Android 10 y 11; comprobar navegación, sesión, chat, patrones, cámara/galería y memoria.
 6. Bloquear el CDN de Three.js y confirmar que no se rompe la navegación ni las funciones principales; el avatar 3D está fuera del alcance de esta beta.
@@ -33,7 +34,7 @@ La cookie de sesión usa `HttpOnly`, `Secure` y `SameSite=None` en producción p
 - La caché offline conserva el shell y recursos locales; no almacena patrones, mensajes ni resultados de IA para uso offline.
 - El limitador actual de IA es de concurrencia por proceso; falta rate limiting distribuido y cuotas por sesión/IP.
 - La comprobación de imágenes valida firma y MIME, pero falta decodificación completa y límites de dimensiones/píxeles.
-- La memoria JSON está protegida frente a escrituras concurrentes en un proceso, pero el servicio Render actual no tiene volumen persistente ni base de datos. La memoria puede perderse al reiniciar o desplegar. Mantener una sola réplica hasta migrar a almacenamiento transaccional.
+- La memoria de producción ya usa PostgreSQL/Neon con transacciones, aislamiento por sesión y limpieza de hasta 200 entradas por sesión. La conexión depende de `DATABASE_URL` y `PUNTIA_SESSION_SECRET`.
 - Los patrones solo tienen validación matemática parcial; los resultados no verificados deben mostrarse como tales.
 - No se debe desplegar la rama de auditoría sobre producción hasta completar configuración, pruebas reales y revisión de PR.
 
