@@ -36,6 +36,7 @@ Servidor predeterminado: `http://localhost:8080`.
 | Variable | Uso |
 |---|---|
 | `OPENAI_API_KEY` | Clave privada del servicio de IA. No subirla al repositorio. |
+| `DATABASE_URL` | Conexión privada de PostgreSQL/Neon; obligatoria en producción. |
 | `OPENAI_MODEL` | Modelo de texto; predeterminado `gpt-4o-mini`. |
 | `OPENAI_VISION_MODEL` | Modelo con visión; predeterminado `gpt-4o`. |
 | `OPENAI_TIMEOUT_MS` | Tiempo máximo de llamada; predeterminado `45000`. |
@@ -67,7 +68,7 @@ El APK debug es para pruebas internas. La publicación requiere firma de release
 
 ## Persistencia y escalado
 
-La memoria actual usa un archivo JSON compartido y serializa escrituras dentro de un único proceso. La configuración actual de Render no tiene Postgres ni volumen persistente: la memoria puede perderse al reiniciar o volver a desplegar. No guardes información importante en esta beta. Mantén una sola réplica y añade almacenamiento persistente antes de ofrecer continuidad entre sesiones o dispositivos. No escales horizontalmente esta implementación de memoria.
+La memoria de sesiones se guarda en PostgreSQL (Neon) mediante `DATABASE_URL`, con aislamiento por cookie firmada y operaciones transaccionales. La instancia actual usa un pool pequeño y una sola réplica en Render. El archivo JSON queda como respaldo para desarrollo local cuando `DATABASE_URL` no está configurada; en producción, el servidor exige PostgreSQL.
 
 ## Limitaciones conocidas
 
