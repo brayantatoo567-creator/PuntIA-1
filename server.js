@@ -82,6 +82,21 @@ function limitAiConcurrency(req,res,next){
   next();
 }
 app.use(['/api/puntia/chat','/api/puntia/generate-pattern','/api/puntia/diagnose','/api/puntia/test-key','/api/diagnostics'],limitAiConcurrency);
+// Per-session quotas protect the single-instance beta from loops and sequential abuse.
+const requestWindows=new Map();
+const RATE_LIMIT_WINDOW_MS=15*60*1000;
+const RATE_LIMITS={'/api/puntia/chat':30,'/api/puntia/generate-pattern':10,'/api/puntia/diagnose':5,'/api/puntia/test-key':5,'/api/diagnostics':5};
+function rateLimitAi(req,res,next){
+  const max=RATE_LIMITS[req.path];if(!max)return next();
+  const identity=req.path==='/api/diagnostics'?String(req.ip||'unknown'):String(req.puntiaUserId||req.ip||'unknown');
+  const key=req.path+':'+identity;const now=Date.now();
+  let bucket=requestWindows.get(key);if(!bucket||now-bucket.startedAt>=RATE_LIMIT_WINDOW_MS)bucket={startedAt:now,count:0};
+  bucket.count++;requestWindows.set(key,bucket);
+  if(requestWindows.size>5000){for(const [k,v] of requestWindows){if(now-v.startedAt>=RATE_LIMIT_WINDOW_MS)requestWindows.delete(k);}}
+  if(bucket.count>max){const retry=Math.max(1,Math.ceil((RATE_LIMIT_WINDOW_MS-(now-bucket.startedAt))/1000));res.set('Retry-After',String(retry));return res.status(429).json({error:'Alcanzaste el límite temporal de esta función. Espera antes de volver a intentarlo.',retryAfter:retry});}
+  next();
+}
+app.use(rateLimitAi);
 const SYSTEM=`Eres PuntIA, asistente experto en crochet y amigurumi. Responde en español claro. Ayuda con patrones, conteos, materiales, técnicas, corrección de errores y enseñanza. No inventes que una foto fue analizada si no la recibiste. Cuando generes patrones, usa abreviaturas comunes (AM, pb, aum, dis), vueltas numeradas y conteos finales.`;
 app.get('/api/health',async(req,res)=>{let database=false;try{if(pool){await pool.query('SELECT 1');database=true;}else database=!isProduction;}catch(error){console.error('PuntIA database health check failed:',error?.code||error?.name||'unknown');}res.status(database?200:503).json({ok:database,ai:Boolean(process.env.OPENAI_API_KEY),database,model:TEXT_MODEL,vision:VISION_MODEL});});app.post('/api/diagnostics',async(req,res)=>{const diagnosticToken=process.env.DIAGNOSTICS_TOKEN;if(!diagnosticToken)return res.status(503).json({error:'Diagnóstico administrativo no habilitado.'});const auth=String(req.get('authorization')||'');if(auth!==`Bearer ${diagnosticToken}`)return res.status(401).json({error:'No autorizado.'});const result={memory:{ok:false,message:'No comprobada'},ai:{ok:false,message:'No comprobada'}};try{if(!pool)throw new Error('DATABASE_URL no configurada');await pool.query('SELECT 1 FROM puntia_memory_sessions LIMIT 1');result.memory={ok:true,message:'PostgreSQL conectado y tabla de memoria disponible'};}catch(e){result.memory={ok:false,message:'No se pudo comprobar la base de datos de memoria'};console.error('PuntIA database diagnostic failed:',e?.code||e?.name||'unknown')}try{const output=await responseText(req,[{role:'user',content:'Responde exactamente: PUNTIA_OK'}]);result.ai={ok:output.includes('PUNTIA_OK'),message:output.includes('PUNTIA_OK')?'Llamada real a la IA verificada':'La IA respondió, pero no devolvió el texto de prueba esperado'};}catch(e){result.ai={ok:false,message:e?.status===400?'La API rechazó la solicitud (HTTP 400); revisa modelo y compatibilidad.':e?.status===401||e?.status===403?'La clave o sus permisos fueron rechazados.':e?.status===429?'Límite o cuota de IA alcanzado.':'La llamada real a la IA falló; revisa los registros del servidor.'};console.error('PuntIA AI diagnostic failed:',e?.status||e?.code||e?.name||'unknown')}res.json({ok:result.memory.ok&&result.ai.ok,...result});});
 async function responseText(req,input,model=TEXT_MODEL){const client=openAiClient(req);const r=await client.responses.create({model,input,instructions:SYSTEM});const output=String(r.output_text||'').trim();if(!output)throw new Error('La IA devolvió una respuesta vacía.');return output;}
