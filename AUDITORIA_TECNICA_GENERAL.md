@@ -102,3 +102,56 @@ La inspección de código no permite afirmar que se hayan ejecutado pruebas de p
 - Multer — límites y seguridad de carga: https://expressjs.com/en/resources/middleware/multer/
 
 **Conclusión:** la aplicación tiene una base funcional y CI útil, pero no está certificada como libre de errores. Los hallazgos P0/P1 requieren trabajo antes de considerar la aplicación lista para uso público a escala.
+
+
+---
+
+## Actualización de auditoría — 2026-11-21
+
+**Rama comprobada:** `release/mvp-beta-2026-11`  
+**Servicio:** Render `puntia-beta`  
+**Base de datos:** Neon/PostgreSQL independiente de otros proyectos.
+
+### Estado operativo observado
+
+- Render confirmó que el servicio arrancó y quedó `live` con el commit de corrección de rutas API desconocidas (`1b27117`).
+- Se confirmó que la configuración de salud reportada por el usuario era `ok=true`, `database=true`, `ai=false`. Esto significa que el servidor y la conexión PostgreSQL respondían, pero no había una clave de IA configurada en el entorno del servidor.
+- No se realizó una llamada real al modelo durante esta auditoría: no hay una clave de servidor disponible y no se debe inventar ni exponer una clave.
+- La CI incluye comprobaciones de sintaxis, pruebas de cálculo, interfaz, CORS, sesiones, concurrencia de memoria, carga de imágenes y endpoints. No se pudo confirmar desde el conector el resultado de la ejecución CI correspondiente a los commits nuevos; los checks Vercel visibles pertenecen a proyectos separados y fallan, por lo que no se cuentan como CI de PuntIA.
+
+### Defectos corregidos en esta actualización
+
+1. **Rutas API inexistentes:** antes, el fallback SPA podía devolver HTML para una ruta API no registrada. Se agregó un manejador `/api` antes del fallback web que responde HTTP 404 JSON. Se añadió una prueba de regresión en `.github/workflows/ci.yml`. El deploy del commit `1b27117` fue confirmado como `live` por Render.
+2. **Prueba de clave OpenAI sin límite de concurrencia:** se incorporó `/api/puntia/test-key` al middleware de límite concurrente de IA. Se añadió una prueba de comportamiento sin clave (HTTP 503) en CI. El commit que contiene esta segunda corrección está en despliegue; confirmar su estado final antes de considerar la actualización completa.
+
+### Hallazgos que siguen abiertos
+
+| Severidad | Hallazgo | Evidencia / efecto | Cierre requerido |
+|---|---|---|---|
+| Bloqueante funcional | `OPENAI_API_KEY` no está configurada en Render | Health observado: `ai=false`; chat y patrón no pueden usar IA del servidor | El propietario debe crear/proveer una clave válida y configurarla en Render; después ejecutar prueba real de chat y patrón |
+| Alta | No existe rate limit distribuido por IP/sesión ni cuotas de uso | El límite actual de concurrencia es por proceso; no detiene ráfagas secuenciales ni coordina réplicas | Añadir rate limiting compartido, cuotas y presupuesto/alertas |
+| Alta | Biblioteca de proyectos en `localStorage` | No hay sincronización entre dispositivos ni respaldo cloud automático | Implementar autenticación real, propiedad de proyectos en PostgreSQL y migración idempotente desde el navegador |
+| Alta | Validación de imagen basada en firma y MIME | No valida completamente decodificación, dimensiones ni píxeles | Decodificador seguro, límites de dimensiones y pruebas de imágenes truncadas/malformadas |
+| Alta | Sin cuentas de usuario | La cookie identifica una sesión anónima, no identidad autenticada | Registro, verificación, recuperación, cierre de sesión y eliminación de cuenta antes de ofrecer cuentas |
+| Media | Validador de patrones parcial | Revisa algunas operaciones y no garantiza continuidad entre vueltas ni factibilidad física | Ampliar gramática y pruebas; mantener “no verificado” donde no se pueda calcular |
+| Media | Sin lockfile | `package.json` define rangos semver, pero no se encontró `package-lock.json`; instalaciones pueden resolver versiones distintas | Generar y versionar lockfile, cambiar CI a `npm ci` y probar Node 22 |
+| Media | Copia de interfaz duplicada | `index.html` y `public/index.html` se mantienen iguales mediante una aserción CI | Consolidar fuente única en un cambio separado cuando no rompa Capacitor/hosting |
+| Media | APK sólo debug | Workflow genera `puntia-debug-apk`, no un artefacto release firmado | Configurar firma segura y publicar AAB tras pruebas físicas, privacidad y checklist |
+
+### Riesgos y decisiones de despliegue
+
+- No se fusionó `main`: continúa divergente (3 commits exclusivos de `main` en la comparación observada). No hacer reset/force-push ni fusionar a ciegas.
+- No se alteró la base de datos ni se eliminaron datos.
+- No se configuró una clave OpenAI ficticia ni se pidió al usuario que la pegue en el chat.
+- No se declara PuntIA libre de errores ni lista para comercialización. El servicio puede estar activo y, aun así, las funciones de IA permanecer bloqueadas por falta de clave.
+
+### Siguiente secuencia obligatoria
+
+1. Confirmar que el deploy que incluye el límite para `test-key` queda `live`.
+2. Configurar `OPENAI_API_KEY` directamente en Render desde el flujo seguro del propietario.
+3. Ejecutar prueba real de chat y generación de patrón; no basta con que `/api/health` responda.
+4. Ejecutar CI completa y revisar resultados de UI/API.
+5. Implementar rate limit/cuotas y controles de costo.
+6. Migrar la biblioteca a PostgreSQL con autenticación real y pruebas de aislamiento.
+7. Completar validación de imagen y mejorar el validador de patrones.
+8. Preparar APK firmado sólo después de las pruebas de aceptación.
