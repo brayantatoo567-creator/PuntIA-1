@@ -155,6 +155,11 @@ jobs:
           STATUS=$(curl -s -o /tmp/chat-empty.json -w '%{http_code}' -H 'Content-Type: application/json' -d '{"message":"   "}' http://127.0.0.1:8080/api/puntia/chat)
           test "$STATUS" = "400"
 
+          # 30 requests per session are allowed; the next one is throttled before AI is called.
+          for i in {1..31}; do
+            STATUS=$(curl -s -o /tmp/chat-rate-limit.json -w '%{http_code}' -b "$COOKIE_A" -H 'Content-Type: application/json' -d '{"message":"rate limit test"}' http://127.0.0.1:8080/api/puntia/chat)
+            if [ "$i" -le 30 ]; then test "$STATUS" = "503"; else test "$STATUS" = "429"; fi
+          done
           STATUS=$(curl -s -o /tmp/chat-unconfigured.json -w '%{http_code}' -H 'Content-Type: application/json' -d '{"message":"Ayúdame con un patrón de crochet"}' http://127.0.0.1:8080/api/puntia/chat)
           test "$STATUS" = "503"
           node -e "const e=require('/tmp/chat-unconfigured.json'); if(!e.error || !e.error.includes('no está configurada')) process.exit(1)"
