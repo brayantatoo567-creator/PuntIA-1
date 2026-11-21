@@ -145,6 +145,10 @@ jobs:
           test "$STATUS" = "200"
           grep -q 'PuntIA' /tmp/home.html
 
+          STATUS=$(curl -s -o /tmp/api-not-found.json -w '%{http_code}' http://127.0.0.1:8080/api/route-that-does-not-exist)
+          test "$STATUS" = "404"
+          node -e "const e=require('/tmp/api-not-found.json'); if(!e.error || !e.error.includes('Ruta API no encontrada')) process.exit(1)"
+
 
           node -e "const h=require('/tmp/health.json'); if(h.ok!==true) process.exit(1); if(typeof h.ai!=='boolean') process.exit(1); console.log('Health endpoint schema OK; AI key configured:',h.ai)"
 
