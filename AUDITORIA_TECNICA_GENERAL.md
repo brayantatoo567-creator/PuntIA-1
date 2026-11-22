@@ -155,3 +155,33 @@ La inspección de código no permite afirmar que se hayan ejecutado pruebas de p
 6. Migrar la biblioteca a PostgreSQL con autenticación real y pruebas de aislamiento.
 7. Completar validación de imagen y mejorar el validador de patrones.
 8. Preparar APK firmado sólo después de las pruebas de aceptación.
+
+
+---
+
+## Actualización operativa — 2026-11-21, despliegue de protección por frecuencia
+
+**Commit activo en Render:** `1c670bb026e51b90d79d9be9eb760b05df504736`  
+**Deploy:** `dep-dc12j497kd5s73dqiklg` — estado `live`.  
+**URL:** https://puntia-beta.onrender.com/
+
+### Cambios desplegados
+- Se agregó limitación por sesión anónima y ruta en una ventana de 15 minutos:
+  - Chat: 30 solicitudes.
+  - Generación de patrones: 10 solicitudes.
+  - Diagnóstico de imagen: 5 solicitudes.
+  - Prueba de clave: 5 solicitudes.
+  - Diagnóstico administrativo: 5 solicitudes por IP.
+- Al exceder el límite, el servidor devuelve HTTP 429 y `Retry-After`.
+- La prueba de CI se reubicó después de crear y validar las cookies de sesión, para no ejecutar el límite con una cookie todavía inexistente.
+- Los logs de Render muestran que el proceso arrancó y que el deploy quedó live.
+
+### Límites de esta defensa
+- El contador está almacenado en memoria del proceso. No coordina réplicas ni sobrevive a reinicios; es una protección básica adecuada sólo para la beta de instancia única. Antes de escalar, debe moverse a Redis/almacenamiento compartido y complementarse con cuotas por cuenta/IP y límites de gasto.
+- La prueba de CI está definida en el workflow, pero el estado del check de GitHub Actions para este commit no quedó confirmado mediante los conectores disponibles. No se declara CI verde por el mero hecho de que Render haya desplegado.
+- No se pudo consultar directamente `/api/health` desde la herramienta web en esta comprobación; la evidencia de disponibilidad es el estado `live` y los logs de arranque de Render, no una prueba HTTP externa actual.
+
+### Configuración de IA identificada en la interfaz
+La interfaz pública ya contiene un flujo de clave propia (BYOK): guarda la clave OpenAI en el almacenamiento local del navegador y la envía al backend mediante `X-PuntIA-OpenAI-Key`; además llama a `/api/puntia/test-key` para probarla. Esto permite probar IA sin almacenar la clave como secreto del servidor, aunque el usuario debe proteger el dispositivo/navegador donde la guarda. La clave no debe compartirse por chat.
+
+**Próxima aceptación funcional:** introducir la clave desde la sección de configuración de PuntIA, ejecutar la prueba de conexión y validar chat, generación de patrón y diagnóstico con una imagen real. Hasta que esas tres operaciones se prueben con una clave válida, las funciones de IA no se consideran certificadas.
