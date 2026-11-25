@@ -14,6 +14,21 @@ jobs:
   test:
     name: Verificar aplicación y API
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: tejilume_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d tejilume_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgres://postgres:postgres@127.0.0.1:5432/tejilume_test
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -85,7 +100,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          PORT=8080 node server.js >/tmp/tejilume.log 2>&1 &
+          env -u DATABASE_URL PORT=8080 node server.js >/tmp/tejilume.log 2>&1 &
           PID=$!
           trap 'kill "$PID" 2>/dev/null || true' EXIT
           READY=0
