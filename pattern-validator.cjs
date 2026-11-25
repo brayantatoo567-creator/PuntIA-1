@@ -54,4 +54,4 @@ function validateProject(pattern){
  if(!math.checkedRounds)issues.push('No se detectaron vueltas verificables.');
  return {ok:issues.length===0,issues,pieces:built.length,checkedRounds:math.checkedRounds,validRounds:math.validRounds,invalidRounds:math.invalidRounds,unverifiedRounds:math.unverifiedRounds,pieceResults:built};
 }
-module.exports={parseRound,validatePattern,validateProject};
+module.exports={calculateRound:parseRound,parseRound,validatePattern,validateProject};
