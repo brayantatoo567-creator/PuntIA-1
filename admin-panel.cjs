@@ -288,6 +288,7 @@ function createAdminPanel({ app, pool, publicDir, OpenAIClient = OpenAI }) {
   }
   async function aiMiddleware(req, res, next) {
     try {
+      if (isProduction && missingConfiguration().length) return res.status(503).json({ error: 'La configuración del servidor está incompleta. Abre /admin para revisar los requisitos.' });
       if (!pool) {
         if (isProduction) return res.status(503).json({ error: 'La base de datos no está conectada. Configura DATABASE_URL para habilitar la IA y sus controles.' });
         req.openAiKey=String(process.env.OPENAI_API_KEY||'').trim(); return next();
@@ -326,6 +327,7 @@ function createAdminPanel({ app, pool, publicDir, OpenAIClient = OpenAI }) {
   }
   async function keyOnlyMiddleware(req, res, next) {
     try {
+      if (isProduction && missingConfiguration().length) return res.status(503).json({ error: 'La configuración del servidor está incompleta. Abre /admin para revisar los requisitos.' });
       if (!pool && isProduction) return res.status(503).json({ error: 'La base de datos no está conectada. Configura DATABASE_URL.' });
       if (pool) { const state = await pool.query('SELECT ai_enabled FROM tejilume_admin_settings WHERE id=1'); if (!state.rows[0]?.ai_enabled) return res.status(503).json({ error: 'La IA está apagada desde el panel de administración.' }); }
       const key = await resolveApiKey();
