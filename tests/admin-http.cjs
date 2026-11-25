@@ -105,6 +105,27 @@ class FakeOpenAI {
     assert.equal(persisted.rows[0].key_ciphertext.includes(validKey), false);
     await persistedPool.end();
 
+    const restartedPool = new Pool({ connectionString: process.env.DATABASE_URL });
+    const restartedApp = express();
+    restartedApp.use(express.json());
+    const restartedAdmin = createAdminPanel({ app: restartedApp, pool: restartedPool, publicDir: require('node:path').join(__dirname, '..', 'public'), OpenAIClient: FakeOpenAI });
+    await restartedAdmin.init();
+    const restartedServer = await new Promise(resolve => {
+      const s = restartedApp.listen(0, '127.0.0.1', () => resolve(s));
+    });
+    try {
+      const restartedBase = 'http://127.0.0.1:' + restartedServer.address().port;
+      const afterRestart = await fetch(restartedBase + '/api/admin/status', { headers: { cookie } });
+      assert.equal(afterRestart.status, 200);
+      assert.equal((await afterRestart.json()).keyLast4, validKey.slice(-4));
+      const decryptedTest = await fetch(restartedBase + '/api/admin/test', { method: 'POST', headers: { cookie, 'content-type': 'application/json' }, body: '{}' });
+      assert.equal(decryptedTest.status, 200, 'saved key must decrypt and pass its test after a server restart');
+      assert.equal((await decryptedTest.json()).ok, true);
+    } finally {
+      await new Promise(resolve => restartedServer.close(resolve));
+      await restartedPool.end();
+    }
+
     const off = await post('/api/admin/settings', { aiEnabled: false, dailyLimit: 1 }, null, cookie);
     assert.equal(off.status, 200);
     assert.equal((await post('/quota-test', {}, '203.0.113.79')).status, 503, 'AI-off must block generation');
