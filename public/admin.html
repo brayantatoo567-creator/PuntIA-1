@@ -53,7 +53,7 @@
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const apiBase=(window.PUNTIA_API_BASE_URL||'').replace(/\\/+$/,'');
+const apiBase=(window.PUNTIA_API_BASE_URL||'').replace(/\/+$/,'');
 async function call(path,body){
  const response=await fetch(apiBase+'/api/admin'+path,{method:body?'POST':'GET',credentials:'include',headers:body?{'Content-Type':'application/json'}:{},body:body?JSON.stringify(body):undefined,cache:'no-store'});
  let data={};try{data=await response.json()}catch{}
