@@ -40,6 +40,12 @@ jobs:
           grep -q 'Abrir panel de administrador' public/index.html
           grep -q 'AES-256-GCM' public/admin.html
           grep -q "call('/key'" public/admin.html
+          grep -q 'id="dbState"' public/admin.html
+          grep -q 'id="keyState"' public/admin.html
+          grep -q 'id="aiState"' public/admin.html
+          grep -q 'Guardar y probar' public/admin.html
+          grep -q '/setup-status' public/admin.html
+          if grep -Eiq 'localStorage|sessionStorage|document\.cookie|testButton' public/admin.html; then echo 'Almacenamiento o lectura de credenciales en navegador detectado'; exit 1; fi
           grep -q 'id="billingSimulator"' public/index.html
           grep -q 'data-plan="premium"' public/index.html
           grep -q '/api/imaginaria/create' public/index.html
@@ -104,6 +110,24 @@ jobs:
           test "$STATUS" = "404"
           if grep -q 'X-PuntIA-OpenAI-Key\|tejilume_api_key' public/index.html server.js; then echo 'Clave de navegador aún habilitada'; exit 1; fi
           echo "Rutas, panel privado y respuestas sin credenciales verificadas."
+
+      - name: Comprobar asistente cuando faltan variables de producción
+        shell: bash
+        run: |
+          set -euo pipefail
+          env -u DATABASE_URL -u ADMIN_PASSWORD -u SESSION_SECRET -u MASTER_KEY NODE_ENV=production PORT=8081 node server.js >/tmp/tejilume-setup.log 2>&1 &
+          PID=$!
+          trap 'kill "$PID" 2>/dev/null || true' EXIT
+          READY=0
+          for i in {1..20}; do
+            if curl -fsS http://127.0.0.1:8081/admin >/tmp/setup-admin.html; then READY=1; break; fi
+            sleep 1
+          done
+          test "$READY" = "1"
+          grep -q 'Configuración necesaria' /tmp/setup-admin.html
+          curl -fsS http://127.0.0.1:8081/api/admin/setup-status >/tmp/setup-status.json
+          for variable in DATABASE_URL ADMIN_PASSWORD SESSION_SECRET MASTER_KEY; do grep -q "$variable" /tmp/setup-status.json; done
+          echo "El servidor permanece disponible y enumera las variables faltantes sin exponer valores."
 
       - name: Empaquetar versión consolidada sin secretos
         run: git archive --format=zip --output=tejilume-source.zip HEAD
