@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="robots" content="noindex,nofollow"><meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex,nofollow"><meta name="referrer" content="no-referrer"><script src="/config.js"></script>
 <title>TEJILUME · Administración</title>
 <style>
 :root{color-scheme:light;--ink:#302b2b;--muted:#756e6b;--line:#eadfda;--pink:#bf5b7b;--bg:#faf7f4;--green:#26754d;--red:#a43e3e}
@@ -53,8 +53,9 @@
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
+const apiBase=(window.PUNTIA_API_BASE_URL||'').replace(/\\/+$/,'');
 async function call(path,body){
- const response=await fetch('/api/admin'+path,{method:body?'POST':'GET',credentials:'same-origin',headers:body?{'Content-Type':'application/json'}:{},body:body?JSON.stringify(body):undefined,cache:'no-store'});
+ const response=await fetch(apiBase+'/api/admin'+path,{method:body?'POST':'GET',credentials:'include',headers:body?{'Content-Type':'application/json'}:{},body:body?JSON.stringify(body):undefined,cache:'no-store'});
  let data={};try{data=await response.json()}catch{}
  if(!response.ok)throw new Error(data.error||'No se pudo completar la operación.');
  return data;
