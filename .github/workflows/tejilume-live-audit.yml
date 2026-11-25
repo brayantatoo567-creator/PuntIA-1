@@ -1,0 +1,27 @@
+name: Tejilume Live AI Pattern Audit
+
+on:
+  push:
+    branches: [release/mvp-beta-2026-11]
+    paths:
+      - "tests/live-pattern-audit.cjs"
+      - ".github/workflows/tejilume-live-audit.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  live-pattern-audit:
+    name: Generate and validate 15 real AI patterns
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Run 15 real generations against Render
+        env:
+          TEJILUME_BASE_URL: https://puntia-beta.onrender.com
+        run: node tests/live-pattern-audit.cjs
