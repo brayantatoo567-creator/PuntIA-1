@@ -28,12 +28,18 @@ jobs:
           test -f public/service-worker.js
           test -f public/manifest.webmanifest
           test -f pattern-validator.cjs
+          test -f admin-panel.cjs
+          test -f public/admin.html
+          test -f tests/admin-security.cjs
           test -f tests/pattern-math.cjs
           test -f tests/pattern-quality.cjs
           cmp -s index.html public/index.html
           grep -q 'Tejilume' public/index.html
           grep -q 'id="createForm"' public/index.html
           grep -q 'id="adminPanel"' public/index.html
+          grep -q 'Abrir panel de administrador' public/index.html
+          grep -q 'AES-256-GCM' public/admin.html
+          grep -q 'api/admin/key' public/admin.html
           grep -q 'id="billingSimulator"' public/index.html
           grep -q 'data-plan="premium"' public/index.html
           grep -q '/api/imaginaria/create' public/index.html
@@ -48,9 +54,14 @@ jobs:
           const end=html.lastIndexOf('</script>');
           if(start<8||end<=start) throw new Error('No se encontró el script de la aplicación');
           fs.writeFileSync('/tmp/tejilume-ui.js',html.slice(start,end));
-          for(const id of ['createForm','createBtn','result','visualGrid','adminPanel','apiBase','apiKey']) {
+          for(const id of ['createForm','createBtn','result','visualGrid','adminPanel']) {
             if(!html.includes('id="'+id+'"')) throw new Error('Falta elemento '+id);
           }
+          const admin=fs.readFileSync('public/admin.html','utf8');
+          const aStart=admin.lastIndexOf('<script>')+8;
+          const aEnd=admin.lastIndexOf('</script>');
+          if(aStart<8||aEnd<=aStart) throw new Error('No se encontró el script del panel admin');
+          fs.writeFileSync('/tmp/tejilume-admin.js',admin.slice(aStart,aEnd));
           console.log('Estructura de interfaz Tejilume verificada');
           NODE
       - name: Instalar dependencias
@@ -58,9 +69,11 @@ jobs:
       - name: Comprobar sintaxis y reglas de crochet
         run: |
           node --check server.js
+          node --check admin-panel.cjs
           node --check public/service-worker.js
           node --check public/config.js
           node --check /tmp/tejilume-ui.js
+          node --check /tmp/tejilume-admin.js
           npm run check
       - name: Probar API y rutas de creación
         shell: bash
@@ -77,6 +90,10 @@ jobs:
           if [ "$READY" -ne 1 ]; then cat /tmp/tejilume.log; exit 1; fi
           curl -fsS http://127.0.0.1:8080/ >/tmp/home.html
           grep -q 'Tejilume' /tmp/home.html
+          curl -fsS http://127.0.0.1:8080/admin >/tmp/admin.html
+          grep -q 'Entrar al panel' /tmp/admin.html
+          STATUS=$(curl -s -o /tmp/admin-status.json -w '%{http_code}' http://127.0.0.1:8080/api/admin/status)
+          test "$STATUS" = "401"
           STATUS=$(curl -s -o /tmp/create-empty.json -w '%{http_code}' -H 'Content-Type: application/json' -d '{}' http://127.0.0.1:8080/api/imaginaria/create)
           test "$STATUS" = "400"
           STATUS=$(curl -s -o /tmp/create-no-key.json -w '%{http_code}' -H 'Content-Type: application/json' -d '{"idea":"un pulpo astronauta"}' http://127.0.0.1:8080/api/imaginaria/create)
@@ -85,4 +102,5 @@ jobs:
           test "$STATUS" = "503"
           STATUS=$(curl -s -o /tmp/unknown.json -w '%{http_code}' http://127.0.0.1:8080/api/no-existe)
           test "$STATUS" = "404"
-          echo "Rutas de Tejilume y respuestas sin credenciales verificadas."
+          if grep -q 'X-PuntIA-OpenAI-Key\|tejilume_api_key' public/index.html server.js; then echo 'Clave de navegador aún habilitada'; exit 1; fi
+          echo "Rutas, panel privado y respuestas sin credenciales verificadas."
