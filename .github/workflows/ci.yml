@@ -39,7 +39,7 @@ jobs:
           grep -q 'id="adminPanel"' public/index.html
           grep -q 'Abrir panel de administrador' public/index.html
           grep -q 'AES-256-GCM' public/admin.html
-          grep -q 'api/admin/key' public/admin.html
+          grep -q "call('/key'" public/admin.html
           grep -q 'id="billingSimulator"' public/index.html
           grep -q 'data-plan="premium"' public/index.html
           grep -q '/api/imaginaria/create' public/index.html
