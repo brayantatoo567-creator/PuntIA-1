@@ -288,7 +288,10 @@ function createAdminPanel({ app, pool, publicDir, OpenAIClient = OpenAI }) {
   }
   async function aiMiddleware(req, res, next) {
     try {
-      if (!pool) { req.openAiKey=String(process.env.OPENAI_API_KEY||'').trim(); return next(); }
+      if (!pool) {
+        if (isProduction) return res.status(503).json({ error: 'La base de datos no está conectada. Configura DATABASE_URL para habilitar la IA y sus controles.' });
+        req.openAiKey=String(process.env.OPENAI_API_KEY||'').trim(); return next();
+      }
       const settings = await pool.query('SELECT ai_enabled FROM tejilume_admin_settings WHERE id=1');
       if (!settings.rows.length) return res.status(503).json({ error: 'El panel de administración no está inicializado.' });
       if (!settings.rows[0].ai_enabled) return res.status(503).json({ error: 'La generación con IA está desactivada por el administrador.' });
@@ -323,6 +326,7 @@ function createAdminPanel({ app, pool, publicDir, OpenAIClient = OpenAI }) {
   }
   async function keyOnlyMiddleware(req, res, next) {
     try {
+      if (!pool && isProduction) return res.status(503).json({ error: 'La base de datos no está conectada. Configura DATABASE_URL.' });
       if (pool) { const state = await pool.query('SELECT ai_enabled FROM tejilume_admin_settings WHERE id=1'); if (!state.rows[0]?.ai_enabled) return res.status(503).json({ error: 'La IA está apagada desde el panel de administración.' }); }
       const key = await resolveApiKey();
       req.openAiKey = key;
