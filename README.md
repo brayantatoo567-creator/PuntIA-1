@@ -13,7 +13,8 @@ TEJILUME convierte ideas escritas o fotografías en proyectos de crochet y amigu
 - Cinco intentos fallidos por IP provocan bloqueo durante 15 minutos; los intentos se registran en PostgreSQL.
 - Guarda una clave de OpenAI desde el teléfono. El servidor la cifra con AES-256-GCM y `MASTER_KEY` antes de guardarla. El panel solo recibe el indicador de los últimos cuatro caracteres.
 - La clave guardada tiene prioridad. Si no existe, se usa `OPENAI_API_KEY` del entorno como respaldo.
-- El botón «Probar conexión» realiza una llamada mínima a OpenAI sin devolver la clave ni mostrarla en el panel.
+- El botón único «Guardar y probar» valida la clave recién pegada con una llamada mínima a OpenAI y solo si funciona la cifra y la guarda. Si es inválida, no reemplaza la clave anterior.
+- Al abrir `/admin`, un asistente comprueba la conexión a PostgreSQL y enumera los nombres de las variables obligatorias que falten, sin mostrar valores secretos. Si falta alguna, hay que configurarla una sola vez en Render → Environment y volver a desplegar.
 - El administrador puede activar/desactivar IA y configurar un tope diario de 1 a 10,000 operaciones. El contador se guarda por fecha UTC en PostgreSQL.
 - La clave no se guarda en `localStorage`, `sessionStorage`, HTML, respuestas JSON ni logs. Se transmite una sola vez desde el formulario al servidor por HTTPS y el campo se limpia tras guardar.
 
@@ -80,7 +81,7 @@ npm run check
 npm start
 ```
 
-En desarrollo sin PostgreSQL, el servidor puede arrancar para pruebas básicas, pero el panel de administración no estará disponible. Para validar login, guardado cifrado, contador y límite, conecta una base PostgreSQL real.
+En desarrollo sin PostgreSQL, el servidor puede arrancar para pruebas básicas, pero el panel de administración no estará disponible. `tests/admin-http.cjs` requiere una base PostgreSQL accesible mediante `DATABASE_URL`; la CI levanta PostgreSQL temporal para ejecutar bloqueo de login, cookies, guardado cifrado, errores de clave/cuota, persistencia, interruptor y concurrencia.
 
 ## Calidad y límites
 
