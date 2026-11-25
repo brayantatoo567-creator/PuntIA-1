@@ -5,8 +5,8 @@
   "type": "commonjs",
   "scripts": {
     "start": "node server.js",
-    "test": "node tests/pattern-math.cjs && node tests/pattern-quality.cjs && node tests/memory-store.cjs",
-    "check": "node --check server.js && node --check pattern-validator.cjs && node --check memory-store.cjs && node --check tests/pattern-quality.cjs && node tests/pattern-math.cjs && node tests/pattern-quality.cjs && node tests/memory-store.cjs"
+    "test": "node tests/pattern-math.cjs && node tests/pattern-quality.cjs && node tests/memory-store.cjs && node tests/admin-security.cjs",
+    "check": "node --check server.js && node --check pattern-validator.cjs && node --check memory-store.cjs && node --check tests/pattern-quality.cjs && node tests/pattern-math.cjs && node tests/pattern-quality.cjs && node tests/memory-store.cjs && node tests/admin-security.cjs"
   },
   "dependencies": {
     "express": "^5.1.0",
