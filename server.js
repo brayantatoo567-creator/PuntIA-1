@@ -33,12 +33,12 @@ app.use(express.json({limit:'2mb'}));
 // accepted as proof of identity for memory access.
 const isProduction=process.env.NODE_ENV==='production'||Boolean(process.env.RENDER)||Boolean(process.env.RAILWAY_ENVIRONMENT);
 const databaseUrl=String(process.env.DATABASE_URL||'').trim();
-if(isProduction&&!databaseUrl)throw new Error('DATABASE_URL es obligatorio en producción para proteger la memoria de PuntIA.');
+if(isProduction&&!databaseUrl)console.error('TEJILUME setup incomplete: DATABASE_URL is missing; /admin will show the required setup instructions.');
 const pool=databaseUrl?new Pool({connectionString:databaseUrl,max:5,connectionTimeoutMillis:10000,idleTimeoutMillis:30000}):null;
 if(pool)pool.on('error',error=>console.error('PuntIA PostgreSQL idle client error:',error?.code||error?.name||'unknown'));
 const configuredSessionSecret=String(process.env.SESSION_SECRET||process.env.PUNTIA_SESSION_SECRET||'');
 if(isProduction&&Buffer.byteLength(configuredSessionSecret,'utf8')<32){
-  throw new Error('SESSION_SECRET es obligatorio en producción y debe tener al menos 32 bytes.');
+  console.error('TEJILUME setup incomplete: SESSION_SECRET is missing or too short; /admin will show the required setup instructions.');
 }
 const sessionSecret=configuredSessionSecret||crypto.randomBytes(32).toString('hex');
 if(!configuredSessionSecret) console.warn('SESSION_SECRET no configurado; las sesiones se invalidarán al reiniciar el proceso.');
