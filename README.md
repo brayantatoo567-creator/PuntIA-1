@@ -1,55 +1,42 @@
-# PuntIA v3
+# Imaginaria 1.0
 
-PuntIA es una aplicación web progresiva y Android (Capacitor) para aprender crochet y amigurumi. Incluye asistente conversacional, generador y validador de patrones, diagnóstico de imágenes y biblioteca de aprendizaje.
+Imaginaria convierte ideas escritas o fotografías en proyectos de crochet y amigurumi. El flujo principal crea un patrón por piezas y vueltas, revisa las cuentas que el validador puede interpretar y permite generar imágenes didácticas por etapa.
 
-## Estado del proyecto
+## Ejecutar
 
-- Plan de estabilización y lanzamiento beta: [RELEASE_MVP_PLAN.md](RELEASE_MVP_PLAN.md).
-- Casos de aceptación para la beta: [BETA_ACCEPTANCE_MATRIX.md](BETA_ACCEPTANCE_MATRIX.md).
-- Render `puntia-beta` despliega automáticamente la rama `release/mvp-beta-2026-11` en https://puntia-beta.onrender.com. La rama `main` está separada y no es la fuente del servicio Render.
-
-- La rama de auditoría tiene CI automatizada para sintaxis, cálculos de rondas, interfaz en escritorio/móvil y pruebas de API.
-- Android se compila como APK de depuración mediante GitHub Actions.
-- El shell de la PWA y recursos locales tienen caché offline; las funciones que usan IA requieren conexión.
-- Un build exitoso no demuestra que el backend esté desplegado ni que la cuenta de IA tenga cuota.
-- Consulta [ANDROID_RELEASE_CHECKLIST.md](ANDROID_RELEASE_CHECKLIST.md) antes de desplegar o distribuir.
-
-## Requisitos
-
-- Node.js 22 recomendado.
-- Una clave de API de OpenAI válida para activar funciones de IA.
-- Para producción: HTTPS, almacenamiento persistente y un secreto de sesión estable.
-
-## Ejecutar localmente
+Requisitos: Node.js 22, una clave de OpenAI y PostgreSQL en producción.
 
 ```bash
 npm install
 cp .env.example .env
-# Edita .env localmente y agrega las variables necesarias.
 npm start
 ```
 
-Servidor predeterminado: `http://localhost:8080`.
-
 ## Variables de entorno
 
-| Variable | Uso |
-|---|---|
-| `OPENAI_API_KEY` | Clave privada del servicio de IA. No subirla al repositorio. |
-| `DATABASE_URL` | Conexión privada de PostgreSQL/Neon; obligatoria en producción. |
-| `OPENAI_MODEL` | Modelo de texto; predeterminado `gpt-4o-mini`. |
-| `OPENAI_VISION_MODEL` | Modelo con visión; predeterminado `gpt-4o`. |
-| `OPENAI_TIMEOUT_MS` | Tiempo máximo de llamada; predeterminado `45000`. |
-| `PUNTIA_SESSION_SECRET` | Secreto estable de al menos 32 bytes; obligatorio en producción. |
-| `PUNTIA_ALLOWED_ORIGINS` | Orígenes web adicionales permitidos, separados por comas. Capacitor local está permitido por defecto. |
-| `PORT` | Puerto HTTP; predeterminado `8080`. |
+- `OPENAI_API_KEY`: clave privada del servidor. No subirla al repositorio.
+- `OPENAI_MODEL`: modelo de texto.
+- `OPENAI_VISION_MODEL`: modelo con visión para fotografías.
+- `OPENAI_IMAGE_MODEL`: modelo de generación de imágenes (predeterminado `gpt-image-1`).
+- `DATABASE_URL`: PostgreSQL obligatorio en producción.
+- `PUNTIA_SESSION_SECRET`: secreto estable de sesión (mínimo 32 bytes).
+- `DIAGNOSTICS_TOKEN`: token opcional para diagnóstico administrativo.
+- `PORT`: puerto HTTP.
 
-No guardes secretos en archivos versionados, capturas, issues ni registros. Usa el gestor de variables secretas del proveedor de hosting.
+## Funciones principales
 
-## Comprobación de servicio
+- `POST /api/imaginaria/create`: crea un patrón desde una descripción o una fotografía (multipart: `idea`, `height`, `level`, `yarn`, `style`, `image`).
+- `POST /api/imaginaria/step-image`: genera una imagen didáctica de una etapa (`stage`, `step`, `context`).
+- `POST /api/puntia/test-key`: prueba la conexión de IA.
+- `GET /api/health`: comprueba la salud del servidor y la base de datos.
 
-- `GET /api/health`: indica si el proceso está activo y si existe configuración de IA. No ejecuta una llamada real al modelo.
-- `POST /api/diagnostics`: diagnóstico administrativo opcional; solo funciona si se configura `DIAGNOSTICS_TOKEN` y se envía como Bearer token. No expongas ese token al cliente.
+La interfaz permite configurar la URL del backend y una clave temporal de prueba desde el panel inferior. Para uso público, configura la clave como secreto del servidor y no distribuyas una clave privada en el navegador.
+
+## Calidad y límites
+
+El validador actual comprueba aritmética de rondas que reconoce (pb, aum y dis). Las rondas no interpretables se marcan como no verificadas. Un resultado sin errores matemáticos detectados no equivale a una prueba física: antes de comercializar un patrón hay que tejer una muestra, comprobar medidas, tensión, ensamblaje y correspondencia visual.
+
+Las imágenes son referencias didácticas generadas por IA y no sustituyen la lectura del patrón. Las llamadas de IA e imágenes requieren internet y consumen cuota. No hay generaciones ilimitadas.
 
 ## Pruebas
 
@@ -58,22 +45,4 @@ npm test
 npm run check
 ```
 
-La CI completa también ejecuta pruebas de navegador con Chromium y validaciones HTTP. Las respuestas IA de la prueba de interfaz son simuladas para no consumir créditos; las pruebas reales de modelo deben hacerse después del despliegue con autorización y cuota disponible.
-
-## Android
-
-El workflow `.github/workflows/android-apk.yml` compila `puntia-debug-apk`. Configura la variable GitHub `PUNTIA_API_BASE_URL` con el dominio HTTPS real del backend. El workflow utiliza `https://puntia-beta.onrender.com` como URL de respaldo. No se debe distribuir la app hasta verificar el backend y las pruebas reales en Android.
-
-El APK debug es para pruebas internas. La publicación requiere firma de release/AAB, pruebas en Android físico, política de privacidad, ficha de Google Play y cuenta de desarrollador.
-
-## Persistencia y escalado
-
-La memoria de sesiones se guarda en PostgreSQL (Neon) mediante `DATABASE_URL`, con aislamiento por cookie firmada y operaciones transaccionales. La instancia actual usa un pool pequeño y una sola réplica en Render. El archivo JSON queda como respaldo para desarrollo local cuando `DATABASE_URL` no está configurada; en producción, el servidor exige PostgreSQL.
-
-## Limitaciones conocidas
-
-- Offline: solo shell y recursos locales; chat, generación y diagnóstico necesitan red y backend.
-- La concurrencia de IA se limita por proceso; todavía hace falta rate limiting distribuido y cuotas por sesión/IP.
-- La validación de imagen comprueba firma y MIME, pero aún falta decodificación completa y límites de dimensiones/píxeles.
-- Los patrones reciben comprobación matemática parcial; las rondas no interpretables se marcan como no verificadas. No se afirma que un patrón esté probado físicamente.
-- No declarar producción hasta completar las pruebas reales del backend y los dispositivos indicadas en el checklist.
+En producción, configura almacenamiento persistente PostgreSQL, HTTPS, variables secretas y límites de consumo. El APK de depuración no debe distribuirse como versión comercial sin firma, revisión de privacidad y pruebas en dispositivos reales.
