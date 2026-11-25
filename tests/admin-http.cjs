@@ -7,17 +7,23 @@ const { createAdminPanel } = require('../admin-panel.cjs');
 
 process.env.NODE_ENV = 'production';
 process.env.RENDER = 'true';
-process.env.ADMIN_PASSWORD = 'test-admin-password-123';
+const testPassword = crypto.randomBytes(24).toString('hex');
+process.env.ADMIN_PASSWORD = testPassword;
 process.env.SESSION_SECRET = crypto.randomBytes(32).toString('hex');
 process.env.MASTER_KEY = crypto.randomBytes(32).toString('hex');
 process.env.DATABASE_URL ||= 'postgres://postgres:postgres@127.0.0.1:5432/tejilume_test';
 delete process.env.OPENAI_API_KEY;
+const validKey = 'sk-' + crypto.randomBytes(24).toString('hex');
+const invalidKey = 'sk-' + crypto.randomBytes(24).toString('hex');
+const quotaKey = 'sk-' + crypto.randomBytes(24).toString('hex');
+process.env.TEST_INVALID_KEY = invalidKey;
+process.env.TEST_QUOTA_KEY = quotaKey;
 
 class FakeOpenAI {
   constructor({ apiKey }) {
     this.responses = { create: async () => {
-      if (apiKey.includes('invalid')) throw Object.assign(new Error('redacted test failure'), { status: 401 });
-      if (apiKey.includes('quota')) throw Object.assign(new Error('insufficient_quota'), { status: 429, code: 'insufficient_quota' });
+      if (apiKey === process.env.TEST_INVALID_KEY) throw Object.assign(new Error('redacted test failure'), { status: 401 });
+      if (apiKey === process.env.TEST_QUOTA_KEY) throw Object.assign(new Error('insufficient_quota'), { status: 429, code: 'insufficient_quota' });
       return { output_text: 'TEJILUME_OK' };
     }};
   }
@@ -59,7 +65,7 @@ class FakeOpenAI {
       const bad = await post('/api/admin/login', { username: 'admin', password: 'wrong-password' }, '203.0.113.77');
       assert.equal(bad.status, i === 5 ? 429 : 401, 'fifth failed attempt must lock the IP');
     }
-    const locked = await post('/api/admin/login', { username: 'admin', password: 'test-admin-password-123' }, '203.0.113.77');
+    const locked = await post('/api/admin/login', { username: 'admin', password: testPassword }, '203.0.113.77');
     assert.equal(locked.status, 429, 'locked IP remains blocked');
 
     const login = await post('/api/admin/login', { username: 'admin', password: 'test-admin-password-123' }, '203.0.113.78');
@@ -74,24 +80,23 @@ class FakeOpenAI {
     assert.equal(statusBefore.status, 200);
     assert.equal((await statusBefore.json()).keySaved, false);
 
-    const validKey = 'sk-valid-admin-http-test-key-123456';
-    const saved = await post('/api/admin/key', { apiKey: validKey }, null, cookie);
+      const saved = await post('/api/admin/key', { apiKey: validKey }, null, cookie);
     assert.equal(saved.status, 200);
     const savedJson = await saved.json();
     assert.equal(savedJson.ok, true);
-    assert.equal(savedJson.keyLast4, '3456');
+    assert.equal(savedJson.keyLast4, validKey.slice(-4));
     assert.equal(JSON.stringify(savedJson).includes(validKey), false);
 
-    const invalid = await post('/api/admin/key', { apiKey: 'sk-invalid-admin-http-test-key-123456' }, null, cookie);
+    const invalid = await post('/api/admin/key', { apiKey: invalidKey }, null, cookie);
     assert.equal(invalid.status, 400);
     assert.match((await invalid.json()).error, /Clave inválida/i);
-    const quota = await post('/api/admin/key', { apiKey: 'sk-quota-admin-http-test-key-123456' }, null, cookie);
+    const quota = await post('/api/admin/key', { apiKey: quotaKey }, null, cookie);
     assert.equal(quota.status, 429);
     assert.match((await quota.json()).error, /cuota/i);
 
     const persistedPool = new Pool({ connectionString: process.env.DATABASE_URL });
     const persisted = await persistedPool.query('SELECT key_ciphertext,key_iv,key_tag,key_last4 FROM tejilume_admin_settings WHERE id=1');
-    assert.equal(persisted.rows[0].key_last4, '3456');
+    assert.equal(persisted.rows[0].key_last4, validKey.slice(-4));
     assert.ok(persisted.rows[0].key_ciphertext && persisted.rows[0].key_iv && persisted.rows[0].key_tag);
     assert.equal(persisted.rows[0].key_ciphertext.includes(validKey), false);
     await persistedPool.end();
@@ -116,7 +121,7 @@ class FakeOpenAI {
     const statusResponse = await get('/api/admin/status', cookie);
     const statusJson = await statusResponse.json();
     assert.equal(statusJson.generationsToday, 1);
-    assert.equal(statusJson.keyLast4, '3456');
+    assert.equal(statusJson.keyLast4, validKey.slice(-4));
     assert.equal(JSON.stringify(statusJson).includes(validKey), false);
 
     const logout = await post('/api/admin/logout', {}, null, cookie);
