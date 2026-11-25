@@ -8,6 +8,7 @@ const { createAdminPanel } = require('../admin-panel.cjs');
 process.env.NODE_ENV = 'production';
 process.env.RENDER = 'true';
 const testPassword = crypto.randomBytes(24).toString('hex');
+const wrongPassword = crypto.randomBytes(24).toString('hex');
 process.env.ADMIN_PASSWORD = testPassword;
 process.env.SESSION_SECRET = crypto.randomBytes(32).toString('hex');
 process.env.MASTER_KEY = crypto.randomBytes(32).toString('hex');
@@ -64,7 +65,7 @@ class FakeOpenAI {
     assert.equal(setup.tablesReady, true, 'all three admin tables must be created automatically at startup');
 
     for (let i = 1; i <= 5; i++) {
-      const bad = await post('/api/admin/login', { username: 'admin', password: 'wrong-password' }, '203.0.113.77');
+      const bad = await post('/api/admin/login', { username: 'admin', password: wrongPassword }, '203.0.113.77');
       assert.equal(bad.status, i === 5 ? 429 : 401, 'fifth failed attempt must lock the IP');
     }
     const locked = await post('/api/admin/login', { username: 'admin', password: testPassword }, '203.0.113.77');
