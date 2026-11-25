@@ -81,8 +81,8 @@ $('loginForm').addEventListener('submit',async e=>{
 });
 $('keyForm').addEventListener('submit',async e=>{
  e.preventDefault();const b=$('saveKeyButton'),input=$('apiKey'),value=input.value.trim();if(!value)return;
- b.disabled=true;b.textContent='Cifrando y guardando…';
- try{const r=await call('/key',{apiKey:value});input.value='';message('keyMessage',r.message+' Terminación: •••• '+r.keyLast4,'good');await refresh();}
+ b.disabled=true;b.textContent='Cifrando y guardando…';input.value='';
+ try{const r=await call('/key',{apiKey:value});message('keyMessage',r.message+' Terminación: •••• '+r.keyLast4,'good');await refresh();}
  catch(err){message('keyMessage',err.message,'bad');}
  finally{b.disabled=false;b.textContent='Guardar clave';}
 });
