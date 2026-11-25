@@ -253,26 +253,36 @@ function createAdminPanel({ app, pool, publicDir }) {
   async function aiMiddleware(req, res, next) {
     try {
       if (!pool) { req.openAiKey=String(process.env.OPENAI_API_KEY||'').trim(); return next(); }
-      const settings = await pool.query('SELECT ai_enabled,daily_limit FROM tejilume_admin_settings WHERE id=1');
+      const settings = await pool.query('SELECT ai_enabled FROM tejilume_admin_settings WHERE id=1');
       if (!settings.rows.length) return res.status(503).json({ error: 'El panel de administración no está inicializado.' });
       if (!settings.rows[0].ai_enabled) return res.status(503).json({ error: 'La generación con IA está desactivada por el administrador.' });
       const key = await resolveApiKey();
       if (!key) return res.status(503).json({ error: 'La IA no está configurada en el servidor.' });
       req.openAiKey = key;
-      const isGeneration = ['/api/puntia/generate-pattern','/api/imaginaria/create','/api/imaginaria/step-image'].includes(req.path);
-      if (!isGeneration) return next();
+      next();
+    } catch (error) {
+      console.error('TEJILUME AI guard failed:', error?.code || error?.name || 'unknown');
+      return res.status(503).json({ error: error?.code === 'AI_KEY_STORAGE_ERROR' ? 'No se pudo leer la clave cifrada. Revisa MASTER_KEY.' : 'No se pudo comprobar la configuración de IA.' });
+    }
+  }
+  async function consumeGenerationQuota(req, res) {
+    if (!pool) return true;
+    try {
+      const settings = await pool.query('SELECT daily_limit FROM tejilume_admin_settings WHERE id=1');
+      if (!settings.rows.length) { res.status(503).json({ error: 'El panel de administración no está inicializado.' }); return false; }
       const usage = await pool.query(String.raw`
         INSERT INTO tejilume_ai_usage(usage_date,generations) VALUES ((NOW() AT TIME ZONE 'UTC')::date,1)
         ON CONFLICT(usage_date) DO UPDATE SET generations=tejilume_ai_usage.generations+1
         WHERE tejilume_ai_usage.generations < $1
         RETURNING generations
       `, [settings.rows[0].daily_limit]);
-      if (!usage.rows.length) return res.status(429).json({ error: 'Se alcanzó el tope diario de generaciones configurado por el administrador.' });
+      if (!usage.rows.length) { res.status(429).json({ error: 'Se alcanzó el tope diario de generaciones configurado por el administrador.' }); return false; }
       req.tejilumeUsageCount = usage.rows[0].generations;
-      next();
+      return true;
     } catch (error) {
-      console.error('TEJILUME AI guard failed:', error?.code || error?.name || 'unknown');
-      return res.status(503).json({ error: error?.code === 'AI_KEY_STORAGE_ERROR' ? 'No se pudo leer la clave cifrada. Revisa MASTER_KEY.' : 'No se pudo comprobar la configuración de IA.' });
+      console.error('TEJILUME generation quota failed:', error?.code || error?.name || 'unknown');
+      res.status(503).json({ error: 'No se pudo comprobar el contador diario de generaciones.' });
+      return false;
     }
   }
   async function keyOnlyMiddleware(req, res, next) {
@@ -288,7 +298,7 @@ function createAdminPanel({ app, pool, publicDir }) {
   async function aiConfigured() {
     try { return Boolean(await resolveApiKey()); } catch { return false; }
   }
-  return { init, aiMiddleware, keyOnlyMiddleware, aiConfigured };
+  return { init, aiMiddleware, keyOnlyMiddleware, aiConfigured, consumeGenerationQuota };
 }
 
 module.exports = { createAdminPanel, encryptSecret, decryptSecret, parseMasterKey, verifyToken };
