@@ -44,4 +44,4 @@ const bad=[
 const negative=bad.map(([name,txt])=>({case:name,detected:!validateProject(txt).ok}));
 const passed=report.filter(x=>x.ok).length,failed=report.length-passed;
 if(passed!==16||negative.some(x=>!x.detected))throw new Error(JSON.stringify({report,negative}));
-console.log(JSON.stringify({total:15,passed,failed,report,negative},null,2));
+console.log(JSON.stringify({total:C.length,passed,failed,report,negative},null,2));
