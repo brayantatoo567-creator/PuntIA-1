@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f7eee7">
 <meta name="description" content="Convierte cualquier idea en un proyecto de crochet con patrón paso a paso.">
-<title>Imaginaria — Tu idea, puntada a puntada</title>
+<title>Tejilume — Tu idea, puntada a puntada</title>
 <link rel="manifest" href="/manifest.webmanifest">
 <script src="/config.js"></script>
 <style>
@@ -20,11 +20,11 @@
 <body>
 <div class="shell">
 <header class="top">
- <div class="brand"><div class="mark">✿</div><div><b>imaginaria</b><small>tu idea, puntada a puntada</small></div></div>
+ <div class="brand"><div class="mark">✿</div><div><b>tejilume</b><small>tu idea, puntada a puntada</small></div></div>
  <div class="topright"><span class="pill" id="connection">● Comprobando conexión</span></div>
 </header>
 <section class="hero">
- <div><div class="eyebrow">Crochet sin límites</div><h1>Lo imaginas.<br>Lo hacemos tejible.</h1><p>Describe cualquier idea o sube una foto. Imaginaria la convierte en un proyecto de crochet con materiales, patrón por vueltas y una guía visual para acompañarte mientras tejes.</p></div>
+ <div><div class="eyebrow">Crochet sin límites</div><h1>Lo imaginas.<br>Lo hacemos tejible.</h1><p>Describe cualquier idea o sube una foto. Tejilume la convierte en un proyecto de crochet con materiales, patrón por vueltas y una guía visual para acompañarte mientras tejes.</p></div>
  <div class="hero-art" aria-label="Estambre e instrumento de crochet"><span class="spark one">✦</span><span class="spark two">✧</span><span class="spark three">✦</span><div class="yarnball"></div></div>
 </section>
 <section class="workspace">
@@ -81,35 +81,35 @@
   <div class="adminactions"><button class="secondary" id="saveConfig">Guardar configuración</button><button class="secondary" id="testConnection">Probar conexión IA</button><button class="secondary" id="clearKey">Borrar clave de esta sesión</button><span id="adminStatus" class="hint"></span></div>
  </div>
 </details>
-<footer class="foot">IMAGINARIA · Una idea puede convertirse en tejido. Revisa las instrucciones y prueba el patrón antes de comercializarlo.</footer>
+<footer class="foot">TEJILUME · Una idea puede convertirse en tejido. Revisa las instrucciones y prueba el patrón antes de comercializarlo.</footer>
 </div>
 <div class="toast" id="toast" role="status"></div>
 <script>
 (function(){
 'use strict';
 var $=function(id){return document.getElementById(id)};
-var current=null,base=localStorage.getItem('imaginaria_api_base')||window.PUNTIA_API_BASE_URL||'';
+var current=null,base=localStorage.getItem('tejilume_api_base')||window.PUNTIA_API_BASE_URL||'';
 $('apiBase').value=base;
 $('connection').textContent='● Servidor por comprobar';
 function toast(msg){var t=$('toast');t.textContent=msg;t.style.display='block';clearTimeout(window.__toastTimer);window.__toastTimer=setTimeout(function(){t.style.display='none'},3400)}
 function apiUrl(path){return (base||'').replace(/\/+$/,'')+path}
-function headers(){var h={};var key=sessionStorage.getItem('imaginaria_api_key');if(key)h['X-PuntIA-OpenAI-Key']=key;return h}
+function headers(){var h={};var key=sessionStorage.getItem('tejilume_api_key');if(key)h['X-PuntIA-OpenAI-Key']=key;return h}
 async function api(path,options){options=options||{};options.headers=Object.assign(headers(),options.headers||{});var r;try{r=await fetch(apiUrl(path),options)}catch(e){throw new Error('No se pudo conectar con el servidor. Revisa la dirección del backend.')}var data;try{data=await r.json()}catch(e){throw new Error('El servidor devolvió una respuesta no válida.')}if(!r.ok)throw new Error(data.error||('Error HTTP '+r.status));return data}
 async function health(){try{var h=await api('/api/health');$('connection').textContent=h.ok?'● Servidor activo':'● Servidor con problemas';$('connection').style.color=h.ok?'#28744c':'#a05b28';if(!h.ok)throw new Error('La base de datos del servidor no está disponible.');}catch(e){$('connection').textContent='● Configuración pendiente';$('connection').style.color='#a05b28'}}
 health();
-$('saveConfig').addEventListener('click',function(){base=$('apiBase').value.trim().replace(/\/+$/,'');localStorage.setItem('imaginaria_api_base',base);var k=$('apiKey').value.trim();if(k)sessionStorage.setItem('imaginaria_api_key',k);$('apiKey').value='';$('adminStatus').textContent='Configuración guardada en este dispositivo.';health();toast('Configuración guardada.')});
-$('clearKey').addEventListener('click',function(){sessionStorage.removeItem('imaginaria_api_key');$('apiKey').value='';$('adminStatus').textContent='Clave temporal eliminada.';toast('Clave eliminada de esta sesión.')});
+$('saveConfig').addEventListener('click',function(){base=$('apiBase').value.trim().replace(/\/+$/,'');localStorage.setItem('tejilume_api_base',base);var k=$('apiKey').value.trim();if(k)sessionStorage.setItem('tejilume_api_key',k);$('apiKey').value='';$('adminStatus').textContent='Configuración guardada en este dispositivo.';health();toast('Configuración guardada.')});
+$('clearKey').addEventListener('click',function(){sessionStorage.removeItem('tejilume_api_key');$('apiKey').value='';$('adminStatus').textContent='Clave temporal eliminada.';toast('Clave eliminada de esta sesión.')});
 $('testConnection').addEventListener('click',async function(){var b=$('testConnection');b.disabled=true;b.textContent='Probando...';try{var x=await api('/api/puntia/test-key',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});$('adminStatus').textContent=x.message||'Conexión correcta.';toast('Conexión con IA confirmada.')}catch(e){$('adminStatus').textContent=e.message;toast(e.message)}finally{b.disabled=false;b.textContent='Probar conexión IA'}});
 function esc(s){return String(s||'').replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
 $('createForm').addEventListener('submit',async function(ev){ev.preventDefault();var idea=$('idea').value.trim(),photo=$('photo').files[0];if(!idea&&!photo){toast('Describe tu idea o sube una fotografía.');return}if(photo&&photo.size>8*1024*1024){toast('La fotografía supera 8 MB.');return}
 var btn=$('createBtn');btn.disabled=true;btn.innerHTML='<span class="busy"></span>Diseñando y calculando...';$('result').style.display='none';
-try{var fd=new FormData();fd.append('idea',idea);fd.append('height',$('height').value.trim()||'20 cm');fd.append('level',$('level').value);fd.append('yarn',$('yarn').value);fd.append('style',$('style').value.trim()||'fiel a la idea original');if(photo)fd.append('image',photo);var d=await api('/api/imaginaria/create',{method:'POST',body:fd});current=d;renderResult(d);$('result').scrollIntoView({behavior:'smooth',block:'start'});toast('Proyecto generado. Revisa el estado de validación.')}catch(e){toast(e.message)}finally{btn.disabled=false;btn.textContent='✦ Crear mi proyecto'}});
+try{var fd=new FormData();fd.append('idea',idea);fd.append('height',$('height').value.trim()||'20 cm');fd.append('level',$('level').value);fd.append('yarn',$('yarn').value);fd.append('style',$('style').value.trim()||'fiel a la idea original');if(photo)fd.append('image',photo);var d=await api('/api/tejilume/create',{method:'POST',body:fd});current=d;renderResult(d);$('result').scrollIntoView({behavior:'smooth',block:'start'});toast('Proyecto generado. Revisa el estado de validación.')}catch(e){toast(e.message)}finally{btn.disabled=false;btn.textContent='✦ Crear mi proyecto'}});
 function renderResult(d){$('result').style.display='block';$('resultTitle').textContent=d.name||'Tu proyecto';var checked=d.status==='mathematically_checked';$('resultStatus').textContent=checked?'Conteos revisados':'Revisión necesaria';$('resultStatus').className='status'+(checked?' good':'');$('validationNotice').textContent=d.notice||'Revisa las vueltas y comprueba el patrón antes de tejerlo.';var v=d.validation||{};$('summary').innerHTML='<span class="tag">'+esc(d.height||'Tamaño personalizado')+'</span><span class="tag">'+esc(d.level||'Nivel')+'</span><span class="tag">'+(v.checkedRounds||0)+' vueltas analizadas</span><span class="tag">'+(v.validRounds||0)+' correctas</span><span class="tag">'+(v.invalidRounds||0)+' inconsistentes</span><span class="tag">'+(v.unverifiedRounds||0)+' no verificadas</span>';$('patternText').textContent=d.pattern||'No se recibió el patrón.';renderVisuals(d);$('saveBtn').onclick=saveProject;$('printBtn').onclick=function(){window.print()};$('copyBtn').onclick=async function(){try{await navigator.clipboard.writeText(d.pattern||'');toast('Patrón copiado.')}catch(e){toast('No se pudo copiar automáticamente.')}}}
 var stages=[['Diseño y materiales','Vista general del objeto terminado, colores, hilo y herramientas.'],['Primera pieza','Inicio de la pieza principal, anillo mágico o base y primeras vueltas.'],['Volumen y detalles','Crecimiento de las formas, cambios de color, extremidades y accesorios.'],['Ensamblaje y acabado','Unión de piezas, relleno, bordados y presentación final.']];
 function renderVisuals(d){var grid=$('visualGrid');grid.innerHTML='';stages.forEach(function(st,i){var card=document.createElement('div');card.className='visual';card.innerHTML='<img alt="Referencia visual pendiente" id="stageImg'+i+'" src="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27200%27 height=%27200%27 viewBox=%270 0 200 200%27%3E%3Crect width=%27200%27 height=%27200%27 fill=%27%23f5eee8%27/%3E%3Ctext x=%27100%27 y=%2795%27 text-anchor=%27middle%27 font-size=%2740%27 fill=%27%23d98aa3%27%3E✿%3C/text%3E%3Ctext x=%27100%27 y=%27125%27 text-anchor=%27middle%27 font-size=%2711%27 fill=%27%23777168%27%3EGenera la imagen%3C/text%3E%3C/svg%3E"><div class="vbody"><b>0'+(i+1)+'. '+esc(st[0])+'</b><button class="secondary" data-stage="'+i+'">Generar imagen</button></div>';grid.appendChild(card)});grid.querySelectorAll('button[data-stage]').forEach(function(btn){btn.addEventListener('click',function(){generateStage(Number(btn.getAttribute('data-stage')),btn,d)})})}
-async function generateStage(i,btn,d){btn.disabled=true;btn.textContent='Generando...';try{var x=await api('/api/imaginaria/step-image',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({stage:stages[i][0],step:stages[i][1],context:(d.name||'Proyecto')+'. '+(d.pattern||'').slice(0,2300)})});$('stageImg'+i).src=x.image;btn.textContent='Imagen lista';toast('Referencia visual generada.')}catch(e){btn.disabled=false;btn.textContent='Reintentar imagen';toast(e.message)}}
-function getProjects(){try{return JSON.parse(localStorage.getItem('imaginaria_projects')||'[]')}catch(e){return []}}
-function saveProject(){if(!current)return;var list=getProjects();var item={id:Date.now(),name:current.name||'Proyecto',pattern:current.pattern,validation:current.validation,height:current.height,level:current.level,date:new Date().toLocaleDateString()};list.unshift(item);localStorage.setItem('imaginaria_projects',JSON.stringify(list.slice(0,30)));renderProjects();toast('Proyecto guardado en este dispositivo.')}
+async function generateStage(i,btn,d){btn.disabled=true;btn.textContent='Generando...';try{var x=await api('/api/tejilume/step-image',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({stage:stages[i][0],step:stages[i][1],context:(d.name||'Proyecto')+'. '+(d.pattern||'').slice(0,2300)})});$('stageImg'+i).src=x.image;btn.textContent='Imagen lista';toast('Referencia visual generada.')}catch(e){btn.disabled=false;btn.textContent='Reintentar imagen';toast(e.message)}}
+function getProjects(){try{return JSON.parse(localStorage.getItem('tejilume_projects')||'[]')}catch(e){return []}}
+function saveProject(){if(!current)return;var list=getProjects();var item={id:Date.now(),name:current.name||'Proyecto',pattern:current.pattern,validation:current.validation,height:current.height,level:current.level,date:new Date().toLocaleDateString()};list.unshift(item);localStorage.setItem('tejilume_projects',JSON.stringify(list.slice(0,30)));renderProjects();toast('Proyecto guardado en este dispositivo.')}
 function renderProjects(){var list=getProjects(),box=$('projects');if(!list.length){box.innerHTML='<div class="empty">Todavía no tienes proyectos guardados.</div>';return}box.innerHTML=list.map(function(p){return '<div class="project"><b>'+esc(p.name)+'</b><small>'+esc(p.date)+' · '+esc(p.height||'')+'</small><button class="secondary" data-open="'+p.id+'">Abrir patrón</button></div>'}).join('');box.querySelectorAll('button[data-open]').forEach(function(b){b.addEventListener('click',function(){var p=list.find(function(x){return String(x.id)===b.getAttribute('data-open')});if(p){current=p;renderResult(p);$('result').scrollIntoView({behavior:'smooth'})}})})}
 renderProjects();
 if('serviceWorker' in navigator){navigator.serviceWorker.register('/service-worker.js').catch(function(){/* La aplicación sigue funcionando en línea. */});}
