@@ -1,6 +1,8 @@
-# Imaginaria 1.0
+# Tejilume 1.0
 
-Imaginaria convierte ideas escritas o fotografías en proyectos de crochet y amigurumi. El flujo principal crea un patrón por piezas y vueltas, revisa las cuentas que el validador puede interpretar y permite generar imágenes didácticas por etapa.
+**Tu idea, puntada a puntada.**
+
+Tejilume convierte ideas escritas o fotografías en proyectos de crochet y amigurumi. El flujo principal crea un patrón por piezas y vueltas, revisa las cuentas que el validador puede interpretar y permite generar imágenes didácticas por etapa.
 
 ## Ejecutar
 
@@ -25,8 +27,8 @@ npm start
 
 ## Funciones principales
 
-- `POST /api/imaginaria/create`: crea un patrón desde una descripción o una fotografía (multipart: `idea`, `height`, `level`, `yarn`, `style`, `image`).
-- `POST /api/imaginaria/step-image`: genera una imagen didáctica de una etapa (`stage`, `step`, `context`).
+- `POST /api/tejilume/create`: crea un patrón desde una descripción o una fotografía (multipart: `idea`, `height`, `level`, `yarn`, `style`, `image`).
+- `POST /api/tejilume/step-image`: genera una imagen didáctica de una etapa (`stage`, `step`, `context`).
 - `POST /api/puntia/test-key`: prueba la conexión de IA.
 - `GET /api/health`: comprueba la salud del servidor y la base de datos.
 
