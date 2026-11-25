@@ -5,6 +5,8 @@ on:
     branches: [release/mvp-beta-2026-11]
     paths:
       - "server.js"
+      - "admin-panel.cjs"
+      - "public/admin.html"
       - "package.json"
       - ".github/workflows/puntia-render-memory-smoke.yml"
   workflow_dispatch:
