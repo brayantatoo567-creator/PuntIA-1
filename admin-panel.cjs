@@ -70,7 +70,7 @@ function createAdminPanel({ app, pool, publicDir }) {
 
   async function init() {
     if (!pool) return;
-    await pool.query(String.raw\`
+    await pool.query(String.raw`
       CREATE TABLE IF NOT EXISTS tejilume_admin_settings (
         id SMALLINT PRIMARY KEY DEFAULT 1 CHECK (id = 1),
         key_ciphertext TEXT,
@@ -92,7 +92,7 @@ function createAdminPanel({ app, pool, publicDir }) {
         window_started_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         blocked_until TIMESTAMPTZ
       );
-    \`);
+    `);
   }
 
   function requireAdmin(req, res, next) {
@@ -154,13 +154,13 @@ function createAdminPanel({ app, pool, publicDir }) {
   });
   router.get('/status', requireAdmin, async (req, res) => {
     try {
-      const result = await pool.query(String.raw\`
+      const result = await pool.query(String.raw`
         SELECT s.key_last4, s.ai_enabled, s.daily_limit,
           COALESCE(u.generations,0)::int AS generations
         FROM tejilume_admin_settings s
         LEFT JOIN tejilume_ai_usage u ON u.usage_date=(NOW() AT TIME ZONE 'UTC')::date
         WHERE s.id=1
-      \`);
+      `);
       const row = result.rows[0];
       res.set('Cache-Control', 'no-store');
       res.json({
@@ -255,12 +255,12 @@ function createAdminPanel({ app, pool, publicDir }) {
       const key = await resolveApiKey();
       if (!key) return res.status(503).json({ error: 'La IA no está configurada en el servidor.' });
       req.openAiKey = key;
-      const usage = await pool.query(String.raw\`
+      const usage = await pool.query(String.raw`
         INSERT INTO tejilume_ai_usage(usage_date,generations) VALUES ((NOW() AT TIME ZONE 'UTC')::date,1)
         ON CONFLICT(usage_date) DO UPDATE SET generations=tejilume_ai_usage.generations+1
         WHERE tejilume_ai_usage.generations < $1
         RETURNING generations
-      \`, [settings.rows[0].daily_limit]);
+      `, [settings.rows[0].daily_limit]);
       if (!usage.rows.length) return res.status(429).json({ error: 'Se alcanzó el tope diario de generaciones configurado por el administrador.' });
       req.tejilumeUsageCount = usage.rows[0].generations;
       next();
