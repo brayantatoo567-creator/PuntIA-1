@@ -47,6 +47,7 @@ jobs:
           test -f public/admin.html
           test -f tests/admin-security.cjs
           test -f tests/admin-http.cjs
+          test -f tests/pattern-http.cjs
           test -f tests/pattern-math.cjs
           test -f tests/pattern-quality.cjs
           cmp -s index.html public/index.html
@@ -93,6 +94,7 @@ jobs:
           node --check server.js
           node --check admin-panel.cjs
           node --check tests/admin-http.cjs
+          node --check tests/pattern-http.cjs
           node --check public/service-worker.js
           node --check public/config.js
           node --check /tmp/tejilume-ui.js
