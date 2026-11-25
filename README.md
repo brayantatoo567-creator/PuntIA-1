@@ -66,7 +66,7 @@ No necesitas definir `PUNTIA_SESSION_SECRET`; `SESSION_SECRET` se utiliza tambi�
 - `POST /api/imaginaria/step-image`: genera una imagen didáctica.
 - `GET /api/health`: comprueba el servidor y PostgreSQL.
 
-Las solicitudes de IA consultan la configuración del servidor y nunca aceptan una clave enviada en una cabecera del navegador. El tope diario cuenta operaciones de IA iniciadas, incluidas las solicitudes de generación, conversación, diagnóstico e imágenes. Las llamadas internas de corrección de un mismo patrón forman parte de la misma solicitud contabilizada.
+Las solicitudes de IA consultan la configuración del servidor y nunca aceptan una clave enviada en una cabecera del navegador. El contador diario registra las generaciones de patrones y las imágenes por etapas. Las conversaciones y diagnósticos también respetan el interruptor de IA y necesitan una clave válida, pero no consumen el tope de generaciones. Las llamadas internas de corrección de un mismo patrón forman parte de la misma solicitud contabilizada.
 
 ## Desarrollo local y pruebas
 
