@@ -123,6 +123,10 @@ class FakeOpenAI {
     const statusJson = await statusResponse.json();
     assert.equal(statusJson.generationsToday, 1);
     assert.equal(statusJson.keyLast4, validKey.slice(-4));
+    const tomorrow = await pool.query("SELECT (NOW() AT TIME ZONE 'UTC')::date + 1 AS tomorrow");
+    await pool.query('INSERT INTO tejilume_ai_usage(usage_date,generations) VALUES($1,88) ON CONFLICT(usage_date) DO UPDATE SET generations=88', [tomorrow.rows[0].tomorrow]);
+    const afterFutureUsage = await get('/api/admin/status', cookie);
+    assert.equal((await afterFutureUsage.json()).generationsToday, 1, 'usage is scoped to the current UTC date; future-day rows do not leak into today');
     assert.equal(JSON.stringify(statusJson).includes(validKey), false);
 
     const logout = await post('/api/admin/logout', {}, null, cookie);
