@@ -104,3 +104,13 @@ jobs:
           test "$STATUS" = "404"
           if grep -q 'X-PuntIA-OpenAI-Key\|tejilume_api_key' public/index.html server.js; then echo 'Clave de navegador aún habilitada'; exit 1; fi
           echo "Rutas, panel privado y respuestas sin credenciales verificadas."
+
+      - name: Empaquetar versión consolidada sin secretos
+        run: git archive --format=zip --output=tejilume-source.zip HEAD
+      - name: Publicar ZIP de código fuente consolidado
+        uses: actions/upload-artifact@v4
+        with:
+          name: TEJILUME-source-consolidated
+          path: tejilume-source.zip
+          if-no-files-found: error
+          retention-days: 14
