@@ -1,4 +1,4 @@
-name: PuntIA Android APK
+name: Imaginaria Android APK
 
 on:
   workflow_dispatch:
@@ -50,7 +50,7 @@ jobs:
           node -e "const fs=require('fs');const base=process.env.PUNTIA_API_BASE_URL.replace(/\/$/,'');fs.writeFileSync('www/config.js','window.PUNTIA_API_BASE_URL = '+JSON.stringify(base)+';\\n')"
           test -s www/index.html
           test -s www/config.js
-          grep -q 'apiFetch' www/index.html
+          grep -q 'async function api(path,options)' www/index.html
           grep -q 'serviceWorker.register' www/index.html
 
       - name: Generate Android project
@@ -68,7 +68,7 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: puntia-debug-apk
+          name: imaginaria-debug-apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 14
