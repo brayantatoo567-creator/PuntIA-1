@@ -259,6 +259,8 @@ function createAdminPanel({ app, pool, publicDir }) {
       const key = await resolveApiKey();
       if (!key) return res.status(503).json({ error: 'La IA no está configurada en el servidor.' });
       req.openAiKey = key;
+      const isGeneration = ['/api/puntia/generate-pattern','/api/imaginaria/create','/api/imaginaria/step-image'].includes(req.path);
+      if (!isGeneration) return next();
       const usage = await pool.query(String.raw`
         INSERT INTO tejilume_ai_usage(usage_date,generations) VALUES ((NOW() AT TIME ZONE 'UTC')::date,1)
         ON CONFLICT(usage_date) DO UPDATE SET generations=tejilume_ai_usage.generations+1
