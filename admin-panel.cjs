@@ -137,10 +137,24 @@ function createAdminPanel({ app, pool, publicDir, OpenAIClient = OpenAI }) {
   router.use((req, res, next) => { res.set('Cache-Control', 'no-store'); res.set('Pragma', 'no-cache'); res.set('X-Content-Type-Options', 'nosniff'); next(); });
   router.get('/setup-status', async (req, res) => {
     let databaseConnected = false;
-    if (pool) { try { await pool.query('SELECT 1'); databaseConnected = true; } catch (error) { console.error('TEJILUME database setup check failed:', error?.code || error?.name || 'unknown'); } }
+    let tablesReady = false;
+    if (pool) {
+      try {
+        await pool.query('SELECT 1');
+        databaseConnected = true;
+        const tables = await pool.query(String.raw`
+          SELECT
+            to_regclass('public.tejilume_admin_settings') IS NOT NULL AS settings,
+            to_regclass('public.tejilume_ai_usage') IS NOT NULL AS usage,
+            to_regclass('public.tejilume_admin_login_attempts') IS NOT NULL AS attempts
+        `);
+        tablesReady = Boolean(tables.rows[0]?.settings && tables.rows[0]?.usage && tables.rows[0]?.attempts);
+      } catch (error) { console.error('TEJILUME database setup check failed:', error?.code || error?.name || 'unknown'); }
+    }
     const missing = missingConfiguration();
-    if (!databaseConnected && !missing.includes('DATABASE_URL')) missing.push('Conexión PostgreSQL (revisa DATABASE_URL y el estado de Neon)');
-    res.json({ configured: missing.length === 0 && databaseConnected, missing, databaseConnected, instructions: 'En Render abre tu servicio → Environment → Add Environment Variable. Guarda los cambios y vuelve a desplegar. Genera SESSION_SECRET y MASTER_KEY con Node.js crypto.randomBytes(32).toString(\'hex\').' });
+    if (!databaseConnected && !missing.includes('DATABASE_URL')) missing.push('Conexión PostgreSQL (revisa DATABASE_URL y el estado de la base de datos)');
+    if (databaseConnected && !tablesReady) missing.push('Tablas administrativas (se crean al arrancar; revisa permisos CREATE en PostgreSQL)');
+    res.json({ configured: missing.length === 0 && databaseConnected && tablesReady, missing, databaseConnected, tablesReady, instructions: 'En Render abre tu servicio → Environment → Add Environment Variable. Guarda los cambios y vuelve a desplegar. Genera SESSION_SECRET y MASTER_KEY con Node.js crypto.randomBytes(32).toString(\\'hex\\').' });
   });
   router.post('/login', async (req, res) => {
     try {
