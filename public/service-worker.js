@@ -1,4 +1,4 @@
-const CACHE_NAME = "imaginaria-shell-v1";
+const CACHE_NAME = "tejilume-shell-v1";
 const APP_SHELL = ["/", "/manifest.webmanifest", "/config.js"];
 
 self.addEventListener("install", event => {
@@ -12,7 +12,7 @@ self.addEventListener("install", event => {
 self.addEventListener("activate", event => {
   event.waitUntil(
     caches.keys()
-      .then(keys => Promise.all(keys.filter(key => key.startsWith("imaginaria-shell-") && key !== CACHE_NAME).map(key => caches.delete(key))))
+      .then(keys => Promise.all(keys.filter(key => key.startsWith("tejilume-shell-") && key !== CACHE_NAME).map(key => caches.delete(key))))
       .then(() => self.clients.claim())
   );
 });
