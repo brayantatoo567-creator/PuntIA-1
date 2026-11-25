@@ -6,6 +6,7 @@ const crypto=require('crypto');
 const { validatePattern, validateProject } = require('./pattern-validator.cjs');
 const { parseMemory } = require('./memory-store.cjs');
 const { Pool } = require('pg');
+const { createAdminPanel } = require('./admin-panel.cjs');
 const app=express();
 const allowedOrigins=new Set(String(process.env.PUNTIA_ALLOWED_ORIGINS||'https://localhost,capacitor://localhost').split(',').map(value=>value.trim()).filter(Boolean));
 function requestOrigin(req){const proto=String(req.get('x-forwarded-proto')||req.protocol).split(',')[0].trim();return proto+'://'+req.get('host');}
@@ -18,7 +19,7 @@ app.use((req,res,next)=>{
   res.vary('Origin');
   if(req.method==='OPTIONS'){
     res.set('Access-Control-Allow-Methods','GET,POST,DELETE,OPTIONS');
-    res.set('Access-Control-Allow-Headers','Content-Type,Authorization,X-PuntIA-OpenAI-Key');
+    res.set('Access-Control-Allow-Headers','Content-Type,Authorization');
     res.set('Access-Control-Max-Age','600');
     return res.status(204).end();
   }
@@ -34,12 +35,12 @@ const databaseUrl=String(process.env.DATABASE_URL||'').trim();
 if(isProduction&&!databaseUrl)throw new Error('DATABASE_URL es obligatorio en producción para proteger la memoria de PuntIA.');
 const pool=databaseUrl?new Pool({connectionString:databaseUrl,max:5,connectionTimeoutMillis:10000,idleTimeoutMillis:30000}):null;
 if(pool)pool.on('error',error=>console.error('PuntIA PostgreSQL idle client error:',error?.code||error?.name||'unknown'));
-const configuredSessionSecret=String(process.env.PUNTIA_SESSION_SECRET||'');
+const configuredSessionSecret=String(process.env.SESSION_SECRET||process.env.PUNTIA_SESSION_SECRET||'');
 if(isProduction&&Buffer.byteLength(configuredSessionSecret,'utf8')<32){
   throw new Error('PUNTIA_SESSION_SECRET es obligatorio en producción y debe tener al menos 32 bytes.');
 }
 const sessionSecret=configuredSessionSecret||crypto.randomBytes(32).toString('hex');
-if(!configuredSessionSecret) console.warn('PUNTIA_SESSION_SECRET no configurado; las sesiones se invalidarán al reiniciar el proceso.');
+if(!configuredSessionSecret) console.warn('SESSION_SECRET no configurado; las sesiones se invalidarán al reiniciar el proceso.');
 const SESSION_COOKIE='puntia_sid';
 function signSessionId(id){return crypto.createHmac('sha256',sessionSecret).update(id).digest('base64url');}
 function parseCookies(header){const result={};for(const part of String(header||'').split(';')){const index=part.indexOf('=');if(index>0){const key=part.slice(0,index).trim();try{result[key]=decodeURIComponent(part.slice(index+1).trim())}catch{}}}return result;}
@@ -62,8 +63,11 @@ function establishSession(req,res,next){
   next();
 }
 app.use(establishSession);
+const adminPanel=createAdminPanel({app,pool,publicDir:path.join(__dirname,'public')});
 app.use(express.static(path.join(__dirname,'public')));
-function openAiClient(req){const apiKey=String(req.get('x-puntia-openai-key')||process.env.OPENAI_API_KEY||'').trim();if(!apiKey){const e=new Error('API key no configurada');e.code='AI_NOT_CONFIGURED';throw e;}if(apiKey.length<20||apiKey.length>500){const e=new Error('API key inválida');e.code='AI_KEY_INVALID';throw e;}return new OpenAI({apiKey,timeout:Number(process.env.OPENAI_TIMEOUT_MS||45000),maxRetries:0});}
+app.use(['/api/puntia/chat','/api/puntia/generate-pattern','/api/puntia/diagnose','/api/imaginaria/create','/api/imaginaria/step-image'],adminPanel.aiMiddleware);
+app.use(['/api/puntia/test-key','/api/diagnostics'],adminPanel.keyOnlyMiddleware);
+function openAiClient(req){const apiKey=String(req.openAiKey||'').trim();if(!apiKey){const e=new Error('API key no configurada');e.code='AI_NOT_CONFIGURED';throw e;}if(apiKey.length<20||apiKey.length>500){const e=new Error('API key inválida');e.code='AI_KEY_INVALID';throw e;}return new OpenAI({apiKey,timeout:Number(process.env.OPENAI_TIMEOUT_MS||45000),maxRetries:0});}
 const TEXT_MODEL=process.env.OPENAI_MODEL||'gpt-4o-mini';
 const VISION_MODEL=process.env.OPENAI_VISION_MODEL||'gpt-4o';
 const configuredAiConcurrency=Number.parseInt(process.env.MAX_ACTIVE_AI_REQUESTS||'4',10);
@@ -98,7 +102,7 @@ function rateLimitAi(req,res,next){
 }
 app.use(rateLimitAi);
 const SYSTEM=`Eres Tejilume, un estudio de diseño técnico de crochet y amigurumi. Tu misión es convertir ideas inusuales en estructuras tejibles, con instrucciones claras y conteos coherentes. Responde en español claro. Ayuda con patrones, conteos, materiales, técnicas, corrección de errores y enseñanza. No inventes que una foto fue analizada si no la recibiste. Cuando generes patrones, usa abreviaturas comunes (AM, pb, aum, dis), vueltas numeradas y conteos finales.`;
-app.get('/api/health',async(req,res)=>{let database=false;try{if(pool){await pool.query('SELECT 1');database=true;}else database=!isProduction;}catch(error){console.error('PuntIA database health check failed:',error?.code||error?.name||'unknown');}res.status(database?200:503).json({ok:database,ai:Boolean(process.env.OPENAI_API_KEY),database,model:TEXT_MODEL,vision:VISION_MODEL});});app.post('/api/diagnostics',async(req,res)=>{const diagnosticToken=process.env.DIAGNOSTICS_TOKEN;if(!diagnosticToken)return res.status(503).json({error:'Diagnóstico administrativo no habilitado.'});const auth=String(req.get('authorization')||'');if(auth!==`Bearer ${diagnosticToken}`)return res.status(401).json({error:'No autorizado.'});const result={memory:{ok:false,message:'No comprobada'},ai:{ok:false,message:'No comprobada'}};try{if(!pool)throw new Error('DATABASE_URL no configurada');await pool.query('SELECT 1 FROM puntia_memory_sessions LIMIT 1');result.memory={ok:true,message:'PostgreSQL conectado y tabla de memoria disponible'};}catch(e){result.memory={ok:false,message:'No se pudo comprobar la base de datos de memoria'};console.error('PuntIA database diagnostic failed:',e?.code||e?.name||'unknown')}try{const output=await responseText(req,[{role:'user',content:'Responde exactamente: PUNTIA_OK'}]);result.ai={ok:output.includes('PUNTIA_OK'),message:output.includes('PUNTIA_OK')?'Llamada real a la IA verificada':'La IA respondió, pero no devolvió el texto de prueba esperado'};}catch(e){result.ai={ok:false,message:e?.status===400?'La API rechazó la solicitud (HTTP 400); revisa modelo y compatibilidad.':e?.status===401||e?.status===403?'La clave o sus permisos fueron rechazados.':e?.status===429?'Límite o cuota de IA alcanzado.':'La llamada real a la IA falló; revisa los registros del servidor.'};console.error('PuntIA AI diagnostic failed:',e?.status||e?.code||e?.name||'unknown')}res.json({ok:result.memory.ok&&result.ai.ok,...result});});
+app.get('/api/health',async(req,res)=>{let database=false,ai=false;try{if(pool){await pool.query('SELECT 1');database=true;}else database=!isProduction;}catch(error){console.error('TEJILUME database health check failed:',error?.code||error?.name||'unknown');}try{ai=await adminPanel.aiConfigured();}catch{}res.status(database?200:503).json({ok:database,ai,database,model:TEXT_MODEL,vision:VISION_MODEL});});app.post('/api/diagnostics',async(req,res)=>{const diagnosticToken=process.env.DIAGNOSTICS_TOKEN;if(!diagnosticToken)return res.status(503).json({error:'Diagnóstico administrativo no habilitado.'});const auth=String(req.get('authorization')||'');if(auth!==`Bearer ${diagnosticToken}`)return res.status(401).json({error:'No autorizado.'});const result={memory:{ok:false,message:'No comprobada'},ai:{ok:false,message:'No comprobada'}};try{if(!pool)throw new Error('DATABASE_URL no configurada');await pool.query('SELECT 1 FROM puntia_memory_sessions LIMIT 1');result.memory={ok:true,message:'PostgreSQL conectado y tabla de memoria disponible'};}catch(e){result.memory={ok:false,message:'No se pudo comprobar la base de datos de memoria'};console.error('PuntIA database diagnostic failed:',e?.code||e?.name||'unknown')}try{const output=await responseText(req,[{role:'user',content:'Responde exactamente: PUNTIA_OK'}]);result.ai={ok:output.includes('PUNTIA_OK'),message:output.includes('PUNTIA_OK')?'Llamada real a la IA verificada':'La IA respondió, pero no devolvió el texto de prueba esperado'};}catch(e){result.ai={ok:false,message:e?.status===400?'La API rechazó la solicitud (HTTP 400); revisa modelo y compatibilidad.':e?.status===401||e?.status===403?'La clave o sus permisos fueron rechazados.':e?.status===429?'Límite o cuota de IA alcanzado.':'La llamada real a la IA falló; revisa los registros del servidor.'};console.error('PuntIA AI diagnostic failed:',e?.status||e?.code||e?.name||'unknown')}res.json({ok:result.memory.ok&&result.ai.ok,...result});});
 async function responseText(req,input,model=TEXT_MODEL){const client=openAiClient(req);const r=await client.responses.create({model,input,instructions:SYSTEM});const output=String(r.output_text||'').trim();if(!output)throw new Error('La IA devolvió una respuesta vacía.');return output;}
 function sendApiError(res,e,fallback){if(e?.code==='AI_NOT_CONFIGURED')return res.status(503).json({error:'La IA no está configurada en el servidor.'});const timedOut=e?.name==='APIConnectionTimeoutError'||e?.code==='ETIMEDOUT'||e?.code==='UND_ERR_CONNECT_TIMEOUT';console.error('PuntIA API error:',e?.status||e?.code||e?.name||'unknown');if(timedOut)return res.status(504).json({error:'La generación tardó demasiado. Inténtalo de nuevo; si se repite, revisa el modelo y la conexión del servidor.'});if(e?.status===429)return res.status(429).json({error:'El servicio de IA alcanzó su límite de uso. Revisa la cuota o inténtalo más tarde.'});if(e?.status===401||e?.status===403)return res.status(503).json({error:'La configuración de acceso al servicio de IA no es válida. Revisa la clave y los permisos del servidor.'});return res.status(500).json({error:fallback});}
 function textField(value,fallback,max){const v=String(value??fallback).trim();return v.slice(0,max)||fallback;}
@@ -177,4 +181,4 @@ app.use('/api', (req,res)=>res.status(404).json({error:'Ruta API no encontrada.'
 app.get(/.*/,(req,res)=>res.sendFile(path.join(__dirname,'public','index.html')));
 app.use((err,req,res,next)=>{if(err instanceof multer.MulterError){const status=err.code==='LIMIT_FILE_SIZE'?413:400;return res.status(status).json({error:err.code==='LIMIT_FILE_SIZE'?'La imagen supera el límite de 8 MB.':'No se pudo recibir la imagen.'});}if(err?.message==='Formato de imagen no admitido. Usa JPG, PNG, WEBP o GIF.')return res.status(415).json({error:err.message});console.error('PuntIA request error:',err?.name||'unknown');return res.status(500).json({error:'Error interno del servidor.'});});
 
-const port=Number(process.env.PORT||8080);app.listen(port,()=>console.log(`PuntIA v3 escuchando en ${port}`));
+const port=Number(process.env.PORT||8080);adminPanel.init().then(()=>app.listen(port,()=>console.log(`TEJILUME escuchando en ${port}`))).catch(error=>{console.error('TEJILUME startup failed:',error?.code||error?.name||'unknown');process.exit(1);});
