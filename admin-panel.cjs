@@ -248,7 +248,7 @@ function createAdminPanel({ app, pool, publicDir }) {
   }
   async function aiMiddleware(req, res, next) {
     try {
-      if (!pool) { const localKey=String(process.env.OPENAI_API_KEY||'').trim(); if(!localKey)return res.status(503).json({error:'La IA no está configurada en el servidor.'}); req.openAiKey=localKey; return next(); }
+      if (!pool) { req.openAiKey=String(process.env.OPENAI_API_KEY||'').trim(); return next(); }
       const settings = await pool.query('SELECT ai_enabled,daily_limit FROM tejilume_admin_settings WHERE id=1');
       if (!settings.rows.length) return res.status(503).json({ error: 'El panel de administración no está inicializado.' });
       if (!settings.rows[0].ai_enabled) return res.status(503).json({ error: 'La generación con IA está desactivada por el administrador.' });
@@ -272,7 +272,6 @@ function createAdminPanel({ app, pool, publicDir }) {
   async function keyOnlyMiddleware(req, res, next) {
     try {
       const key = await resolveApiKey();
-      if (!key) return res.status(503).json({ error: 'La IA no está configurada en el servidor.' });
       req.openAiKey = key;
       next();
     } catch (error) {
