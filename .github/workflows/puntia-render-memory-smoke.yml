@@ -37,6 +37,14 @@ jobs:
           done
           test "$READY" = "1"
 
+      - name: Verify Tejilume pattern API route is deployed
+        shell: bash
+        run: |
+          set -euo pipefail
+          URL="https://puntia-beta.onrender.com"
+          CODE=$(curl -sS --max-time 20 -o /tmp/tejilume-route.json -w '%{http_code}' -H 'Content-Type: application/json' -X POST "$URL/api/imaginaria/create" --data '{}')
+          test "$CODE" = "400"
+          node -e 'const r=require("/tmp/tejilume-route.json"); if(!String(r.error||"").includes("Describe tu idea")) throw Error("Tejilume API did not return the expected empty-input validation"); console.log("PASS: Tejilume pattern API route is deployed and validates input")'
       - name: Verify session memory write, read, delete and isolation
         shell: bash
         run: |
