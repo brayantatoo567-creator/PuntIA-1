@@ -8,6 +8,7 @@ const { parseMemory } = require('./memory-store.cjs');
 const { Pool } = require('pg');
 const { createAdminPanel } = require('./admin-panel.cjs');
 const app=express();
+app.set('trust proxy',1);
 const allowedOrigins=new Set(String(process.env.PUNTIA_ALLOWED_ORIGINS||'https://localhost,capacitor://localhost').split(',').map(value=>value.trim()).filter(Boolean));
 function requestOrigin(req){const proto=String(req.get('x-forwarded-proto')||req.protocol).split(',')[0].trim();return proto+'://'+req.get('host');}
 app.use((req,res,next)=>{
