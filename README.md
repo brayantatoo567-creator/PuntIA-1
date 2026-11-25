@@ -81,7 +81,7 @@ npm run check
 npm start
 ```
 
-En desarrollo sin PostgreSQL, el servidor puede arrancar para pruebas básicas, pero el panel de administración no estará disponible. `tests/admin-http.cjs` requiere una base PostgreSQL accesible mediante `DATABASE_URL`; la CI levanta PostgreSQL temporal para ejecutar bloqueo de login, cookies, guardado cifrado, errores de clave/cuota, persistencia, interruptor y concurrencia.
+En desarrollo sin PostgreSQL, el servidor puede arrancar para pruebas básicas, pero el panel de administración no estará disponible. `tests/admin-http.cjs` y `tests/pattern-http.cjs` requieren una base PostgreSQL accesible mediante `DATABASE_URL`; la CI levanta PostgreSQL temporal y simula OpenAI en local para comprobar bloqueo de login, cookies, guardado cifrado, errores de clave/cuota, persistencia, interruptor, concurrencia y el contador de la ruta real de patrones. La simulación no sustituye una prueba con una clave real de OpenAI.
 
 ## Calidad y límites
 
