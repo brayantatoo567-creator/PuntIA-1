@@ -27,8 +27,8 @@ npm start
 
 ## Funciones principales
 
-- `POST /api/tejilume/create`: crea un patrón desde una descripción o una fotografía (multipart: `idea`, `height`, `level`, `yarn`, `style`, `image`).
-- `POST /api/tejilume/step-image`: genera una imagen didáctica de una etapa (`stage`, `step`, `context`).
+- `POST /api/imaginaria/create`: crea un patrón desde una descripción o una fotografía (multipart: `idea`, `height`, `level`, `yarn`, `style`, `image`).
+- `POST /api/imaginaria/step-image`: genera una imagen didáctica de una etapa (`stage`, `step`, `context`).
 - `POST /api/puntia/test-key`: prueba la conexión de IA.
 - `GET /api/health`: comprueba la salud del servidor y la base de datos.
 
@@ -36,9 +36,9 @@ La interfaz permite configurar la URL del backend y una clave temporal de prueba
 
 ## Calidad y límites
 
-El validador actual comprueba aritmética de rondas que reconoce (pb, aum y dis). Las rondas no interpretables se marcan como no verificadas. Un resultado sin errores matemáticos detectados no equivale a una prueba física: antes de comercializar un patrón hay que tejer una muestra, comprobar medidas, tensión, ensamblaje y correspondencia visual.
+El validador comprueba aritmética de rondas, puntos consumidos entre vueltas consecutivas, numeración por pieza, correspondencia entre inventario y piezas desarrolladas, y referencias de ensamblaje. Las rondas no interpretables se marcan como no verificadas y el generador no entrega un patrón que no supere estas comprobaciones. Un resultado sin errores matemáticos detectados no equivale a una prueba física: antes de comercializar un patrón hay que tejer una muestra, comprobar medidas, tensión, ensamblaje y correspondencia visual.
 
-Las imágenes son referencias didácticas generadas por IA y no sustituyen la lectura del patrón. Las llamadas de IA e imágenes requieren internet y consumen cuota. No hay generaciones ilimitadas.
+La suite de calidad incluye 16 proyectos complejos de referencia (dragón, pulpo, casa con jardín, figura asimétrica, nave espacial, medusa, robot, árbol, castillo y otros), más pruebas negativas que inyectan errores para verificar que el validador los rechace. Son patrones de referencia deterministas para comprobar el motor de conteos y estructura; no equivalen a 16 respuestas de un proveedor LLM ni a pruebas físicas tejidas. Las imágenes son referencias didácticas generadas por IA y no sustituyen la lectura del patrón. El módulo de pagos es una simulación local independiente: no cobra y no bloquea funciones. Las llamadas de IA e imágenes requieren internet y consumen cuota. No hay generaciones ilimitadas.
 
 ## Pruebas
 
