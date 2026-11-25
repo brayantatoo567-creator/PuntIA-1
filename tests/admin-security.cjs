@@ -19,4 +19,10 @@ const signature = crypto.createHmac('sha256', sessionSecret).update(payload).dig
 assert.equal(verifyToken(payload + '.' + signature, sessionSecret), true);
 assert.equal(verifyToken(payload + '.tampered', sessionSecret), false);
 assert.equal(verifyToken(payload + '.' + signature, 'wrong-secret'), false);
-console.log('Admin security tests: AES-256-GCM round-trip, tamper rejection, key formats and signed session validation passed.');
+const expiredPayload = Buffer.from(JSON.stringify({ iat: Date.now() - 120000, exp: Date.now() - 60000, nonce: crypto.randomBytes(24).toString('hex') })).toString('base64url');
+const expiredSignature = crypto.createHmac('sha256', sessionSecret).update(expiredPayload).digest('base64url');
+assert.equal(verifyToken(expiredPayload + '.' + expiredSignature, sessionSecret), false);
+const overlongPayload = Buffer.from(JSON.stringify({ iat: Date.now(), exp: Date.now() + 13 * 60 * 60 * 1000, nonce: crypto.randomBytes(24).toString('hex') })).toString('base64url');
+const overlongSignature = crypto.createHmac('sha256', sessionSecret).update(overlongPayload).digest('base64url');
+assert.equal(verifyToken(overlongPayload + '.' + overlongSignature, sessionSecret), false);
+console.log('Admin security tests: AES-256-GCM round-trip, tamper rejection, key formats and signed session validation and expiration passed.');
