@@ -80,7 +80,7 @@
  <summary>Administración segura</summary>
  <div class="adminbody">
   <p>La clave de OpenAI, el límite diario y el interruptor de generación se administran en un panel privado protegido con contraseña. La clave nunca se guarda en este dispositivo.</p>
-  <div class="adminactions"><a class="secondary" href="/admin" style="display:inline-block;text-decoration:none">Abrir panel de administrador</a></div>
+  <div class="adminactions"><a class="secondary" id="adminLink" href="/admin" style="display:inline-block;text-decoration:none">Abrir panel de administrador</a></div>
  </div>
 </details>
 <footer class="foot">TEJILUME · Una idea puede convertirse en tejido. Revisa las instrucciones y prueba el patrón antes de comercializarlo.</footer>
@@ -91,11 +91,12 @@
 'use strict';
 var $=function(id){return document.getElementById(id)};
 var current=null,base=window.PUNTIA_API_BASE_URL||'';
+$('adminLink').href=(base||'')+'/admin';
 $('connection').textContent='● Servidor por comprobar';
 function toast(msg){var t=$('toast');t.textContent=msg;t.style.display='block';clearTimeout(window.__toastTimer);window.__toastTimer=setTimeout(function(){t.style.display='none'},3400)}
 function apiUrl(path){return (base||'').replace(/\/+$/,'')+path}
 function headers(){return {}}
-async function api(path,options){options=options||{};options.headers=Object.assign(headers(),options.headers||{});options.credentials='same-origin';var r;try{r=await fetch(apiUrl(path),options)}catch(e){throw new Error('No se pudo conectar con el servidor. Revisa la dirección del backend.')}var data;try{data=await r.json()}catch(e){throw new Error('El servidor devolvió una respuesta no válida.')}if(!r.ok)throw new Error(data.error||('Error HTTP '+r.status));return data}
+async function api(path,options){options=options||{};options.headers=Object.assign(headers(),options.headers||{});options.credentials='include';var r;try{r=await fetch(apiUrl(path),options)}catch(e){throw new Error('No se pudo conectar con el servidor. Revisa la dirección del backend.')}var data;try{data=await r.json()}catch(e){throw new Error('El servidor devolvió una respuesta no válida.')}if(!r.ok)throw new Error(data.error||('Error HTTP '+r.status));return data}
 async function health(){try{var h=await api('/api/health');$('connection').textContent=h.ok?'● Servidor activo':'● Servidor con problemas';$('connection').style.color=h.ok?'#28744c':'#a05b28';if(!h.ok)throw new Error('La base de datos del servidor no está disponible.');}catch(e){$('connection').textContent='● Configuración pendiente';$('connection').style.color='#a05b28'}}
 health();
 function esc(s){return String(s||'').replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
