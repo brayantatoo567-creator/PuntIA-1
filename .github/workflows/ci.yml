@@ -42,9 +42,10 @@ jobs:
           node - <<'NODE'
           const fs=require('fs');
           const html=fs.readFileSync('public/index.html','utf8');
-          const scripts=[...html.matchAll(/<script>([\\s\\S]*?)<\\/script>/g)];
-          if(scripts.length!==1) throw new Error('Se esperaba un único script de aplicación');
-          fs.writeFileSync('/tmp/imaginaria-ui.js',scripts[0][1]);
+          const start=html.lastIndexOf('<script>')+8;
+          const end=html.lastIndexOf('</script>');
+          if(start<8||end<=start) throw new Error('No se encontró el script de la aplicación');
+          fs.writeFileSync('/tmp/imaginaria-ui.js',html.slice(start,end));
           for(const id of ['createForm','createBtn','result','visualGrid','adminPanel','apiBase','apiKey']) {
             if(!html.includes('id="'+id+'"')) throw new Error('Falta elemento '+id);
           }
