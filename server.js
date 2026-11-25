@@ -37,7 +37,7 @@ const pool=databaseUrl?new Pool({connectionString:databaseUrl,max:5,connectionTi
 if(pool)pool.on('error',error=>console.error('PuntIA PostgreSQL idle client error:',error?.code||error?.name||'unknown'));
 const configuredSessionSecret=String(process.env.SESSION_SECRET||process.env.PUNTIA_SESSION_SECRET||'');
 if(isProduction&&Buffer.byteLength(configuredSessionSecret,'utf8')<32){
-  throw new Error('PUNTIA_SESSION_SECRET es obligatorio en producción y debe tener al menos 32 bytes.');
+  throw new Error('SESSION_SECRET es obligatorio en producción y debe tener al menos 32 bytes.');
 }
 const sessionSecret=configuredSessionSecret||crypto.randomBytes(32).toString('hex');
 if(!configuredSessionSecret) console.warn('SESSION_SECRET no configurado; las sesiones se invalidarán al reiniciar el proceso.');
@@ -57,7 +57,7 @@ function establishSession(req,res,next){
   const sessionId=valid?id:crypto.randomBytes(32).toString('hex');
   req.puntiaUserId=sessionId;
   if(!valid){
-    const secure=process.env.NODE_ENV==='production'||Boolean(process.env.RAILWAY_ENVIRONMENT);
+    const secure=process.env.NODE_ENV==='production'||Boolean(process.env.RENDER)||Boolean(process.env.RAILWAY_ENVIRONMENT);
     res.append('Set-Cookie',SESSION_COOKIE+'='+encodeURIComponent(sessionId+'.'+signSessionId(sessionId))+'; Path=/; HttpOnly; SameSite='+(secure?'None':'Lax')+'; Max-Age=2592000'+(secure?'; Secure':''));
   }
   next();
