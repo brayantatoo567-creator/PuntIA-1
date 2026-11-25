@@ -145,10 +145,10 @@ function createAdminPanel({ app, pool, publicDir, OpenAIClient = OpenAI }) {
         const tables = await pool.query(String.raw`
           SELECT
             to_regclass('public.tejilume_admin_settings') IS NOT NULL AS settings,
-            to_regclass('public.tejilume_ai_usage') IS NOT NULL AS usage,
+            to_regclass('public.tejilume_ai_usage') IS NOT NULL AS usage_table,
             to_regclass('public.tejilume_admin_login_attempts') IS NOT NULL AS attempts
         `);
-        tablesReady = Boolean(tables.rows[0]?.settings && tables.rows[0]?.usage && tables.rows[0]?.attempts);
+        tablesReady = Boolean(tables.rows[0]?.settings && tables.rows[0]?.usage_table && tables.rows[0]?.attempts);
       } catch (error) { console.error('TEJILUME database setup check failed:', error?.code || error?.name || 'unknown'); }
     }
     const missing = missingConfiguration();
