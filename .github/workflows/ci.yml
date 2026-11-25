@@ -33,8 +33,8 @@ jobs:
           grep -q 'Tejilume' public/index.html
           grep -q 'id="createForm"' public/index.html
           grep -q 'id="adminPanel"' public/index.html
-          grep -q '/api/tejilume/create' public/index.html
-          grep -q '/api/tejilume/step-image' public/index.html
+          grep -q '/api/imaginaria/create' public/index.html
+          grep -q '/api/imaginaria/step-image' public/index.html
           grep -q 'OPENAI_IMAGE_MODEL=gpt-image-1' .env.example
           node -e "const p=require('./package.json');if(p.name!=='tejilume'||!p.dependencies?.express||!p.dependencies?.openai||!p.dependencies?.multer)process.exit(1)"
           node -e "const m=JSON.parse(require('fs').readFileSync('public/manifest.webmanifest','utf8'));if(m.short_name!=='Tejilume'||m.start_url!=='/'||m.display!=='standalone')process.exit(1)"
@@ -74,11 +74,11 @@ jobs:
           if [ "$READY" -ne 1 ]; then cat /tmp/tejilume.log; exit 1; fi
           curl -fsS http://127.0.0.1:8080/ >/tmp/home.html
           grep -q 'Tejilume' /tmp/home.html
-          STATUS=$(curl -s -o /tmp/create-empty.json -w '%{http_code}' -H 'Content-Type: application/json' -d '{}' http://127.0.0.1:8080/api/tejilume/create)
+          STATUS=$(curl -s -o /tmp/create-empty.json -w '%{http_code}' -H 'Content-Type: application/json' -d '{}' http://127.0.0.1:8080/api/imaginaria/create)
           test "$STATUS" = "400"
-          STATUS=$(curl -s -o /tmp/create-no-key.json -w '%{http_code}' -H 'Content-Type: application/json' -d '{"idea":"un pulpo astronauta"}' http://127.0.0.1:8080/api/tejilume/create)
+          STATUS=$(curl -s -o /tmp/create-no-key.json -w '%{http_code}' -H 'Content-Type: application/json' -d '{"idea":"un pulpo astronauta"}' http://127.0.0.1:8080/api/imaginaria/create)
           test "$STATUS" = "503"
-          STATUS=$(curl -s -o /tmp/image-no-key.json -w '%{http_code}' -H 'Content-Type: application/json' -d '{"stage":"cuerpo","step":"tejer el cuerpo","context":"pulpo astronauta"}' http://127.0.0.1:8080/api/tejilume/step-image)
+          STATUS=$(curl -s -o /tmp/image-no-key.json -w '%{http_code}' -H 'Content-Type: application/json' -d '{"stage":"cuerpo","step":"tejer el cuerpo","context":"pulpo astronauta"}' http://127.0.0.1:8080/api/imaginaria/step-image)
           test "$STATUS" = "503"
           STATUS=$(curl -s -o /tmp/unknown.json -w '%{http_code}' http://127.0.0.1:8080/api/no-existe)
           test "$STATUS" = "404"
