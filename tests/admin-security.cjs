@@ -4,7 +4,7 @@ const crypto = require('node:crypto');
 const { encryptSecret, decryptSecret, parseMasterKey, verifyToken } = require('../admin-panel.cjs');
 
 const master = crypto.randomBytes(32);
-const secret = 'sk-proj-TEJILUME-TEST-KEY-DO-NOT-USE';
+const secret = crypto.randomBytes(32).toString('hex');
 const encrypted = encryptSecret(secret, master);
 assert.notEqual(encrypted.ciphertext, Buffer.from(secret).toString('base64'));
 assert.equal(decryptSecret(encrypted, master), secret);
