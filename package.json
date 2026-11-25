@@ -5,7 +5,7 @@
   "type": "commonjs",
   "scripts": {
     "start": "node server.js",
-    "test": "node tests/pattern-math.cjs && node tests/pattern-quality.cjs && node tests/memory-store.cjs && node tests/admin-security.cjs && node tests/admin-http.cjs",
+    "test": "node tests/pattern-math.cjs && node tests/pattern-quality.cjs && node tests/memory-store.cjs && node tests/admin-security.cjs && node tests/admin-http.cjs && node tests/pattern-http.cjs",
     "check": "node --check server.js && node --check pattern-validator.cjs && node --check memory-store.cjs && node --check tests/pattern-quality.cjs && node tests/pattern-math.cjs && node tests/pattern-quality.cjs && node tests/memory-store.cjs && node tests/admin-security.cjs && node tests/admin-http.cjs"
   },
   "dependencies": {
