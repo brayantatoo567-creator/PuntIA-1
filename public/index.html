@@ -77,14 +77,10 @@
  <h2>Mis proyectos</h2><div id="projects" class="projects"><div class="empty">Tus proyectos guardados aparecerán aquí.</div></div>
 </section>
 <details class="admin" id="adminPanel">
- <summary>Panel de configuración — solo para el administrador</summary>
+ <summary>Administración segura</summary>
  <div class="adminbody">
-  <p>Configura la dirección del servidor y, solo para pruebas privadas, una clave temporal. La clave se conserva únicamente en esta sesión del navegador. Para un lanzamiento público, configura OPENAI_API_KEY y OPENAI_IMAGE_MODEL en las variables secretas del servidor; nunca publiques una clave dentro de la aplicación.</p>
-  <div class="adminfields">
-   <label>Dirección del backend<input id="apiBase" placeholder="https://tu-servidor.com"></label>
-   <label>Clave API temporal (opcional)<input id="apiKey" type="password" autocomplete="off" placeholder="sk-..."></label>
-  </div>
-  <div class="adminactions"><button class="secondary" id="saveConfig">Guardar configuración</button><button class="secondary" id="testConnection">Probar conexión IA</button><button class="secondary" id="clearKey">Borrar clave de esta sesión</button><span id="adminStatus" class="hint"></span></div>
+  <p>La clave de OpenAI, el límite diario y el interruptor de generación se administran en un panel privado protegido con contraseña. La clave nunca se guarda en este dispositivo.</p>
+  <div class="adminactions"><a class="secondary" href="/admin" style="display:inline-block;text-decoration:none">Abrir panel de administrador</a></div>
  </div>
 </details>
 <footer class="foot">TEJILUME · Una idea puede convertirse en tejido. Revisa las instrucciones y prueba el patrón antes de comercializarlo.</footer>
@@ -94,18 +90,14 @@
 (function(){
 'use strict';
 var $=function(id){return document.getElementById(id)};
-var current=null,base=localStorage.getItem('tejilume_api_base')||window.PUNTIA_API_BASE_URL||'';
-$('apiBase').value=base;
+var current=null,base=window.PUNTIA_API_BASE_URL||'';
 $('connection').textContent='● Servidor por comprobar';
 function toast(msg){var t=$('toast');t.textContent=msg;t.style.display='block';clearTimeout(window.__toastTimer);window.__toastTimer=setTimeout(function(){t.style.display='none'},3400)}
 function apiUrl(path){return (base||'').replace(/\/+$/,'')+path}
-function headers(){var h={};var key=sessionStorage.getItem('tejilume_api_key');if(key)h['X-PuntIA-OpenAI-Key']=key;return h}
-async function api(path,options){options=options||{};options.headers=Object.assign(headers(),options.headers||{});var r;try{r=await fetch(apiUrl(path),options)}catch(e){throw new Error('No se pudo conectar con el servidor. Revisa la dirección del backend.')}var data;try{data=await r.json()}catch(e){throw new Error('El servidor devolvió una respuesta no válida.')}if(!r.ok)throw new Error(data.error||('Error HTTP '+r.status));return data}
+function headers(){return {}}
+async function api(path,options){options=options||{};options.headers=Object.assign(headers(),options.headers||{});options.credentials='same-origin';var r;try{r=await fetch(apiUrl(path),options)}catch(e){throw new Error('No se pudo conectar con el servidor. Revisa la dirección del backend.')}var data;try{data=await r.json()}catch(e){throw new Error('El servidor devolvió una respuesta no válida.')}if(!r.ok)throw new Error(data.error||('Error HTTP '+r.status));return data}
 async function health(){try{var h=await api('/api/health');$('connection').textContent=h.ok?'● Servidor activo':'● Servidor con problemas';$('connection').style.color=h.ok?'#28744c':'#a05b28';if(!h.ok)throw new Error('La base de datos del servidor no está disponible.');}catch(e){$('connection').textContent='● Configuración pendiente';$('connection').style.color='#a05b28'}}
 health();
-$('saveConfig').addEventListener('click',function(){base=$('apiBase').value.trim().replace(/\/+$/,'');localStorage.setItem('tejilume_api_base',base);var k=$('apiKey').value.trim();if(k)sessionStorage.setItem('tejilume_api_key',k);$('apiKey').value='';$('adminStatus').textContent='Configuración guardada en este dispositivo.';health();toast('Configuración guardada.')});
-$('clearKey').addEventListener('click',function(){sessionStorage.removeItem('tejilume_api_key');$('apiKey').value='';$('adminStatus').textContent='Clave temporal eliminada.';toast('Clave eliminada de esta sesión.')});
-$('testConnection').addEventListener('click',async function(){var b=$('testConnection');b.disabled=true;b.textContent='Probando...';try{var x=await api('/api/puntia/test-key',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});$('adminStatus').textContent=x.message||'Conexión correcta.';toast('Conexión con IA confirmada.')}catch(e){$('adminStatus').textContent=e.message;toast(e.message)}finally{b.disabled=false;b.textContent='Probar conexión IA'}});
 function esc(s){return String(s||'').replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
 $('createForm').addEventListener('submit',async function(ev){ev.preventDefault();var idea=$('idea').value.trim(),photo=$('photo').files[0];if(!idea&&!photo){toast('Describe tu idea o sube una fotografía.');return}if(photo&&photo.size>8*1024*1024){toast('La fotografía supera 8 MB.');return}
 var btn=$('createBtn');btn.disabled=true;btn.innerHTML='<span class="busy"></span>Diseñando y calculando...';$('result').style.display='none';
