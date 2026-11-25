@@ -1,4 +1,4 @@
-name: Imaginaria CI
+name: Tejilume CI
 
 on:
   push:
@@ -30,25 +30,25 @@ jobs:
           test -f pattern-validator.cjs
           test -f tests/pattern-math.cjs
           cmp -s index.html public/index.html
-          grep -q 'Imaginaria' public/index.html
+          grep -q 'Tejilume' public/index.html
           grep -q 'id="createForm"' public/index.html
           grep -q 'id="adminPanel"' public/index.html
-          grep -q '/api/imaginaria/create' public/index.html
-          grep -q '/api/imaginaria/step-image' public/index.html
+          grep -q '/api/tejilume/create' public/index.html
+          grep -q '/api/tejilume/step-image' public/index.html
           grep -q 'OPENAI_IMAGE_MODEL=gpt-image-1' .env.example
-          node -e "const p=require('./package.json');if(p.name!=='imaginaria'||!p.dependencies?.express||!p.dependencies?.openai||!p.dependencies?.multer)process.exit(1)"
-          node -e "const m=JSON.parse(require('fs').readFileSync('public/manifest.webmanifest','utf8'));if(m.short_name!=='Imaginaria'||m.start_url!=='/'||m.display!=='standalone')process.exit(1)"
+          node -e "const p=require('./package.json');if(p.name!=='tejilume'||!p.dependencies?.express||!p.dependencies?.openai||!p.dependencies?.multer)process.exit(1)"
+          node -e "const m=JSON.parse(require('fs').readFileSync('public/manifest.webmanifest','utf8'));if(m.short_name!=='Tejilume'||m.start_url!=='/'||m.display!=='standalone')process.exit(1)"
           node - <<'NODE'
           const fs=require('fs');
           const html=fs.readFileSync('public/index.html','utf8');
           const start=html.lastIndexOf('<script>')+8;
           const end=html.lastIndexOf('</script>');
           if(start<8||end<=start) throw new Error('No se encontró el script de la aplicación');
-          fs.writeFileSync('/tmp/imaginaria-ui.js',html.slice(start,end));
+          fs.writeFileSync('/tmp/tejilume-ui.js',html.slice(start,end));
           for(const id of ['createForm','createBtn','result','visualGrid','adminPanel','apiBase','apiKey']) {
             if(!html.includes('id="'+id+'"')) throw new Error('Falta elemento '+id);
           }
-          console.log('Estructura de interfaz Imaginaria verificada');
+          console.log('Estructura de interfaz Tejilume verificada');
           NODE
       - name: Instalar dependencias
         run: npm install --no-audit --no-fund
@@ -57,13 +57,13 @@ jobs:
           node --check server.js
           node --check public/service-worker.js
           node --check public/config.js
-          node --check /tmp/imaginaria-ui.js
+          node --check /tmp/tejilume-ui.js
           npm run check
       - name: Probar API y rutas de creación
         shell: bash
         run: |
           set -euo pipefail
-          PORT=8080 node server.js >/tmp/imaginaria.log 2>&1 &
+          PORT=8080 node server.js >/tmp/tejilume.log 2>&1 &
           PID=$!
           trap 'kill "$PID" 2>/dev/null || true' EXIT
           READY=0
@@ -71,15 +71,15 @@ jobs:
             if curl -fsS http://127.0.0.1:8080/api/health >/tmp/health.json; then READY=1; break; fi
             sleep 2
           done
-          if [ "$READY" -ne 1 ]; then cat /tmp/imaginaria.log; exit 1; fi
+          if [ "$READY" -ne 1 ]; then cat /tmp/tejilume.log; exit 1; fi
           curl -fsS http://127.0.0.1:8080/ >/tmp/home.html
-          grep -q 'Imaginaria' /tmp/home.html
-          STATUS=$(curl -s -o /tmp/create-empty.json -w '%{http_code}' -H 'Content-Type: application/json' -d '{}' http://127.0.0.1:8080/api/imaginaria/create)
+          grep -q 'Tejilume' /tmp/home.html
+          STATUS=$(curl -s -o /tmp/create-empty.json -w '%{http_code}' -H 'Content-Type: application/json' -d '{}' http://127.0.0.1:8080/api/tejilume/create)
           test "$STATUS" = "400"
-          STATUS=$(curl -s -o /tmp/create-no-key.json -w '%{http_code}' -H 'Content-Type: application/json' -d '{"idea":"un pulpo astronauta"}' http://127.0.0.1:8080/api/imaginaria/create)
+          STATUS=$(curl -s -o /tmp/create-no-key.json -w '%{http_code}' -H 'Content-Type: application/json' -d '{"idea":"un pulpo astronauta"}' http://127.0.0.1:8080/api/tejilume/create)
           test "$STATUS" = "503"
-          STATUS=$(curl -s -o /tmp/image-no-key.json -w '%{http_code}' -H 'Content-Type: application/json' -d '{"stage":"cuerpo","step":"tejer el cuerpo","context":"pulpo astronauta"}' http://127.0.0.1:8080/api/imaginaria/step-image)
+          STATUS=$(curl -s -o /tmp/image-no-key.json -w '%{http_code}' -H 'Content-Type: application/json' -d '{"stage":"cuerpo","step":"tejer el cuerpo","context":"pulpo astronauta"}' http://127.0.0.1:8080/api/tejilume/step-image)
           test "$STATUS" = "503"
           STATUS=$(curl -s -o /tmp/unknown.json -w '%{http_code}' http://127.0.0.1:8080/api/no-existe)
           test "$STATUS" = "404"
-          echo "Rutas de Imaginaria y respuestas sin credenciales verificadas."
+          echo "Rutas de Tejilume y respuestas sin credenciales verificadas."
