@@ -61,13 +61,15 @@ function getCookie(req, name) {
 function createAdminPanel({ app, pool, publicDir }) {
   const adminPassword = String(process.env.ADMIN_PASSWORD || '');
   const sessionSecret = String(process.env.SESSION_SECRET || '');
-  const masterKey = parseMasterKey(process.env.MASTER_KEY);
   const isProduction = process.env.NODE_ENV === 'production' || Boolean(process.env.RENDER);
-  if (!pool) throw new Error('DATABASE_URL es obligatorio para el panel de administración.');
-  if (Buffer.byteLength(adminPassword, 'utf8') < 12) throw new Error('ADMIN_PASSWORD debe tener al menos 12 caracteres.');
-  if (Buffer.byteLength(sessionSecret, 'utf8') < 32) throw new Error('SESSION_SECRET debe tener al menos 32 bytes.');
+  const masterKey = process.env.MASTER_KEY ? parseMasterKey(process.env.MASTER_KEY) : null;
+  if (isProduction && !pool) throw new Error('DATABASE_URL es obligatorio para el panel de administración.');
+  if (isProduction && Buffer.byteLength(adminPassword, 'utf8') < 12) throw new Error('ADMIN_PASSWORD debe tener al menos 12 caracteres.');
+  if (isProduction && Buffer.byteLength(sessionSecret, 'utf8') < 32) throw new Error('SESSION_SECRET debe tener al menos 32 bytes.');
+  if (isProduction && !masterKey) throw new Error('MASTER_KEY es obligatorio en producción.');
 
   async function init() {
+    if (!pool) return;
     await pool.query(String.raw\`
       CREATE TABLE IF NOT EXISTS tejilume_admin_settings (
         id SMALLINT PRIMARY KEY DEFAULT 1 CHECK (id = 1),
@@ -94,7 +96,7 @@ function createAdminPanel({ app, pool, publicDir }) {
   }
 
   function requireAdmin(req, res, next) {
-    if (!verifyToken(getCookie(req, COOKIE), sessionSecret)) return res.status(401).json({ error: 'Inicia sesión para continuar.' });
+    if (!sessionSecret || !verifyToken(getCookie(req, COOKIE), sessionSecret)) return res.status(401).json({ error: 'Inicia sesión para continuar.' });
     next();
   }
   function ipHash(req) {
@@ -128,6 +130,7 @@ function createAdminPanel({ app, pool, publicDir }) {
   const router = express.Router();
   router.post('/login', async (req, res) => {
     try {
+      if (!pool || !adminPassword || !sessionSecret) return res.status(503).json({ error: 'Panel administrativo no configurado para este entorno.' });
       if (!(await attemptAllowed(req))) return res.status(429).json({ error: 'Demasiados intentos. Espera 15 minutos antes de volver a intentar.' });
       const username = String(req.body?.username || '').slice(0, 80);
       const password = String(req.body?.password || '').slice(0, 500);
@@ -177,6 +180,7 @@ function createAdminPanel({ app, pool, publicDir }) {
     try {
       const key = String(req.body?.apiKey || '').trim();
       if (key.length < 20 || key.length > 500 || !/^[A-Za-z0-9_-]+$/.test(key)) return res.status(400).json({ error: 'La clave no tiene un formato válido.' });
+      if (!pool || !masterKey) return res.status(503).json({ error: 'Almacenamiento seguro no configurado.' });
       const encrypted = encryptSecret(key, masterKey);
       await pool.query('UPDATE tejilume_admin_settings SET key_ciphertext=$1,key_iv=$2,key_tag=$3,key_last4=$4,updated_at=NOW() WHERE id=1',
         [encrypted.ciphertext, encrypted.iv, encrypted.tag, key.slice(-4)]);
@@ -224,6 +228,7 @@ function createAdminPanel({ app, pool, publicDir }) {
   });
 
   async function resolveApiKey() {
+    if (!pool) return String(process.env.OPENAI_API_KEY || '').trim();
     const result = await pool.query('SELECT key_ciphertext,key_iv,key_tag FROM tejilume_admin_settings WHERE id=1');
     const row = result.rows[0];
     if (row?.key_ciphertext && row?.key_iv && row?.key_tag) {
@@ -243,6 +248,7 @@ function createAdminPanel({ app, pool, publicDir }) {
   }
   async function aiMiddleware(req, res, next) {
     try {
+      if (!pool) { const localKey=String(process.env.OPENAI_API_KEY||'').trim(); if(!localKey)return res.status(503).json({error:'La IA no está configurada en el servidor.'}); req.openAiKey=localKey; return next(); }
       const settings = await pool.query('SELECT ai_enabled,daily_limit FROM tejilume_admin_settings WHERE id=1');
       if (!settings.rows.length) return res.status(503).json({ error: 'El panel de administración no está inicializado.' });
       if (!settings.rows[0].ai_enabled) return res.status(503).json({ error: 'La generación con IA está desactivada por el administrador.' });
