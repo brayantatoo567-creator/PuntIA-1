@@ -68,7 +68,7 @@ class FakeOpenAI {
     const locked = await post('/api/admin/login', { username: 'admin', password: testPassword }, '203.0.113.77');
     assert.equal(locked.status, 429, 'locked IP remains blocked');
 
-    const login = await post('/api/admin/login', { username: 'admin', password: 'test-admin-password-123' }, '203.0.113.78');
+    const login = await post('/api/admin/login', { username: 'admin', password: testPassword }, '203.0.113.78');
     assert.equal(login.status, 200);
     const setCookie = login.headers.get('set-cookie') || '';
     assert.match(setCookie, /HttpOnly/i);
@@ -76,6 +76,7 @@ class FakeOpenAI {
     assert.match(setCookie, /SameSite=None/i);
     assert.match(setCookie, /Max-Age=43200/i);
     const cookie = setCookie.split(';')[0];
+    assert.equal(cookie.includes(validKey), false, 'session cookie must not contain the API key');
     const statusBefore = await get('/api/admin/status', cookie);
     assert.equal(statusBefore.status, 200);
     assert.equal((await statusBefore.json()).keySaved, false);
