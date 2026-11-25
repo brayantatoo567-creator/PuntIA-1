@@ -29,10 +29,13 @@ jobs:
           test -f public/manifest.webmanifest
           test -f pattern-validator.cjs
           test -f tests/pattern-math.cjs
+          test -f tests/pattern-quality.cjs
           cmp -s index.html public/index.html
           grep -q 'Tejilume' public/index.html
           grep -q 'id="createForm"' public/index.html
           grep -q 'id="adminPanel"' public/index.html
+          grep -q 'id="billingSimulator"' public/index.html
+          grep -q 'data-plan="premium"' public/index.html
           grep -q '/api/imaginaria/create' public/index.html
           grep -q '/api/imaginaria/step-image' public/index.html
           grep -q 'OPENAI_IMAGE_MODEL=gpt-image-1' .env.example
