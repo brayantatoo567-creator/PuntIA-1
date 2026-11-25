@@ -154,7 +154,7 @@ function createAdminPanel({ app, pool, publicDir, OpenAIClient = OpenAI }) {
     const missing = missingConfiguration();
     if (!databaseConnected && !missing.includes('DATABASE_URL')) missing.push('Conexión PostgreSQL (revisa DATABASE_URL y el estado de la base de datos)');
     if (databaseConnected && !tablesReady) missing.push('Tablas administrativas (se crean al arrancar; revisa permisos CREATE en PostgreSQL)');
-    res.json({ configured: missing.length === 0 && databaseConnected && tablesReady, missing, databaseConnected, tablesReady, instructions: 'En Render abre tu servicio → Environment → Add Environment Variable. Guarda los cambios y vuelve a desplegar. Genera SESSION_SECRET y MASTER_KEY con Node.js crypto.randomBytes(32).toString(\\'hex\\').' });
+    res.json({ configured: missing.length === 0 && databaseConnected && tablesReady, missing, databaseConnected, tablesReady, instructions: 'En Render abre tu servicio → Environment → Add Environment Variable. Guarda los cambios y vuelve a desplegar. Genera SESSION_SECRET y MASTER_KEY con Node.js crypto.randomBytes(32).toString(\'hex\').' });
   });
   router.post('/login', async (req, res) => {
     try {
