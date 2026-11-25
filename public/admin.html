@@ -12,6 +12,14 @@
 <body>
 <main class="wrap">
 <header class="brand"><div class="mark">✿</div><div><strong>tejilume</strong><small>Administración privada</small></div></header>
+<section class="card hidden" id="setupCard">
+<h1>Configuración necesaria</h1><p>TEJILUME está en línea, pero faltan ajustes obligatorios del servidor. No pegues aquí claves ni contraseñas.</p>
+<div class="message bad" id="setupMessage" role="alert"></div>
+<p>En Render: abre tu servicio → <strong>Environment</strong> → <strong>Add Environment Variable</strong>. Añade las variables indicadas y guarda para que Render vuelva a desplegar.</p>
+<p><strong>Genera dos secretos diferentes</strong> desde una terminal Node.js:</p>
+<code>node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"</code>
+<p>Ejecuta el comando dos veces: una salida para SESSION_SECRET y otra para MASTER_KEY. ADMIN_PASSWORD debe tener al menos 12 caracteres. DATABASE_URL es la cadena PostgreSQL de Neon.</p>
+</section>
 <section class="card" id="loginCard">
 <h1>Entrar al panel</h1><p>Acceso exclusivo del administrador.</p>
 <form id="loginForm" autocomplete="on">
@@ -24,19 +32,22 @@
 <section class="card">
 <div class="row"><div><h1>Panel de control</h1><p>La clave se cifra en el servidor y nunca se vuelve a mostrar.</p></div><button class="secondary" id="logoutButton">Salir</button></div>
 <div class="stats">
+<div class="stat"><b id="dbState">—</b><span>Base de datos conectada</span></div>
+<div class="stat"><b id="keyState">—</b><span>Clave guardada</span></div>
+<div class="stat"><b id="aiState">—</b><span>IA activa</span></div>
 <div class="stat"><b id="count">—</b><span>Generaciones hoy (UTC)</span></div>
 <div class="stat"><b id="limitView">—</b><span>Tope diario configurado</span></div>
 </div>
 <div class="meter"><i id="meterBar"></i></div>
-<div class="muted" id="keyState">Consultando estado de la clave…</div>
+<div class="muted" id="keyDetail">La clave nunca se vuelve a mostrar.</div>
 </section>
 <section class="card">
-<h2>Clave de OpenAI</h2><p>Pega aquí tu clave secreta. Se envía por conexión HTTPS al servidor, se cifra con AES-256-GCM y se guarda en la base de datos. La respuesta solo confirma los últimos cuatro caracteres.</p>
+<h2>Clave de OpenAI</h2><p>Pega tu clave. TEJILUME la valida con OpenAI, la cifra con AES-256-GCM y solo la guarda si la prueba funciona. El campo se limpia al enviar.</p>
 <form id="keyForm">
-<div class="field"><label for="apiKey">Nueva clave API</label><input id="apiKey" type="password" autocomplete="new-password" autocapitalize="off" spellcheck="false" placeholder="Pega tu clave aquí" required></div>
-<button class="primary" id="saveKeyButton">Guardar clave</button>
+<div class="field"><label for="apiKey">Pegar clave de OpenAI</label><input id="apiKey" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="sk-…" required></div>
+<button class="primary" id="saveKeyButton">Guardar y probar</button>
 </form>
-<div class="actions" style="margin-top:10px"><button class="secondary" id="testButton">Probar conexión</button><button class="secondary" id="refreshButton">Actualizar estado</button></div>
+<div class="actions" style="margin-top:10px"><button class="secondary" id="refreshButton">Actualizar estado</button></div>
 <div class="message hidden" id="keyMessage" role="status"></div>
 </section>
 <section class="card">
@@ -69,9 +80,12 @@ async function refresh(){
  $('limitView').textContent=s.dailyLimit;
  $('dailyLimit').value=s.dailyLimit;
  $('aiEnabled').checked=s.aiEnabled;
+ $('dbState').textContent=s.databaseConnected?'Sí':'No';
+ $('keyState').textContent=s.keySaved?'Guardada ••••'+s.keyLast4:(s.fallbackConfigured?'Respaldo del servidor':'Falta');
+ $('aiState').textContent=s.aiActive?'Sí':'No';
+ $('keyDetail').textContent=s.keySaved?'Clave cifrada en base de datos; solo se muestran los últimos cuatro caracteres.':(s.fallbackConfigured?'Se está usando una clave de respaldo del servidor.':'Pega una clave para activar la IA.');
  const pct=Math.min(100,Math.round((s.generationsToday/Math.max(1,s.dailyLimit))*100));
  $('meterBar').style.width=pct+'%';
- $('keyState').textContent=s.keySaved?'Clave guardada en servidor · terminación •••• '+s.keyLast4:(s.fallbackConfigured?'Sin clave guardada; se usa OPENAI_API_KEY del entorno.':'No hay clave configurada.');
 }
 $('loginForm').addEventListener('submit',async e=>{
  e.preventDefault();const b=$('loginButton');b.disabled=true;b.textContent='Verificando…';
@@ -81,16 +95,10 @@ $('loginForm').addEventListener('submit',async e=>{
 });
 $('keyForm').addEventListener('submit',async e=>{
  e.preventDefault();const b=$('saveKeyButton'),input=$('apiKey'),value=input.value.trim();if(!value)return;
- b.disabled=true;b.textContent='Cifrando y guardando…';input.value='';
+ input.value='';b.disabled=true;b.textContent='Probando y guardando…';
  try{const r=await call('/key',{apiKey:value});message('keyMessage',r.message+' Terminación: •••• '+r.keyLast4,'good');await refresh();}
  catch(err){message('keyMessage',err.message,'bad');}
- finally{b.disabled=false;b.textContent='Guardar clave';}
-});
-$('testButton').addEventListener('click',async()=>{
- const b=$('testButton');b.disabled=true;b.textContent='Probando…';
- try{const r=await call('/test',{});message('keyMessage',r.message+' Fuente: '+(r.source==='admin'?'clave guardada':'clave de respaldo del entorno'),'good');}
- catch(err){message('keyMessage',err.message,'bad');}
- finally{b.disabled=false;b.textContent='Probar conexión';}
+ finally{input.value='';b.disabled=false;b.textContent='Guardar y probar';}
 });
 $('refreshButton').addEventListener('click',async()=>{try{await refresh();message('keyMessage','Estado actualizado.','good')}catch(e){message('keyMessage',e.message,'bad')}});
 $('saveSettingsButton').addEventListener('click',async()=>{
@@ -100,7 +108,14 @@ $('saveSettingsButton').addEventListener('click',async()=>{
  finally{b.disabled=false}
 });
 $('logoutButton').addEventListener('click',async()=>{try{await call('/logout',{})}catch{}showLogin();});
-call('/status').then(()=>{showDashboard();return refresh()}).catch(()=>showLogin());
+call('/setup-status').then(setup=>{
+ if(!setup.configured){
+   $('setupCard').classList.remove('hidden');$('loginCard').classList.add('hidden');$('dashboard').classList.add('hidden');
+   $('setupMessage').textContent=setup.missing.length?'Falta configurar: '+setup.missing.join(', ')+'.':'No se pudo conectar con PostgreSQL.';
+   return;
+ }
+ return call('/status').then(()=>{showDashboard();return refresh()}).catch(()=>showLogin());
+}).catch(()=>{showLogin();message('loginMessage','No se pudo consultar la configuración del servidor.','bad')});
 })();
 </script>
 </body>
