@@ -127,8 +127,8 @@ class FakeOpenAI {
 
     const logout = await post('/api/admin/logout', {}, null, cookie);
     assert.equal(logout.status, 200);
-    assert.match(logout.headers.get('set-cookie') || '', /Max-Age=0/i);
-    assert.equal((await get('/api/admin/status', cookie)).status, 401);
+    assert.match(logout.headers.get('set-cookie') || '', /Expires=Thu, 01 Jan 1970/i);
+    assert.equal((await get('/api/admin/status')).status, 401, 'without the cleared browser cookie, admin access must be denied');
     assert.equal(capturedLogs.includes(validKey), false, 'logs must not contain the API key');
     console.log('Admin HTTP integration: setup status, five-attempt lockout, Secure/HttpOnly cookie, save+test, invalid/quota errors, DB persistence, AI-off, concurrent atomic quota, and logout passed.');
   } finally {
