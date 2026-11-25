@@ -58,15 +58,21 @@ function getCookie(req, name) {
   return '';
 }
 
-function createAdminPanel({ app, pool, publicDir }) {
+function createAdminPanel({ app, pool, publicDir, OpenAIClient = OpenAI }) {
   const adminPassword = String(process.env.ADMIN_PASSWORD || '');
   const sessionSecret = String(process.env.SESSION_SECRET || '');
   const isProduction = process.env.NODE_ENV === 'production' || Boolean(process.env.RENDER);
-  const masterKey = process.env.MASTER_KEY ? parseMasterKey(process.env.MASTER_KEY) : null;
-  if (isProduction && !pool) throw new Error('DATABASE_URL es obligatorio para el panel de administración.');
-  if (isProduction && Buffer.byteLength(adminPassword, 'utf8') < 12) throw new Error('ADMIN_PASSWORD debe tener al menos 12 caracteres.');
-  if (isProduction && Buffer.byteLength(sessionSecret, 'utf8') < 32) throw new Error('SESSION_SECRET debe tener al menos 32 bytes.');
-  if (isProduction && !masterKey) throw new Error('MASTER_KEY es obligatorio en producción.');
+  let masterKey = null;
+  let masterKeyInvalid = false;
+  if (process.env.MASTER_KEY) { try { masterKey = parseMasterKey(process.env.MASTER_KEY); } catch { masterKeyInvalid = true; } }
+  function missingConfiguration() {
+    const missing = [];
+    if (!String(process.env.DATABASE_URL || '').trim()) missing.push('DATABASE_URL');
+    if (Buffer.byteLength(adminPassword, 'utf8') < 12) missing.push('ADMIN_PASSWORD (mínimo 12 caracteres)');
+    if (Buffer.byteLength(sessionSecret, 'utf8') < 32) missing.push('SESSION_SECRET (mínimo 32 bytes)');
+    if (!masterKey || masterKeyInvalid) missing.push('MASTER_KEY (32 bytes; 64 caracteres hexadecimales)');
+    return missing;
+  }
 
   async function init() {
     if (!pool) return;
@@ -128,10 +134,17 @@ function createAdminPanel({ app, pool, publicDir }) {
   }
 
   const router = express.Router();
-  router.use((req, res, next) => { res.set('Cache-Control', 'no-store'); res.set('X-Content-Type-Options', 'nosniff'); next(); });
+  router.use((req, res, next) => { res.set('Cache-Control', 'no-store'); res.set('Pragma', 'no-cache'); res.set('X-Content-Type-Options', 'nosniff'); next(); });
+  router.get('/setup-status', async (req, res) => {
+    let databaseConnected = false;
+    if (pool) { try { await pool.query('SELECT 1'); databaseConnected = true; } catch (error) { console.error('TEJILUME database setup check failed:', error?.code || error?.name || 'unknown'); } }
+    const missing = missingConfiguration();
+    if (!databaseConnected && !missing.includes('DATABASE_URL')) missing.push('Conexión PostgreSQL (revisa DATABASE_URL y el estado de Neon)');
+    res.json({ configured: missing.length === 0 && databaseConnected, missing, databaseConnected, instructions: 'En Render abre tu servicio → Environment → Add Environment Variable. Guarda los cambios y vuelve a desplegar. Genera SESSION_SECRET y MASTER_KEY con Node.js crypto.randomBytes(32).toString(\'hex\').' });
+  });
   router.post('/login', async (req, res) => {
     try {
-      if (!pool || !adminPassword || !sessionSecret) return res.status(503).json({ error: 'Panel administrativo no configurado para este entorno.' });
+      if (!pool || missingConfiguration().length) return res.status(503).json({ error: 'Panel incompleto. Abre el aviso de configuración y revisa las variables obligatorias.' });
       if (!(await attemptAllowed(req))) return res.status(429).json({ error: 'Demasiados intentos. Espera 15 minutos antes de volver a intentar.' });
       const username = String(req.body?.username || '').slice(0, 80);
       const password = String(req.body?.password || '').slice(0, 500);
@@ -168,6 +181,8 @@ function createAdminPanel({ app, pool, publicDir }) {
         keySaved: Boolean(row.key_last4),
         keyLast4: row.key_last4 || null,
         fallbackConfigured: Boolean(process.env.OPENAI_API_KEY),
+        databaseConnected: true,
+        aiActive: Boolean(row.ai_enabled && (row.key_last4 || process.env.OPENAI_API_KEY)),
         aiEnabled: row.ai_enabled,
         dailyLimit: row.daily_limit,
         generationsToday: row.generations
@@ -177,20 +192,45 @@ function createAdminPanel({ app, pool, publicDir }) {
       res.status(503).json({ error: 'No se pudo consultar el estado del panel.' });
     }
   });
-  router.post('/key', requireAdmin, async (req, res) => {
+  async function testOpenAIKey(apiKey) {
     try {
-      const key = String(req.body?.apiKey || '').trim();
-      if (key.length < 20 || key.length > 500 || !/^[A-Za-z0-9_-]+$/.test(key)) return res.status(400).json({ error: 'La clave no tiene un formato válido.' });
-      if (!pool || !masterKey) return res.status(503).json({ error: 'Almacenamiento seguro no configurado.' });
+      const client = new OpenAIClient({ apiKey, timeout: 20000, maxRetries: 0 });
+      const response = await client.responses.create({ model: process.env.OPENAI_MODEL || 'gpt-4o-mini', input: [{ role: 'user', content: 'Responde exactamente: TEJILUME_OK' }] });
+      if (!String(response.output_text || '').includes('TEJILUME_OK')) {
+        const error = new Error('OpenAI respondió, pero la prueba no fue concluyente.');
+        error.publicMessage = 'OpenAI respondió, pero la prueba no fue concluyente. Revisa el modelo configurado.';
+        throw error;
+      }
+      return true;
+    } catch (error) {
+      if (error.publicMessage) throw error;
+      const status = Number(error?.status || 0);
+      const code = String(error?.code || error?.error?.code || '');
+      const type = String(error?.type || error?.error?.type || '');
+      const quota = status === 429 && (code.includes('insufficient_quota') || type.includes('insufficient_quota') || /quota|billing/i.test(String(error?.message || '')));
+      const safe = new Error(quota ? 'La clave es válida, pero la cuenta de OpenAI no tiene cuota o crédito disponible.' : status === 401 || status === 403 ? 'Clave inválida o sin permisos. Comprueba que copiaste la clave correcta.' : status === 429 ? 'OpenAI está limitando temporalmente las solicitudes. Espera y vuelve a probar.' : 'No se pudo conectar con OpenAI. Comprueba internet, modelo y estado del servicio.');
+      safe.publicMessage = safe.message;
+      safe.status = status;
+      throw safe;
+    }
+  }
+  router.post('/key', requireAdmin, async (req, res) => {
+    let key = '';
+    try {
+      key = String(req.body?.apiKey || '').trim();
+      if (key.length < 20 || key.length > 500 || !/^sk-[A-Za-z0-9_-]+$/.test(key)) return res.status(400).json({ error: 'La clave no tiene un formato válido. Debe ser una clave API de OpenAI que comience por sk-.' });
+      if (!pool || !masterKey || missingConfiguration().length) return res.status(503).json({ error: 'Falta configuración del servidor. Revisa las variables obligatorias en el panel.' });
+      await testOpenAIKey(key);
       const encrypted = encryptSecret(key, masterKey);
       await pool.query('UPDATE tejilume_admin_settings SET key_ciphertext=$1,key_iv=$2,key_tag=$3,key_last4=$4,updated_at=NOW() WHERE id=1',
         [encrypted.ciphertext, encrypted.iv, encrypted.tag, key.slice(-4)]);
       res.set('Cache-Control', 'no-store');
-      res.json({ ok: true, keySaved: true, keyLast4: key.slice(-4), message: 'Clave cifrada y guardada en el servidor.' });
+      res.json({ ok: true, keySaved: true, keyLast4: key.slice(-4), tested: true, message: 'Funciona. La clave fue probada y guardada cifrada.' });
     } catch (error) {
-      console.error('TEJILUME admin key save failed:', error?.code || error?.name || 'unknown');
-      res.status(503).json({ error: 'No se pudo guardar la clave. Revisa la conexión segura con la base de datos.' });
-    }
+      console.error('TEJILUME admin save-and-test failed:', error?.status || error?.code || error?.name || 'unknown');
+      const status = error?.status === 429 ? 429 : error?.status === 401 || error?.status === 403 ? 400 : 502;
+      res.status(status).json({ ok: false, error: error?.publicMessage || 'No se pudo guardar y probar la clave. Comprueba la base de datos.' });
+    } finally { key = ''; }
   });
   router.post('/settings', requireAdmin, async (req, res) => {
     const enabled = req.body?.aiEnabled;
@@ -209,17 +249,13 @@ function createAdminPanel({ app, pool, publicDir }) {
   router.post('/test', requireAdmin, async (req, res) => {
     try {
       const apiKey = await resolveApiKey();
-      if (!apiKey) return res.status(503).json({ ok: false, error: 'No hay una clave de OpenAI guardada ni una clave de respaldo en el entorno.' });
-      const client = new OpenAI({ apiKey, timeout: 20000, maxRetries: 0 });
-      const response = await client.responses.create({ model: process.env.OPENAI_MODEL || 'gpt-4o-mini', input: [{ role: 'user', content: 'Responde exactamente: TEJILUME_OK' }] });
-      const output = String(response.output_text || '');
-      if (!output.includes('TEJILUME_OK')) return res.status(502).json({ ok: false, error: 'OpenAI respondió, pero la prueba mínima no fue concluyente.' });
+      if (!apiKey) return res.status(503).json({ ok: false, error: 'No hay una clave de OpenAI guardada.' });
+      await testOpenAIKey(apiKey);
       res.set('Cache-Control', 'no-store');
-      res.json({ ok: true, message: 'La conexión con OpenAI funciona.', source: await keySource() });
+      res.json({ ok: true, message: 'Funciona. La conexión con OpenAI está activa.', source: await keySource() });
     } catch (error) {
-      const status = error?.status === 401 || error?.status === 403 ? 401 : error?.status === 429 ? 429 : 502;
       console.error('TEJILUME OpenAI connection test failed:', error?.status || error?.code || error?.name || 'unknown');
-      res.status(status).json({ ok: false, error: status === 401 ? 'OpenAI rechazó la clave o sus permisos.' : status === 429 ? 'OpenAI alcanzó el límite o la cuota de la cuenta.' : 'No se pudo completar la llamada de prueba a OpenAI.' });
+      res.status(error?.status === 429 ? 429 : 502).json({ ok: false, error: error?.publicMessage || 'No se pudo completar la prueba de OpenAI.' });
     }
   });
   app.use('/api/admin', router);
@@ -287,6 +323,7 @@ function createAdminPanel({ app, pool, publicDir }) {
   }
   async function keyOnlyMiddleware(req, res, next) {
     try {
+      if (pool) { const state = await pool.query('SELECT ai_enabled FROM tejilume_admin_settings WHERE id=1'); if (!state.rows[0]?.ai_enabled) return res.status(503).json({ error: 'La IA está apagada desde el panel de administración.' }); }
       const key = await resolveApiKey();
       req.openAiKey = key;
       next();
