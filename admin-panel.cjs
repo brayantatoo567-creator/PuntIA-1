@@ -53,7 +53,7 @@ function verifyToken(token, secret) {
 function getCookie(req, name) {
   for (const part of String(req.headers.cookie || '').split(';')) {
     const i = part.indexOf('=');
-    if (i > 0 && part.slice(0, i).trim() === name) return decodeURIComponent(part.slice(i + 1).trim());
+    if (i > 0 && part.slice(0, i).trim() === name) { try { return decodeURIComponent(part.slice(i + 1).trim()); } catch { return ''; } }
   }
   return '';
 }
@@ -128,6 +128,7 @@ function createAdminPanel({ app, pool, publicDir }) {
   }
 
   const router = express.Router();
+  router.use((req, res, next) => { res.set('Cache-Control', 'no-store'); res.set('X-Content-Type-Options', 'nosniff'); next(); });
   router.post('/login', async (req, res) => {
     try {
       if (!pool || !adminPassword || !sessionSecret) return res.status(503).json({ error: 'Panel administrativo no configurado para este entorno.' });
@@ -224,6 +225,9 @@ function createAdminPanel({ app, pool, publicDir }) {
   app.use('/api/admin', router);
   app.get('/admin', (req, res) => {
     res.set('Cache-Control', 'no-store');
+    res.set('X-Content-Type-Options', 'nosniff');
+    res.set('Referrer-Policy', 'no-referrer');
+    res.set('X-Frame-Options', 'DENY');
     res.sendFile(require('path').join(publicDir, 'admin.html'));
   });
 
