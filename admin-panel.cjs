@@ -32,7 +32,7 @@ function decryptSecret(record, masterKey) {
   return Buffer.concat([decipher.update(Buffer.from(record.ciphertext, 'base64')), decipher.final()]).toString('utf8');
 }
 function cookieOptions(isProduction) {
-  return { httpOnly: true, secure: isProduction, sameSite: 'strict', path: '/', maxAge: SESSION_MS };
+  return { httpOnly: true, secure: isProduction, sameSite: isProduction ? 'none' : 'lax', path: '/', maxAge: SESSION_MS };
 }
 function makeToken(secret) {
   const now = Date.now();
@@ -149,7 +149,7 @@ function createAdminPanel({ app, pool, publicDir }) {
     }
   });
   router.post('/logout', requireAdmin, (req, res) => {
-    res.clearCookie(COOKIE, { httpOnly: true, secure: isProduction, sameSite: 'strict', path: '/' });
+    res.clearCookie(COOKIE, { httpOnly: true, secure: isProduction, sameSite: isProduction ? 'none' : 'lax', path: '/' });
     res.set('Cache-Control', 'no-store');
     res.json({ ok: true });
   });
