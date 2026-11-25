@@ -1,4 +1,4 @@
-name: PuntIA CI
+name: Imaginaria CI
 
 on:
   push:
@@ -12,243 +12,74 @@ permissions:
 
 jobs:
   test:
-    name: Verificar API de PuntIA
+    name: Verificar aplicación y API
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-
-      - name: Verificar archivos de aplicación
+          cache: npm
+      - name: Verificar archivos y estructura
         run: |
+          set -e
           test -f package.json
           test -f server.js
-          test -f index.html
           test -f public/index.html
-          test -f public/puntia-yarn.svg
+          test -f public/service-worker.js
+          test -f public/manifest.webmanifest
+          test -f pattern-validator.cjs
+          test -f tests/pattern-math.cjs
           cmp -s index.html public/index.html
-          grep -q 'OPENAI_TIMEOUT_MS=45000' .env.example
-          grep -q '/data/puntia-memory.json' .gitignore
-          grep -q 'id="apiSettings"' public/index.html
-          grep -q 'id="processingOverlay"' public/index.html
-          grep -q 'id="openAiKeyInput"' public/index.html
-          grep -q 'id="testApiKey"' public/index.html
-          grep -q 'X-PuntIA-OpenAI-Key' public/index.html
-          grep -q '/api/puntia/test-key' server.js
-          ! grep -q 'id="puntiaMascot"' public/index.html
-          ! grep -q 'reference-mascot' public/index.html
-          grep -q 'const escapeHtml=' public/index.html
-          grep -q 'formatAssistantText(j.pattern' public/index.html
-          grep -q 'formatAssistantText(j.analysis' public/index.html
-          grep -q 'escapeHtml(p\[0\])' public/index.html
-          node <<'NODE'
-          const fs = require('fs');
-          const html = fs.readFileSync('public/index.html', 'utf8');
-          const required = [
-            "$$('.lesson-jump-btn').forEach",
-            "const oldSvgs=$$('.lesson-art .stitch-visual')",
-            "$$('[data-action=",
-            "$$('#drawerNav button').forEach"
-          ];
-          for (const selector of required) {
-            if (!html.includes(selector)) throw new Error('Falta selector de colección: ' + selector);
+          grep -q 'Imaginaria' public/index.html
+          grep -q 'id="createForm"' public/index.html
+          grep -q 'id="adminPanel"' public/index.html
+          grep -q '/api/imaginaria/create' public/index.html
+          grep -q '/api/imaginaria/step-image' public/index.html
+          grep -q 'OPENAI_IMAGE_MODEL=gpt-image-1' .env.example
+          node -e "const p=require('./package.json');if(p.name!=='imaginaria'||!p.dependencies?.express||!p.dependencies?.openai||!p.dependencies?.multer)process.exit(1)"
+          node -e "const m=JSON.parse(require('fs').readFileSync('public/manifest.webmanifest','utf8'));if(m.short_name!=='Imaginaria'||m.start_url!=='/'||m.display!=='standalone')process.exit(1)"
+          node - <<'NODE'
+          const fs=require('fs');
+          const html=fs.readFileSync('public/index.html','utf8');
+          const scripts=[...html.matchAll(/<script>([\\s\\S]*?)<\\/script>/g)];
+          if(scripts.length!==1) throw new Error('Se esperaba un único script de aplicación');
+          fs.writeFileSync('/tmp/imaginaria-ui.js',scripts[0][1]);
+          for(const id of ['createForm','createBtn','result','visualGrid','adminPanel','apiBase','apiKey']) {
+            if(!html.includes('id="'+id+'"')) throw new Error('Falta elemento '+id);
           }
-          const invalid = [
-            "function renderLesson(){const l=crochetLessons[lessonIndex];$('.lesson-jump-btn').forEach",
-            "const oldSvgs=$('.lesson-art .stitch-visual')",
-            ";$('[data-action=",
-            ";$('#drawerNav button').forEach"
-          ];
-          for (const selector of invalid) {
-            if (html.includes(selector)) throw new Error('Selector de elemento único usado como colección: ' + selector);
-          }
-          if (!html.includes('id="apiSettings"') || !html.includes('id="processingOverlay"')) throw new Error('Falta panel API o indicador de procesamiento');
-          if (/<[^>]+id="puntiaMascot"/.test(html) || /<[^>]+class="[^"]*reference-mascot/.test(html)) throw new Error('La interfaz todavía incluye la mascota');
-          console.log('Interfaz comercial sin mascota, panel API e indicador de procesamiento verificados');
+          console.log('Estructura de interfaz Imaginaria verificada');
           NODE
-          node -e "const p=require('./package.json'); if(!p.dependencies?.express || !p.dependencies?.openai || !p.dependencies?.multer) process.exit(1)"
-
-      - name: Verificar configuración Android y backend de despliegue
-        run: |
-          node <<'NODE'
-          const fs = require('fs');
-          const workflow = fs.readFileSync('.github/workflows/android-apk.yml', 'utf8');
-          if (!workflow.includes('https://puntia-beta.onrender.com')) throw new Error('El APK no apunta al backend Render actual');
-          if (workflow.includes('puntia-validation-production.up.railway.app')) throw new Error('El APK conserva una URL antigua de Railway');
-          if (!workflow.includes('release/mvp-beta-2026-11')) throw new Error('El workflow Android no se activa desde la rama release');
-          const root = fs.readFileSync('index.html', 'utf8');
-          const web = fs.readFileSync('public/index.html', 'utf8');
-          if (root !== web) throw new Error('Los puntos de entrada raíz y público están desincronizados');
-          console.log('Configuración Android, URL Render y entrypoints verificados');
-          NODE
-
       - name: Instalar dependencias
         run: npm install --no-audit --no-fund
-
-      - name: Comprobar sintaxis del backend y frontend
+      - name: Comprobar sintaxis y reglas de crochet
         run: |
           node --check server.js
           node --check public/service-worker.js
           node --check public/config.js
-          node -e "const fs=require('fs');const manifest=JSON.parse(fs.readFileSync('public/manifest.webmanifest','utf8'));if(manifest.start_url!=='/'||manifest.display!=='standalone'||!manifest.icons?.length||manifest.icons.some(icon=>icon.src.includes('mascota')))throw Error('Manifest de PuntIA incompleto o conserva el icono anterior');const html=fs.readFileSync('public/index.html','utf8');if(!html.includes('manifest.webmanifest')||!html.includes('serviceWorker.register'))throw Error('Falta registrar manifest o service worker');if(fs.readFileSync('index.html','utf8')!==html)throw Error('index.html y public/index.html deben ser idénticos');console.log('PuntIA PWA manifest, service worker y entrypoints verificados');"
-          cp public/puntia-virtual.js /tmp/puntia-virtual.mjs
-          node --check /tmp/puntia-virtual.mjs
-          node -e "const fs=require('fs');const html=fs.readFileSync('public/index.html','utf8');const m=html.match(/<script>([\\s\\S]*?)<\\/script>/);if(!m)throw Error('No se encontró el script de la interfaz');fs.writeFileSync('/tmp/puntia-ui.js',m[1])"
-          node --check /tmp/puntia-ui.js
-
-      - name: Validar aritmética de rondas de crochet
-        run: node tests/pattern-math.cjs
-
-      - name: Instalar Chromium para pruebas de interfaz
-        run: |
-          npm install --no-save --no-audit --no-fund playwright
-          npx playwright install chromium
-
-      - name: Pruebas de interfaz en escritorio y móvil
-        run: node tests/ui-smoke.cjs
-
-      - name: Guardar capturas de la interfaz
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: puntia-ui-smoke-screenshots
-          path: test-artifacts/
-          if-no-files-found: ignore
-
-      - name: Probar endpoints y validaciones
+          node --check /tmp/imaginaria-ui.js
+          npm run check
+      - name: Probar API y rutas de creación
         shell: bash
         run: |
           set -euo pipefail
-          trap 'echo "ERROR en línea ${LINENO}: ${BASH_COMMAND}" >&2' ERR
-          PORT=8080 node server.js > /tmp/puntia.log 2>&1 &
-          SERVER_PID=$!
-          trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
-
+          PORT=8080 node server.js >/tmp/imaginaria.log 2>&1 &
+          PID=$!
+          trap 'kill "$PID" 2>/dev/null || true' EXIT
           READY=0
           for i in {1..30}; do
-            if curl -fsS http://127.0.0.1:8080/api/health > /tmp/health.json; then READY=1; break; fi
+            if curl -fsS http://127.0.0.1:8080/api/health >/tmp/health.json; then READY=1; break; fi
             sleep 2
           done
-          if [ "$READY" -ne 1 ]; then cat /tmp/puntia.log; exit 1; fi
-
-          # Capacitor Android uses a separate WebView origin and credentialed CORS.
-          STATUS=$(curl -s -o /tmp/cors-preflight.txt -D /tmp/cors-headers.txt -w '%{http_code}' -X OPTIONS http://127.0.0.1:8080/api/puntia/chat -H 'Origin: https://localhost' -H 'Access-Control-Request-Method: POST' -H 'Access-Control-Request-Headers: content-type')
-          test "$STATUS" = "204"
-          grep -qi '^Access-Control-Allow-Origin: https://localhost' /tmp/cors-headers.txt
-          grep -qi '^Access-Control-Allow-Credentials: true' /tmp/cors-headers.txt
-          STATUS=$(curl -s -o /tmp/cors-denied.json -w '%{http_code}' http://127.0.0.1:8080/api/health -H 'Origin: https://evil.example')
-          test "$STATUS" = "403"
-
-          STATUS=$(curl -s -o /tmp/home.html -w '%{http_code}' http://127.0.0.1:8080/)
-          test "$STATUS" = "200"
-          grep -q 'PuntIA' /tmp/home.html
-
-          STATUS=$(curl -s -o /tmp/api-not-found.json -w '%{http_code}' http://127.0.0.1:8080/api/route-that-does-not-exist)
+          if [ "$READY" -ne 1 ]; then cat /tmp/imaginaria.log; exit 1; fi
+          curl -fsS http://127.0.0.1:8080/ >/tmp/home.html
+          grep -q 'Imaginaria' /tmp/home.html
+          STATUS=$(curl -s -o /tmp/create-empty.json -w '%{http_code}' -H 'Content-Type: application/json' -d '{}' http://127.0.0.1:8080/api/imaginaria/create)
+          test "$STATUS" = "400"
+          STATUS=$(curl -s -o /tmp/create-no-key.json -w '%{http_code}' -H 'Content-Type: application/json' -d '{"idea":"un pulpo astronauta"}' http://127.0.0.1:8080/api/imaginaria/create)
+          test "$STATUS" = "503"
+          STATUS=$(curl -s -o /tmp/image-no-key.json -w '%{http_code}' -H 'Content-Type: application/json' -d '{"stage":"cuerpo","step":"tejer el cuerpo","context":"pulpo astronauta"}' http://127.0.0.1:8080/api/imaginaria/step-image)
+          test "$STATUS" = "503"
+          STATUS=$(curl -s -o /tmp/unknown.json -w '%{http_code}' http://127.0.0.1:8080/api/no-existe)
           test "$STATUS" = "404"
-          node -e "const e=require('/tmp/api-not-found.json'); if(!e.error || !e.error.includes('Ruta API no encontrada')) process.exit(1)"
-
-
-          node -e "const h=require('/tmp/health.json'); if(h.ok!==true) process.exit(1); if(typeof h.ai!=='boolean') process.exit(1); console.log('Health endpoint schema OK; AI key configured:',h.ai)"
-
-          STATUS=$(curl -s -o /tmp/chat-empty.json -w '%{http_code}' -H 'Content-Type: application/json' -d '{"message":"   "}' http://127.0.0.1:8080/api/puntia/chat)
-          test "$STATUS" = "400"
-
-
-          STATUS=$(curl -s -o /tmp/chat-unconfigured.json -w '%{http_code}' -H 'Content-Type: application/json' -d '{"message":"Ayúdame con un patrón de crochet"}' http://127.0.0.1:8080/api/puntia/chat)
-          test "$STATUS" = "503"
-          node -e "const e=require('/tmp/chat-unconfigured.json'); if(!e.error || !e.error.includes('no está configurada')) process.exit(1)"
-
-          STATUS=$(curl -s -o /tmp/test-key-unconfigured.json -w '%{http_code}' -H 'Content-Type: application/json' -d '{}' http://127.0.0.1:8080/api/puntia/test-key)
-          test "$STATUS" = "503"
-
-          STATUS=$(curl -s -o /tmp/pattern-unconfigured.json -w '%{http_code}' -H 'Content-Type: application/json' -d '{"name":"conejo"}' http://127.0.0.1:8080/api/puntia/generate-pattern)
-          test "$STATUS" = "503"
-
-          STATUS=$(curl -s -o /tmp/diagnose-empty.json -w '%{http_code}' -X POST http://127.0.0.1:8080/api/puntia/diagnose)
-          test "$STATUS" = "400"
-
-          # Memory access must be bound to signed, HttpOnly cookies, not client-supplied IDs.
-          curl -fsS -c /tmp/puntia-session-a.cookie -b /tmp/puntia-session-a.cookie http://127.0.0.1:8080/api/health >/dev/null
-          curl -fsS -c /tmp/puntia-session-b.cookie -b /tmp/puntia-session-b.cookie http://127.0.0.1:8080/api/health >/dev/null
-          COOKIE_A=$(awk '$6=="puntia_sid"{print $6"="$7}' /tmp/puntia-session-a.cookie)
-          COOKIE_B=$(awk '$6=="puntia_sid"{print $6"="$7}' /tmp/puntia-session-b.cookie)
-          test -n "$COOKIE_A"
-          test -n "$COOKIE_B"
-          test "$COOKIE_A" != "$COOKIE_B"
-
-          # 30 requests per session are allowed; the next one is throttled before AI is called.
-          for i in {1..31}; do
-            STATUS=$(curl -s -o /tmp/chat-rate-limit.json -w '%{http_code}' -b "$COOKIE_A" -H 'Content-Type: application/json' -d '{"message":"rate limit test"}' http://127.0.0.1:8080/api/puntia/chat)
-            if [ "$i" -le 30 ]; then test "$STATUS" = "503"; else test "$STATUS" = "429"; fi
-          done
-
-          STATUS=$(curl -s -o /tmp/memory-empty.json -w '%{http_code}' -b "$COOKIE_A" http://127.0.0.1:8080/api/puntia/memory/demo-user)
-          test "$STATUS" = "200"
-          node -e "const m=require('/tmp/memory-empty.json'); if((m.items||[]).length!==0) process.exit(1)"
-          STATUS=$(curl -s -o /tmp/memory-no-content.json -w '%{http_code}' -b "$COOKIE_A" -H 'Content-Type: application/json' -d '{"content":"   ","userId":"attacker-selected-id"}' http://127.0.0.1:8080/api/puntia/memory)
-          test "$STATUS" = "400"
-
-          STATUS=$(curl -s -o /tmp/memory-save.json -w '%{http_code}' -b "$COOKIE_A" -H 'Content-Type: application/json' -d '{"userId":"attacker-selected-id","content":"memory isolation test"}' http://127.0.0.1:8080/api/puntia/memory)
-          test "$STATUS" = "200"
-
-          # Cookie-authenticated mutations must reject a foreign Origin.
-          STATUS=$(curl -s -o /tmp/memory-csrf-post.json -w '%{http_code}' -b "$COOKIE_A" -H 'Origin: https://evil.example' -H 'Content-Type: application/json' -d '{"content":"cross origin attempt"}' http://127.0.0.1:8080/api/puntia/memory)
-          test "$STATUS" = "403"
-          STATUS=$(curl -s -o /tmp/memory-csrf-delete.json -w '%{http_code}' -X DELETE -b "$COOKIE_B" -H 'Origin: https://evil.example' http://127.0.0.1:8080/api/puntia/memory/demo-user)
-          test "$STATUS" = "403"
-          COOKIE_A="$COOKIE_A" node <<'NODE'
-          (async()=>{
-            const cookie=process.env.COOKIE_A;
-            const base='http://127.0.0.1:8080/api/puntia/memory';
-            const writes=await Promise.all(Array.from({length:16},(_,i)=>fetch(base,{
-              method:'POST',
-              headers:{'Content-Type':'application/json','Cookie':cookie},
-              body:JSON.stringify({userId:'attacker-selected-id',content:'parallel memory test '+i,category:'ci'})
-            })));
-            if(writes.some(r=>!r.ok)) throw new Error('Una escritura concurrente de memoria falló');
-            const response=await fetch(base+'/attacker-selected-id',{headers:{Cookie:cookie}});
-            if(!response.ok) throw new Error('No se pudo leer la memoria tras escrituras concurrentes');
-            const items=(await response.json()).items||[];
-            const saved=items.filter(x=>/^parallel memory test [0-9]+$/.test(x.content));
-            if(saved.length!==16) throw new Error('Se perdieron escrituras concurrentes: '+saved.length+'/16');
-            if(!items.some(x=>x.content==='memory isolation test')) throw new Error('La memoria inicial no se preservó');
-            console.log('Memoria concurrente verificada: 16/16 entradas preservadas');
-          })().catch(e=>{console.error(e);process.exit(1)});
-          NODE
-
-          STATUS=$(curl -s -o /tmp/memory-other-session.json -w '%{http_code}' -b "$COOKIE_B" http://127.0.0.1:8080/api/puntia/memory/demo-user)
-          test "$STATUS" = "200"
-          node -e "const m=require('/tmp/memory-other-session.json'); if((m.items||[]).length!==0) process.exit(1)"
-          STATUS=$(curl -s -o /tmp/memory-delete-other.json -w '%{http_code}' -X DELETE -b "$COOKIE_B" http://127.0.0.1:8080/api/puntia/memory/demo-user)
-          test "$STATUS" = "200"
-          STATUS=$(curl -s -o /tmp/memory-read.json -w '%{http_code}' -b "$COOKIE_A" http://127.0.0.1:8080/api/puntia/memory/demo-user)
-          test "$STATUS" = "200"
-          node -e "const m=require('/tmp/memory-read.json'); if(!m.items?.some(x=>x.content==='memory isolation test')) process.exit(1); if(m.items.filter(x=>/^parallel memory test [0-9]+$/.test(x.content)).length!==16) process.exit(1)"
-          STATUS=$(curl -s -o /tmp/memory-delete.json -w '%{http_code}' -X DELETE -b "$COOKIE_A" http://127.0.0.1:8080/api/puntia/memory/demo-user)
-          test "$STATUS" = "200"
-          STATUS=$(curl -s -o /tmp/memory-after-delete.json -w '%{http_code}' -b "$COOKIE_A" http://127.0.0.1:8080/api/puntia/memory/demo-user)
-          test "$STATUS" = "200"
-          node -e "const m=require('/tmp/memory-after-delete.json'); if((m.items||[]).length!==0) process.exit(1)"
-
-          STATUS=$(curl -s -o /tmp/chat-long.json -w '%{http_code}' -H 'Content-Type: application/json' --data-binary "$(node -e 'process.stdout.write(JSON.stringify({message: "x".repeat(8001)}))')" http://127.0.0.1:8080/api/puntia/chat)
-          test "$STATUS" = "413"
-
-          STATUS=$(curl -s -o /tmp/diagnose-invalid-type.json -w '%{http_code}' -F 'image=@.github/workflows/ci.yml;type=text/plain' http://127.0.0.1:8080/api/puntia/diagnose)
-          test "$STATUS" = "415"
-
-          # A forged MIME header must not make arbitrary bytes pass as an image.
-          printf 'not-an-image' > /tmp/fake-image.png
-          STATUS=$(curl -s -o /tmp/diagnose-fake-image.json -w '%{http_code}' -F 'image=@/tmp/fake-image.png;type=image/png' http://127.0.0.1:8080/api/puntia/diagnose)
-          test "$STATUS" = "415"
-          node -e "const e=require('/tmp/diagnose-fake-image.json'); if(!e.error || !e.error.includes('no coincide')) process.exit(1)"
-
-          # Production must fail closed if its persistent session secret is missing.
-          if env -u PUNTIA_SESSION_SECRET DATABASE_URL='postgresql://ci:ci@127.0.0.1:5432/ci' RAILWAY_ENVIRONMENT=production node server.js >/tmp/puntia-missing-secret.log 2>&1; then
-            echo "ERROR: production started without PUNTIA_SESSION_SECRET"
-            exit 1
-          fi
-          grep -q 'PUNTIA_SESSION_SECRET es obligatorio en producción' /tmp/puntia-missing-secret.log
-
-          echo "Health, session isolation, CSRF, production secret and negative-path API checks passed."
+          echo "Rutas de Imaginaria y respuestas sin credenciales verificadas."
