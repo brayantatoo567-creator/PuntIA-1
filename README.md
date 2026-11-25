@@ -9,7 +9,7 @@ TEJILUME convierte ideas escritas o fotografías en proyectos de crochet y amigu
 - Abre https://TU-DOMINIO.onrender.com/admin desde el celular.
 - Usuario fijo: `admin`.
 - La contraseña se define en `ADMIN_PASSWORD`.
-- Sesión firmada con `SESSION_SECRET`, cookie `HttpOnly`, `Secure` en producción, `SameSite=Strict` y duración máxima de 12 horas.
+- Sesión firmada con `SESSION_SECRET`, cookie `HttpOnly`, `Secure` y `SameSite=None` en producción (necesario para el acceso desde Android WebView); en desarrollo usa `SameSite=Lax`. La duración máxima es de 12 horas.
 - Cinco intentos fallidos por IP provocan bloqueo durante 15 minutos; los intentos se registran en PostgreSQL.
 - Guarda una clave de OpenAI desde el teléfono. El servidor la cifra con AES-256-GCM y `MASTER_KEY` antes de guardarla. El panel solo recibe el indicador de los últimos cuatro caracteres.
 - La clave guardada tiene prioridad. Si no existe, se usa `OPENAI_API_KEY` del entorno como respaldo.
