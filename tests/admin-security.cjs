@@ -1,0 +1,22 @@
+'use strict';
+const assert = require('node:assert/strict');
+const crypto = require('node:crypto');
+const { encryptSecret, decryptSecret, parseMasterKey, verifyToken } = require('../admin-panel.cjs');
+
+const master = crypto.randomBytes(32);
+const secret = 'sk-proj-TEJILUME-TEST-KEY-DO-NOT-USE';
+const encrypted = encryptSecret(secret, master);
+assert.notEqual(encrypted.ciphertext, Buffer.from(secret).toString('base64'));
+assert.equal(decryptSecret(encrypted, master), secret);
+assert.throws(() => decryptSecret({ ...encrypted, tag: crypto.randomBytes(16).toString('base64') }, master));
+assert.throws(() => decryptSecret(encrypted, crypto.randomBytes(32)));
+assert.equal(parseMasterKey(master.toString('hex')).length, 32);
+assert.equal(parseMasterKey(master.toString('base64')).length, 32);
+assert.throws(() => parseMasterKey('short'));
+const sessionSecret = crypto.randomBytes(32).toString('hex');
+const payload = Buffer.from(JSON.stringify({ iat: Date.now(), exp: Date.now() + 60000, nonce: crypto.randomBytes(24).toString('hex') })).toString('base64url');
+const signature = crypto.createHmac('sha256', sessionSecret).update(payload).digest('base64url');
+assert.equal(verifyToken(payload + '.' + signature, sessionSecret), true);
+assert.equal(verifyToken(payload + '.tampered', sessionSecret), false);
+assert.equal(verifyToken(payload + '.' + signature, 'wrong-secret'), false);
+console.log('Admin security tests: AES-256-GCM round-trip, tamper rejection, key formats and signed session validation passed.');
