@@ -60,6 +60,8 @@ class FakeOpenAI {
   try {
     const setup = await (await get('/api/admin/setup-status')).json();
     assert.equal(setup.configured, true, 'required configuration and PostgreSQL must be detected');
+    assert.equal(setup.databaseConnected, true);
+    assert.equal(setup.tablesReady, true, 'all three admin tables must be created automatically at startup');
 
     for (let i = 1; i <= 5; i++) {
       const bad = await post('/api/admin/login', { username: 'admin', password: 'wrong-password' }, '203.0.113.77');
