@@ -55,6 +55,7 @@ Configura estas variables en el backend:
 - `OPENAI_VISION_MODEL` (opcional; valor por defecto `gpt-4o`).
 - `OPENAI_TIMEOUT_MS` (opcional; valor por defecto 45000).
 - `PUNTIA_DATA_DIR` (recomendado; ruta del volumen persistente para memoria).
+- `PUNTIA_ALLOWED_ORIGINS` (opcional; orígenes web permitidos separados por comas; Capacitor Android ya permite `https://localhost`).
 - `DIAGNOSTICS_TOKEN` (opcional; habilita el diagnóstico administrativo protegido).
 
 **Persistencia:** la memoria se escribe en un archivo JSON. En Railway, monta un volumen persistente y configura `PUNTIA_DATA_DIR` con la ruta de montaje. Sin volumen persistente, la memoria puede perderse al recrear el contenedor. Para producción con múltiples instancias, migra la memoria a una base de datos compartida.
