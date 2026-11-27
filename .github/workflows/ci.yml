@@ -24,6 +24,7 @@ jobs:
       - name: Verificar archivos de aplicación
         run: |
           test -f package.json
+          test -f capacitor.config.json
           test -f server.js
           test -f index.html
           test -f public/index.html
@@ -40,6 +41,8 @@ jobs:
           grep -q 'formatAssistantText(j.pattern' public/index.html
           grep -q 'formatAssistantText(j.analysis' public/index.html
           grep -q 'exportPatternPdf' public/index.html
+          grep -q 'src="/config.js"' public/index.html
+          grep -q "fetch(apiUrl('/api/puntia/chat')" public/index.html
           grep -q 'escapeHtml(p\[0\])' public/index.html
           node <<'NODE'
           const fs = require('fs');
@@ -83,8 +86,8 @@ jobs:
           node -e "const fs=require('fs');const html=fs.readFileSync('public/index.html','utf8');const m=html.match(/<script>([\\s\\S]*?)<\\/script>/);if(!m)throw Error('No se encontró el script de la interfaz');fs.writeFileSync('/tmp/puntia-ui.js',m[1])"
           node --check /tmp/puntia-ui.js
 
-      - name: Validar aritmética de rondas de crochet
-        run: node tests/pattern-math.cjs
+      - name: Ejecutar pruebas de aceptación y aritmética
+        run: npm test
 
       - name: Instalar Chromium para pruebas de interfaz
         run: |
