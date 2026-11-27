@@ -1,7 +1,6 @@
 const express=require('express');
 const multer=require('multer');
 const OpenAI=require('openai');
-const PDFDocument=require('pdfkit');
 const path=require('path');
 const { validatePattern } = require('./pattern-validator.cjs');
 const app=express();
@@ -19,33 +18,6 @@ function textField(value,fallback,max){const v=String(value??fallback).trim();re
 function validMemoryUserId(value){const id=String(value||'').trim();return id.length>=32&&id.length<=100&&/^[a-zA-Z0-9_-]+$/.test(id)&&id!=='demo-user';}
 app.post('/api/puntia/chat',async(req,res)=>{try{const message=String(req.body?.message||'').trim();if(!message)return res.status(400).json({error:'Escribe un mensaje.'});if(message.length>8000)return res.status(413).json({error:'El mensaje supera el límite de 8000 caracteres.'});const rawUserId=String(req.body?.userId||'').trim();if(rawUserId&&!validMemoryUserId(rawUserId))return res.status(400).json({error:'Identificador de sesión no válido.'});const userId=rawUserId;const db=userId?readMemory():{};const memories=userId?(db[userId]||[]).slice(-12).map(x=>x.content).join('\n'):'';const context=memories?'Memoria relevante y reciente del usuario (úsala solo si ayuda):\n'+memories+'\n\nMensaje actual: '+message:message;const reply=await responseText([{role:'user',content:context}]);if(userId){db[userId]=db[userId]||[];db[userId].push({content:'Usuario: '+message,category:'conversation',createdAt:new Date().toISOString()},{content:'PuntIA: '+reply,category:'assistant_reply',createdAt:new Date().toISOString()});db[userId]=db[userId].slice(-200);writeMemory(db);}res.json({reply,emotion:emotionFor(reply),memorySaved:Boolean(userId)})}catch(e){return sendApiError(res,e,'No se pudo responder. Inténtalo de nuevo.')}});
 app.post('/api/puntia/generate-pattern',async(req,res)=>{try{const name=textField(req.body?.name,'amigurumi',160),level=textField(req.body?.level,'Intermedio',60),height=textField(req.body?.height,'15 cm',40),style=textField(req.body?.style,'tierno y clásico',120),caseId=textField(req.body?.caseId,'',80);const pandaSpec=caseId==='PUNTIA-PANDA-001'?'CASO DE ACEPTACIÓN PUNTIA-PANDA-001: recrea un panda hamburguesero de aproximadamente 19 cm. Nivel intermedio, piezas separadas cosidas. Incluye cabeza blanca ancha, orejas negras, parches oculares negros, hocico, mejillas rosas, polo naranja con cuello, mangas y botones, brazos y manos negras, pantalón azul marino, tenis negros/blancos y gorra naranja con visera. Entrega cada pieza vuelta por vuelta, con instrucción, puntos consumidos y total final; explica posición y método de costura. No afirmes haber analizado una foto si no se adjuntó en esta solicitud.':' ';const prompt=`Genera un patrón de crochet/amigurumi que pueda seguirse y comprobarse para: ${name}. Nivel: ${level}. Tamaño aproximado: ${height}. Estilo: ${style}. ${pandaSpec} Responde en español y usa esta estructura: 1) materiales con cantidades aproximadas; 2) abreviaturas; 3) piezas separadas con rondas numeradas; 4) cada ronda indica puntos y total final entre paréntesis; 5) instrucciones de relleno y ensamblaje; 6) consejos de seguridad si es un juguete infantil. Mantén coherencia matemática entre aumentos, disminuciones y conteos. No afirmes que el patrón fue probado físicamente. Si una cuenta no cuadra, corrígela antes de responder.`;const pattern=await responseText([{role:'user',content:prompt}]);if(pattern.length<80)return res.status(502).json({error:'La respuesta generada fue demasiado corta. Inténtalo de nuevo.'});const validation=validatePattern(pattern);res.json({pattern,name,height,level,validation:{checkedRounds:validation.checkedRounds,validRounds:validation.validRounds,invalidRounds:validation.invalidRounds,unverifiedRounds:validation.unverifiedRounds,results:validation.results}})}catch(e){return sendApiError(res,e,'No se pudo generar el patrón. Inténtalo de nuevo.')}});
-app.post('/api/puntia/export-pdf',async(req,res)=>{
-  try{
-    const name=textField(req.body?.name,'Patrón de crochet',120);
-    const height=textField(req.body?.height,'No especificado',40);
-    const level=textField(req.body?.level,'Intermedio',40);
-    const pattern=String(req.body?.pattern||'').trim();
-    if(!pattern)return res.status(400).json({error:'Falta el contenido del patrón.'});
-    if(pattern.length>60000)return res.status(413).json({error:'El patrón supera el límite de 60,000 caracteres.'});
-    const audit=validatePattern(pattern);
-    if(!audit.checkedRounds)return res.status(422).json({error:'No se detectaron vueltas numeradas verificables. Corrige el formato antes de exportar.'});
-    if(audit.invalidRounds||audit.unverifiedRounds)return res.status(422).json({error:'El patrón tiene vueltas incorrectas o no verificables. Corrige la auditoría antes de exportar.',validation:audit});
-    const pdf=new PDFDocument({size:'A4',margins:{top:54,bottom:54,left:52,right:52},info:{Title:name,Author:'PuntIA',Subject:'Patrón de crochet validado aritméticamente'}});
-    const chunks=[];
-    pdf.on('data',chunk=>chunks.push(chunk));
-    pdf.on('end',()=>{const buffer=Buffer.concat(chunks);res.setHeader('Content-Type','application/pdf');res.setHeader('Content-Disposition','attachment; filename="puntia-patron.pdf"');res.setHeader('Content-Length',buffer.length);res.send(buffer);});
-    pdf.fillColor('#E9781B').font('Helvetica-Bold').fontSize(22).text(name,{align:'center'});
-    pdf.moveDown(0.4).fillColor('#34231D').font('Helvetica').fontSize(10).text('PuntIA | Patrón de crochet',{align:'center'});
-    pdf.moveDown(0.5).fontSize(9).text('Tamaño: '+height+' | Nivel: '+level,{align:'center'});
-    pdf.moveDown().strokeColor('#E9B7C8').moveTo(52,pdf.y).lineTo(543,pdf.y).stroke();
-    pdf.moveDown().fillColor('#34231D').font('Helvetica-Bold').fontSize(12).text('Auditoría automática');
-    pdf.font('Helvetica').fontSize(9).text('Vueltas revisadas: '+audit.checkedRounds+' | Correctas: '+audit.validRounds+' | Incorrectas: 0 | No verificables: 0');
-    pdf.moveDown().font('Helvetica-Bold').fontSize(12).text('Instrucciones');
-    pdf.moveDown(0.3).font('Helvetica').fontSize(9).text(pattern,{lineGap:3});
-    pdf.moveDown().fillColor('#655A53').fontSize(8).text('Nota: la auditoría comprueba conteos y continuidad reconocibles; no certifica geometría, ajuste entre piezas ni tejido físico.',{align:'left'});
-    pdf.end();
-  }catch(e){return sendApiError(res,e,'No se pudo exportar el patrón a PDF.');}
-});
 app.post('/api/puntia/diagnose',upload.single('image'),async(req,res)=>{try{if(!req.file)return res.status(400).json({error:'Falta la imagen.'});if(!client)return res.status(503).json({error:'OPENAI_API_KEY no configurada'});const b64=req.file.buffer.toString('base64');const data=`data:${req.file.mimetype};base64,${b64}`;const r=await client.responses.create({model:VISION_MODEL,instructions:`${SYSTEM}\nAnaliza la imagen de tejido como instructor de crochet. Identifica solamente problemas visibles o indica que no son concluyentes. Explica: problema, dónde, por qué puede ocurrir, cómo corregirlo y cómo evitarlo.`,input:[{role:'user',content:[{type:'input_text',text:'Analiza esta pieza de crochet y dame un diagnóstico práctico.'},{type:'input_image',image_url:data}]}]});res.json({analysis:r.output_text||'No fue posible obtener un análisis.'})}catch(e){return sendApiError(res,e,'No se pudo analizar la imagen. Verifica el archivo e inténtalo de nuevo.')}});
 // --- PuntIA virtual companion: persistent memory and emotion state ---
 const fs=require('fs');
