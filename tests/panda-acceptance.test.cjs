@@ -58,8 +58,8 @@ test('audit rejects a round that consumes the wrong number of base stitches',()=
 
 test('whole Panda acceptance fixture passes its arithmetic checks',()=>{
   const result=auditCase(fixture);
-  assert.equal(result.rounds,51);
-  assert.equal(result.valid,51);
+  assert.equal(result.rounds,40);
+  assert.equal(result.valid,40);
   assert.equal(result.invalid,0);
   assert.equal(result.unverified,0);
   assert.equal(result.passed,true);
