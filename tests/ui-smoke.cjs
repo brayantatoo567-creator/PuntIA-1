@@ -46,7 +46,7 @@ async function waitForServer() {
     });
     await page.route('**/api/puntia/generate-pattern', route => route.fulfill({
       status: 200, contentType: 'application/json',
-      body: JSON.stringify({ pattern: 'Patrón de prueba: 6 pb en anillo mágico.' })
+      body: JSON.stringify({ pattern: 'Patrón de prueba: 6 pb en anillo mágico.', validation: { checkedRounds: 3, validRounds: 2, invalidRounds: 1, unverifiedRounds: 0, results: [{ line: 'Vuelta 2: (1 pb, 1 aum) x 6 (18)', status: 'invalid', reason: 'La vuelta consume 12 puntos, pero la vuelta anterior terminó con 6.' }] } })
     }));
     await page.route('**/api/puntia/diagnose', route => route.fulfill({
       status: 200, contentType: 'application/json',
@@ -125,6 +125,8 @@ async function waitForServer() {
     await page.locator('#patternName').fill('Conejito de prueba');
     await page.locator('#generateBtn').click();
     await page.getByText(/Patrón de prueba: 6 pb en anillo mágico/).waitFor({ state: 'visible' });
+    await page.getByText('NO APROBADO: hay conteos o continuidad incorrectos').waitFor({ state: 'visible' });
+    if (!(await page.locator('#usePattern').isDisabled())) throw new Error('PuntIA permitió guardar un patrón con auditoría fallida.');
     await page.locator('#modalClose').click();
 
     // Crochet validator: compare computed counts with declared round totals.
