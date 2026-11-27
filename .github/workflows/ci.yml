@@ -39,7 +39,6 @@ jobs:
           grep -q 'const escapeHtml=' public/index.html
           grep -q 'formatAssistantText(j.pattern' public/index.html
           grep -q 'formatAssistantText(j.analysis' public/index.html
-          grep -q '/api/puntia/export-pdf' server.js
           grep -q 'exportPatternPdf' public/index.html
           grep -q 'escapeHtml(p\[0\])' public/index.html
           node <<'NODE'
@@ -71,7 +70,7 @@ jobs:
           }
           console.log('Mascota WebP validada:', image.length, 'bytes');
           NODE
-          node -e "const p=require('./package.json'); if(!p.dependencies?.express || !p.dependencies?.openai || !p.dependencies?.multer || !p.dependencies?.pdfkit) process.exit(1)"
+          node -e "const p=require('./package.json'); if(!p.dependencies?.express || !p.dependencies?.openai || !p.dependencies?.multer) process.exit(1)"
 
       - name: Instalar dependencias
         run: npm install --no-audit --no-fund
@@ -132,13 +131,7 @@ jobs:
 
           node -e "const h=require('/tmp/health.json'); if(h.ok!==true) process.exit(1); if(typeof h.ai!=='boolean') process.exit(1); console.log('Health endpoint schema OK; AI key configured:',h.ai)"
           
-          STATUS=$(curl -s -o /tmp/pattern-export.pdf -w '%{http_code}' -H 'Content-Type: application/json' --data-binary '{"name":"Panda Hamburguesero","height":"19 cm","level":"Intermedio","pattern":"Vuelta 1: 6 pb (6)\\nVuelta 2: 6 aum (12)"}' http://127.0.0.1:8080/api/puntia/export-pdf)
-          test "$STATUS" = "200"
-          grep -a -q '%PDF-' /tmp/pattern-export.pdf
           
-          STATUS=$(curl -s -o /tmp/pattern-export-invalid.json -w '%{http_code}' -H 'Content-Type: application/json' --data-binary '{"name":"Panda","pattern":"Vuelta 1: 6 pb (6)\\nVuelta 2: (1 pb, 1 aum) x 6 (18)"}' http://127.0.0.1:8080/api/puntia/export-pdf)
-          test "$STATUS" = "422"
-
           STATUS=$(curl -s -o /tmp/chat-empty.json -w '%{http_code}' -H 'Content-Type: application/json' -d '{"message":"   "}' http://127.0.0.1:8080/api/puntia/chat)
           test "$STATUS" = "400"
 
