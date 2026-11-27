@@ -1,9 +1,12 @@
 const express=require('express');
 const multer=require('multer');
+const cors=require('cors');
 const OpenAI=require('openai');
 const path=require('path');
 const { validatePattern } = require('./pattern-validator.cjs');
 const app=express();
+const allowedOrigins=new Set([...String(process.env.PUNTIA_ALLOWED_ORIGINS||'').split(',').map(x=>x.trim()).filter(Boolean),'https://localhost','capacitor://localhost','http://localhost']);
+app.use(cors({origin(origin,callback){if(!origin||allowedOrigins.has(origin))return callback(null,true);return callback(new Error('Origen no permitido por CORS.'));},methods:['GET','POST','DELETE','OPTIONS'],allowedHeaders:['Content-Type','Authorization']}));
 const upload=multer({storage:multer.memoryStorage(),limits:{fileSize:8*1024*1024},fileFilter:(req,file,cb)=>{if(!['image/jpeg','image/png','image/webp','image/gif'].includes(file.mimetype))return cb(new Error('Formato de imagen no admitido. Usa JPG, PNG, WEBP o GIF.'));cb(null,true);}});
 app.use(express.json({limit:'2mb'}));
 app.use(express.static(path.join(__dirname,'public')));
