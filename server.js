@@ -45,7 +45,7 @@ app.post('/api/puntia/export-pdf',async(req,res)=>{
     pdf.moveDown().fillColor('#655A53').fontSize(8).text('Nota: la auditoría comprueba conteos y continuidad reconocibles; no certifica geometría, ajuste entre piezas ni tejido físico.',{align:'left'});
     pdf.end();
   }catch(e){return sendApiError(res,e,'No se pudo exportar el patrón a PDF.');}
-}});
+});
 app.post('/api/puntia/diagnose',upload.single('image'),async(req,res)=>{try{if(!req.file)return res.status(400).json({error:'Falta la imagen.'});if(!client)return res.status(503).json({error:'OPENAI_API_KEY no configurada'});const b64=req.file.buffer.toString('base64');const data=`data:${req.file.mimetype};base64,${b64}`;const r=await client.responses.create({model:VISION_MODEL,instructions:`${SYSTEM}\nAnaliza la imagen de tejido como instructor de crochet. Identifica solamente problemas visibles o indica que no son concluyentes. Explica: problema, dónde, por qué puede ocurrir, cómo corregirlo y cómo evitarlo.`,input:[{role:'user',content:[{type:'input_text',text:'Analiza esta pieza de crochet y dame un diagnóstico práctico.'},{type:'input_image',image_url:data}]}]});res.json({analysis:r.output_text||'No fue posible obtener un análisis.'})}catch(e){return sendApiError(res,e,'No se pudo analizar la imagen. Verifica el archivo e inténtalo de nuevo.')}});
 // --- PuntIA virtual companion: persistent memory and emotion state ---
 const fs=require('fs');
