@@ -39,6 +39,7 @@ jobs:
           grep -q 'const escapeHtml=' public/index.html
           grep -q 'formatAssistantText(j.pattern' public/index.html
           grep -q 'formatAssistantText(j.analysis' public/index.html
+          grep -q 'exportPatternPdf' public/index.html
           grep -q 'escapeHtml(p\[0\])' public/index.html
           node <<'NODE'
           const fs = require('fs');
@@ -129,7 +130,8 @@ jobs:
           cmp public/puntia-mascota-original.webp.b64 /tmp/mascot-webp-b64.txt
 
           node -e "const h=require('/tmp/health.json'); if(h.ok!==true) process.exit(1); if(typeof h.ai!=='boolean') process.exit(1); console.log('Health endpoint schema OK; AI key configured:',h.ai)"
-
+          
+          
           STATUS=$(curl -s -o /tmp/chat-empty.json -w '%{http_code}' -H 'Content-Type: application/json' -d '{"message":"   "}' http://127.0.0.1:8080/api/puntia/chat)
           test "$STATUS" = "400"
 

@@ -1,0 +1,253 @@
+{
+  "caseId": "PUNTIA-PANDA-001",
+  "title": "Panda Hamburguesero",
+  "targetHeightCm": 19,
+  "level": "Intermedio",
+  "construction": "Piezas separadas cosidas",
+  "reference": "Fotografía original proporcionada por el usuario",
+  "components": [
+    "cabeza blanca",
+    "orejas negras x2",
+    "parches oculares negros x2",
+    "hocico blanco",
+    "mejillas rosas x2",
+    "cuerpo con polo naranja",
+    "brazos negros x2",
+    "manos y dedos",
+    "piernas azul marino x2",
+    "tenis negros y blancos x2",
+    "gorra naranja con visera",
+    "parche decorativo"
+  ],
+  "acceptance": [
+    "Instrucciones vuelta por vuelta",
+    "Cada vuelta declara total de puntos",
+    "Aumentos y disminuciones coherentes",
+    "Continuidad de puntos entre vueltas",
+    "Piezas y costuras compatibles",
+    "Proporciones orientadas a 19 cm",
+    "Imágenes específicas por etapa",
+    "PDF legible y exportable",
+    "No afirmar prueba física sin prototipo"
+  ],
+  "sections": [
+    {
+      "name": "Cabeza",
+      "rounds": [
+        {
+          "id": "H01",
+          "instruction": "6 pb",
+          "expected": 6,
+          "initialBase": true
+        },
+        {
+          "id": "H02",
+          "instruction": "6 aum",
+          "expected": 12
+        },
+        {
+          "id": "H03",
+          "instruction": "(1 pb, 1 aum) x 6",
+          "expected": 18
+        },
+        {
+          "id": "H04",
+          "instruction": "(2 pb, 1 aum) x 6",
+          "expected": 24
+        },
+        {
+          "id": "H05",
+          "instruction": "(3 pb, 1 aum) x 6",
+          "expected": 30
+        },
+        {
+          "id": "H06",
+          "instruction": "(4 pb, 1 aum) x 6",
+          "expected": 36
+        },
+        {
+          "id": "H07",
+          "instruction": "(5 pb, 1 aum) x 6",
+          "expected": 42
+        },
+        {
+          "id": "H08",
+          "instruction": "(6 pb, 1 aum) x 6",
+          "expected": 48
+        },
+        {
+          "id": "H09",
+          "instruction": "(7 pb, 1 aum) x 6",
+          "expected": 54
+        },
+        {
+          "id": "H10",
+          "instruction": "54 pb",
+          "expected": 54
+        },
+        {
+          "id": "H11",
+          "instruction": "54 pb",
+          "expected": 54
+        },
+        {
+          "id": "H12",
+          "instruction": "54 pb",
+          "expected": 54
+        },
+        {
+          "id": "H13",
+          "instruction": "54 pb",
+          "expected": 54
+        },
+        {
+          "id": "H14",
+          "instruction": "54 pb",
+          "expected": 54
+        },
+        {
+          "id": "H15",
+          "instruction": "54 pb",
+          "expected": 54
+        },
+        {
+          "id": "H16",
+          "instruction": "(7 pb, 1 dis) x 6",
+          "expected": 48
+        },
+        {
+          "id": "H17",
+          "instruction": "(6 pb, 1 dis) x 6",
+          "expected": 42
+        },
+        {
+          "id": "H18",
+          "instruction": "(5 pb, 1 dis) x 6",
+          "expected": 36
+        },
+        {
+          "id": "H19",
+          "instruction": "(4 pb, 1 dis) x 6",
+          "expected": 30
+        },
+        {
+          "id": "H20",
+          "instruction": "(3 pb, 1 dis) x 6",
+          "expected": 24
+        },
+        {
+          "id": "H21",
+          "instruction": "(2 pb, 1 dis) x 6",
+          "expected": 18
+        },
+        {
+          "id": "H22",
+          "instruction": "(1 pb, 1 dis) x 6",
+          "expected": 12
+        },
+        {
+          "id": "H23",
+          "instruction": "6 dis",
+          "expected": 6
+        }
+      ]
+    },
+    {
+      "name": "Oreja",
+      "rounds": [
+        {
+          "id": "E01",
+          "instruction": "6 pb",
+          "expected": 6,
+          "initialBase": true
+        },
+        {
+          "id": "E02",
+          "instruction": "6 aum",
+          "expected": 12
+        },
+        {
+          "id": "E03",
+          "instruction": "(1 pb, 1 aum) x 6",
+          "expected": 18
+        },
+        {
+          "id": "E04",
+          "instruction": "18 pb",
+          "expected": 18
+        },
+        {
+          "id": "E05",
+          "instruction": "18 pb",
+          "expected": 18
+        }
+      ]
+    },
+    {
+      "name": "Pierna",
+      "rounds": [
+        {
+          "id": "L01",
+          "instruction": "6 pb",
+          "expected": 6,
+          "initialBase": true
+        },
+        {
+          "id": "L02",
+          "instruction": "6 aum",
+          "expected": 12
+        },
+        {
+          "id": "L03",
+          "instruction": "(3 pb, 1 aum) x 3",
+          "expected": 15
+        },
+        {
+          "id": "L04",
+          "instruction": "15 pb",
+          "expected": 15
+        },
+        {
+          "id": "L05",
+          "instruction": "15 pb",
+          "expected": 15
+        },
+        {
+          "id": "L06",
+          "instruction": "15 pb",
+          "expected": 15
+        },
+        {
+          "id": "L07",
+          "instruction": "15 pb",
+          "expected": 15
+        },
+        {
+          "id": "L08",
+          "instruction": "15 pb",
+          "expected": 15
+        },
+        {
+          "id": "L09",
+          "instruction": "15 pb",
+          "expected": 15
+        },
+        {
+          "id": "L10",
+          "instruction": "15 pb",
+          "expected": 15
+        },
+        {
+          "id": "L11",
+          "instruction": "15 pb",
+          "expected": 15
+        },
+        {
+          "id": "L12",
+          "instruction": "15 pb",
+          "expected": 15
+        }
+      ]
+    }
+  ]
+}

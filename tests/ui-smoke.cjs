@@ -44,10 +44,15 @@ async function waitForServer() {
       try { chatPayload = route.request().postDataJSON(); } catch {}
       return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ reply: 'Respuesta de prueba del asistente.' }) });
     });
-    await page.route('**/api/puntia/generate-pattern', route => route.fulfill({
-      status: 200, contentType: 'application/json',
-      body: JSON.stringify({ pattern: 'Patrón de prueba: 6 pb en anillo mágico.' })
-    }));
+    let patternPayload = null;
+    let patternShouldPass = false;
+    await page.route('**/api/puntia/generate-pattern', async route => {
+      try { patternPayload = route.request().postDataJSON(); } catch {}
+      return route.fulfill({
+        status: 200, contentType: 'application/json',
+        body: JSON.stringify({ pattern: patternShouldPass ? 'Vuelta 1: 6 pb (6)\nVuelta 2: 6 aum (12)\nVuelta 3: (1 pb, 1 aum) x 6 (18)' : 'Patrón de prueba: 6 pb en anillo mágico.', validation: patternShouldPass ? { checkedRounds: 3, validRounds: 3, invalidRounds: 0, unverifiedRounds: 0, results: [] } : { checkedRounds: 3, validRounds: 2, invalidRounds: 1, unverifiedRounds: 0, results: [{ line: 'Vuelta 2: (1 pb, 1 aum) x 6 (18)', status: 'invalid', reason: 'La vuelta consume 12 puntos, pero la vuelta anterior terminó con 6.' }] } })
+      });
+    });
     await page.route('**/api/puntia/diagnose', route => route.fulfill({
       status: 200, contentType: 'application/json',
       body: JSON.stringify({ analysis: 'Diagnóstico visual simulado para prueba.' })
@@ -125,6 +130,35 @@ async function waitForServer() {
     await page.locator('#patternName').fill('Conejito de prueba');
     await page.locator('#generateBtn').click();
     await page.getByText(/Patrón de prueba: 6 pb en anillo mágico/).waitFor({ state: 'visible' });
+    await page.getByText('NO APROBADO: hay conteos o continuidad incorrectos').waitFor({ state: 'visible' });
+    if (!(await page.locator('#usePattern').isDisabled())) throw new Error('PuntIA permitió guardar un patrón con auditoría fallida.');
+    await page.locator('#modalClose').click();
+
+    // One-click official Panda case must prefill the agreed acceptance settings.
+    await page.locator('#pandaTestBtn').click();
+    await page.getByText(/Patrón de prueba: 6 pb en anillo mágico/).waitFor({ state: 'visible' });
+    const pandaForm = await page.evaluate(() => ({
+      name: document.querySelector('#patternName').value,
+      level: document.querySelector('#patternLevel').value,
+      size: document.querySelector('#patternSize').value,
+      caseId: window.PuntIASelectedCase
+    }));
+    if (pandaForm.name !== 'Panda Hamburguesero' || pandaForm.level !== 'Intermedio' || pandaForm.size !== '19 cm' || pandaForm.caseId !== 'PUNTIA-PANDA-001' || patternPayload?.caseId !== 'PUNTIA-PANDA-001') {
+      throw new Error('El caso Panda no envió sus parámetros acordados: ' + JSON.stringify({ pandaForm, patternPayload }));
+    }
+    await page.locator('#modalClose').click();
+
+    // Valid pattern must expose a working print-to-PDF report.
+    patternShouldPass = true;
+    await page.locator('#generateBtn').click();
+    await page.getByText('CONTEOS ARITMÉTICOS COHERENTES').waitFor({ state: 'visible' });
+    if (await page.locator('#exportPatternPdf').isDisabled()) throw new Error('PuntIA bloqueó exportar un patrón matemáticamente válido.');
+    const printPopupPromise = page.waitForEvent('popup');
+    await page.locator('#exportPatternPdf').click();
+    const printPopup = await printPopupPromise;
+    await printPopup.waitForLoadState('domcontentloaded');
+    if (!(await printPopup.title()).includes('Panda Hamburguesero')) throw new Error('El documento de impresión no tiene el título del caso Panda.');
+    await printPopup.close();
     await page.locator('#modalClose').click();
 
     // Crochet validator: compare computed counts with declared round totals.
