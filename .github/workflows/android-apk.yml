@@ -49,8 +49,8 @@ jobs:
           node -e "const base=process.env.PUNTIA_API_BASE_URL.replace(/\/$/,'');require('fs').writeFileSync('www/config.js','window.PUNTIA_API_BASE_URL = '+JSON.stringify(base)+';\\n')"
           test -s www/index.html
           test -s www/config.js
-          grep -q 'apiFetch' www/index.html
-          grep -q 'serviceWorker.register' www/index.html
+          grep -q 'apiUrl' www/index.html
+          grep -q 'src="/config.js"' www/index.html
       - name: Generate Android project
         run: |
           npx cap add android
