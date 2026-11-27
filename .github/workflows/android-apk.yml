@@ -3,7 +3,7 @@ name: PuntIA Android APK
 on:
   workflow_dispatch:
   push:
-    branches: [audit/general-audit-2026-10]
+    branches: [main]
     paths:
       - "public/**"
       - "capacitor.config.json"
@@ -17,55 +17,46 @@ jobs:
   build-apk:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
+      - uses: actions/checkout@v4
       - name: Configure Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
-
       - name: Configure Java 21
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "21"
-
       - name: Validate API URL configuration
         env:
           PUNTIA_API_BASE_URL: ${{ vars.PUNTIA_API_BASE_URL }}
         run: |
           if [ -z "$PUNTIA_API_BASE_URL" ]; then
-            echo "::error::Configura la variable PUNTIA_API_BASE_URL con la URL HTTPS real del backend PuntIA antes de compilar."
+            echo "::error::Configura PUNTIA_API_BASE_URL con la URL HTTPS real del backend."
             exit 1
           fi
           node -e "const u=new URL(process.env.PUNTIA_API_BASE_URL); if(u.protocol!=='https:' || u.username || u.password) process.exit(1)"
-
-      - name: Install Capacitor tooling
+      - name: Install dependencies
         run: |
           npm install --no-audit --no-fund
           npm install --no-save --no-audit --no-fund @capacitor/core@^7 @capacitor/cli@^7 @capacitor/android@^7
-
-      - name: Prepare web assets
+      - name: Prepare Android web assets
         env:
           PUNTIA_API_BASE_URL: ${{ vars.PUNTIA_API_BASE_URL }}
         run: |
           rm -rf www
           cp -R public www
-          node -e "const fs=require('fs');const base=process.env.PUNTIA_API_BASE_URL.replace(/\/$/,'');fs.writeFileSync('www/config.js','window.PUNTIA_API_BASE_URL = '+JSON.stringify(base)+';\n')"
+          node -e "const base=process.env.PUNTIA_API_BASE_URL.replace(/\/$/,'');require('fs').writeFileSync('www/config.js','window.PUNTIA_API_BASE_URL = '+JSON.stringify(base)+';\\n')"
           test -s www/index.html
           test -s www/config.js
           grep -q 'apiFetch' www/index.html
           grep -q 'serviceWorker.register' www/index.html
-
       - name: Generate Android project
         run: |
           npx cap add android
           npx cap sync android
-
       - name: Build debug APK
         run: cd android && ./gradlew --no-daemon assembleDebug
-
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
