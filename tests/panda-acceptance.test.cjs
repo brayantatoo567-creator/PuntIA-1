@@ -4,7 +4,7 @@ const test=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const path=require('node:path');
-const {parseInstruction,auditCase,auditSection}=require('../panda-pattern-audit.cjs');
+const {parseInstruction,auditCase,auditSection}=require('../panda-pattern-audit.cjs');\nconst {validatePattern}=require('../pattern-validator.cjs');
 const fixture=JSON.parse(fs.readFileSync(path.join(__dirname,'fixtures','panda-hamburguesero.case.json'),'utf8'));
 
 test('Panda case has the agreed product constraints',()=>{
@@ -56,7 +56,7 @@ test('audit rejects a round that consumes the wrong number of base stitches',()=
   assert.equal(result.results[1].status,'invalid-input');
 });
 
-test('whole Panda acceptance fixture passes its arithmetic checks',()=>{
+test('production pattern validator rejects broken round continuity',()=>{\n  const result=validatePattern('Vuelta 1: 6 pb (6)\\nVuelta 2: (1 pb, 1 aum) x 6 (18)');\n  assert.equal(result.checkedRounds,2);\n  assert.equal(result.validRounds,1);\n  assert.equal(result.invalidRounds,1);\n  assert.match(result.results[1].reason,/consume 12 puntos.*terminó con 6/);\n});\n\ntest('production pattern validator accepts a coherent head sequence',()=>{\n  const result=validatePattern('Vuelta 1: 6 pb (6)\\nVuelta 2: 6 aum (12)\\nVuelta 3: (1 pb, 1 aum) x 6 (18)');\n  assert.equal(result.validRounds,3);\n  assert.equal(result.invalidRounds,0);\n});\n\ntest('whole Panda acceptance fixture passes its arithmetic checks',()=>{
   const result=auditCase(fixture);
   assert.equal(result.rounds,40);
   assert.equal(result.valid,40);
