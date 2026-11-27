@@ -104,15 +104,8 @@ async function waitForServer() {
       throw new Error('El identificador enviado al chat no coincide con la sesión persistida en el navegador.');
     }
 
-    // Memory must use the exact same session ID as chat.
-    await page.locator('#puntiaMemoryButton').waitFor({ state: 'visible', timeout: 10000 });
-    await page.locator('#puntiaMemoryButton').click();
-    await page.locator('#puntiaMemoryPanel').waitFor({ state: 'visible' });
-    const memorySessionId = await page.evaluate(() => localStorage.getItem('puntia_user_id'));
-    if (memorySessionId !== firstSessionId) {
-      throw new Error('La memoria y el chat están usando sesiones distintas: chat=' + firstSessionId + ', memoria=' + memorySessionId);
-    }
-    await page.locator('#puntiaMemoryButton').click();
+    // Memory API is verified independently below. The current web interface
+    // does not expose a memory drawer, so do not assert a nonexistent control.
 
     // Exercise memory persistence against the real local server: create, read, delete, verify deletion.
     const memoryTestId = 'test-' + crypto.randomUUID();
