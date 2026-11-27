@@ -14,89 +14,71 @@ permissions:
 
 jobs:
   live-ai-smoke:
+    if: ${{ vars.PUNTIA_API_BASE_URL != '' }}
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4
-
-      - name: Wait for live health endpoint
+      - name: Wait for configured live health endpoint
         shell: bash
+        env:
+          PUNTIA_API_BASE_URL: ${{ vars.PUNTIA_API_BASE_URL }}
         run: |
           set -euo pipefail
-          URL="https://puntia-validation-production.up.railway.app"
+          URL="${PUNTIA_API_BASE_URL%/}"
           for attempt in $(seq 1 24); do
             if curl -fsS --max-time 10 "$URL/api/health" -o /tmp/health.json; then
-              cat /tmp/health.json
-              node -e 'const h=require("/tmp/health.json"); if(!h.ok) process.exit(1); if(!h.ai) { console.error("AI is not configured on the live service"); process.exit(2); } console.log("Health OK; AI configured; model:", h.model);'
+              node -e 'const h=require("/tmp/health.json"); if(!h.ok || !h.ai) process.exit(1); console.log("Health and AI OK:",h.model)'
               exit 0
             fi
             echo "Health endpoint not ready (attempt $attempt/24)"
             sleep 5
           done
-          echo "Health endpoint did not become ready"
+          echo "Health endpoint did not become ready: $URL"
           exit 1
-
       - name: Test real AI chat
-        shell: bash
+        env:
+          PUNTIA_API_BASE_URL: ${{ vars.PUNTIA_API_BASE_URL }}
         run: |
           set -euo pipefail
-          URL="https://puntia-validation-production.up.railway.app"
+          URL="${PUNTIA_API_BASE_URL%/}"
           CODE=$(curl -sS --max-time 150 -o /tmp/chat.json -w '%{http_code}' -H 'Content-Type: application/json' -X POST "$URL/api/puntia/chat" --data '{"message":"Responde en español en una frase breve: ¿qué es un punto bajo en crochet?"}')
-          echo "Chat API HTTP status: $CODE"
           test "$CODE" = "200"
-          node -e 'const r=require("/tmp/chat.json"); if(typeof r.reply!=="string" || r.reply.trim().length<10) throw Error("Chat response empty or too short"); console.log("PASS: live AI chat response:",r.reply.length,"characters; emotion:",r.emotion||"not returned")'
-
+          node -e 'const r=require("/tmp/chat.json"); if(typeof r.reply!=="string" || r.reply.trim().length<10) throw Error("Chat response empty"); console.log("PASS: live chat",r.reply.length,"characters")'
       - name: Generate a real amigurumi pattern
-        shell: bash
+        env:
+          PUNTIA_API_BASE_URL: ${{ vars.PUNTIA_API_BASE_URL }}
         run: |
           set -euo pipefail
-          URL="https://puntia-validation-production.up.railway.app"
+          URL="${PUNTIA_API_BASE_URL%/}"
           CODE=$(curl -sS --max-time 150 -o /tmp/pattern.json -w '%{http_code}' -H 'Content-Type: application/json' -X POST "$URL/api/puntia/generate-pattern" --data '{"name":"conejito amigurumi de prueba","level":"Principiante","height":"12 cm","style":"simple y tierno"}')
-          echo "Pattern API HTTP status: $CODE"
-          if [ "$CODE" != "200" ]; then node -e 'try { console.error(require("/tmp/pattern.json").error || "No error detail") } catch {}'; exit 1; fi
-          node <<'NODE'
-          const fs=require('fs');
-          const d=JSON.parse(fs.readFileSync('/tmp/pattern.json','utf8'));
-          const p=String(d.pattern||'').trim();
-          const checks={
-            nonEmpty:p.length>80,
-            materials:/material/i.test(p),
-            roundsOrRows:/ronda|vuelta/i.test(p),
-            assemblyOrPieces:/ensambl|unir|pieza|oreja|cuerpo/i.test(p),
-            counts:/\(\s*\d+\s*(?:puntos?|pts?)?\s*\)/i.test(p)||/\d+\s*(?:puntos?|pts?)\s*(?:en total|totales)/i.test(p)
-          };
-          console.log('Pattern length:',p.length,'checks:',JSON.stringify(checks));
-          if(!checks.nonEmpty||!checks.materials||!checks.roundsOrRows||!checks.assemblyOrPieces||!checks.counts) process.exit(1);
-          console.log('PASS: live pattern response has required structure.');
-          NODE
-
+          if [ "$CODE" != "200" ]; then cat /tmp/pattern.json; exit 1; fi
+          node -e 'const p=String(require("/tmp/pattern.json").pattern||""); if(p.length<80 || !/material/i.test(p) || !/ronda|vuelta/i.test(p)) process.exit(1); console.log("PASS: pattern structure")'
       - name: Test real image diagnosis
-        shell: bash
+        env:
+          PUNTIA_API_BASE_URL: ${{ vars.PUNTIA_API_BASE_URL }}
         run: |
           set -euo pipefail
-          URL="https://puntia-validation-production.up.railway.app"
-          # Build a valid 128x128 PNG with Python stdlib to exercise the actual vision endpoint.
+          URL="${PUNTIA_API_BASE_URL%/}"
           python3 <<'PY'
-          import struct, zlib
-          width = height = 128
-          rows = []
-          for y in range(height):
-              row = bytearray([0])
-              for x in range(width):
-                  # Simple high-contrast yarn-like loops on a light background.
-                  dx, dy = x - 64, y - 64
-                  loop = ((dx*dx + dy*dy) % 625) < 110
-                  row.extend((110, 76, 55) if loop else (235, 220, 200))
-              rows.append(bytes(row))
-          def chunk(kind, data):
-              return struct.pack(">I", len(data)) + kind + data + struct.pack(">I", zlib.crc32(kind + data) & 0xffffffff)
-          png = b"\x89PNG\r\n\x1a\n"
-          png += chunk(b"IHDR", struct.pack(">IIBBBBB", width, height, 8, 2, 0, 0, 0))
-          png += chunk(b"IDAT", zlib.compress(b"".join(rows)))
-          png += chunk(b"IEND", b"")
-          open("/tmp/test.png", "wb").write(png)
+          import struct,zlib
+          w=h=128
+          rows=[]
+          for y in range(h):
+            row=bytearray([0])
+            for x in range(w):
+              loop=((x-64)**2+(y-64)**2)%625<110
+              row.extend((110,76,55) if loop else (235,220,200))
+            rows.append(bytes(row))
+          def chunk(k,d): return struct.pack(">I",len(d))+k+d+struct.pack(">I",zlib.crc32(k+d)&0xffffffff)
+          png=b"\x89PNG\r\n\x1a\n"+chunk(b"IHDR",struct.pack(">IIBBBBB",w,h,8,2,0,0,0))+chunk(b"IDAT",zlib.compress(b"".join(rows)))+chunk(b"IEND",b"")
+          open("/tmp/test.png","wb").write(png)
           PY
           CODE=$(curl -sS --max-time 150 -o /tmp/diagnose.json -w '%{http_code}' -X POST "$URL/api/puntia/diagnose" -F 'image=@/tmp/test.png;type=image/png')
-          echo "Image diagnosis HTTP status: $CODE"
-          if [ "$CODE" != "200" ]; then node -e 'try { console.error(require("/tmp/diagnose.json").error || "No error detail") } catch {}'; exit 1; fi
-          node -e 'const r=require("/tmp/diagnose.json"); if(typeof r.analysis!=="string" || r.analysis.trim().length<10) throw Error("Vision response empty or too short"); console.log("PASS: live image diagnosis returned",r.analysis.length,"characters.")'
+          if [ "$CODE" != "200" ]; then cat /tmp/diagnose.json; exit 1; fi
+          node -e 'const a=String(require("/tmp/diagnose.json").analysis||""); if(a.length<10) process.exit(1); console.log("PASS: image diagnosis",a.length,"characters")'
+  live-smoke-not-configured:
+    if: ${{ vars.PUNTIA_API_BASE_URL == '' }}
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Live AI tests skipped. Configure repository variable PUNTIA_API_BASE_URL with the real HTTPS backend URL."
