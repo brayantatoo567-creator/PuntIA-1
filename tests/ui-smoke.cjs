@@ -50,7 +50,7 @@ async function waitForServer() {
       try { patternPayload = route.request().postDataJSON(); } catch {}
       return route.fulfill({
         status: 200, contentType: 'application/json',
-        body: JSON.stringify({ pattern: 'Vuelta 1: 6 pb (6)\\nVuelta 2: 6 aum (12)\\nVuelta 3: (1 pb, 1 aum) x 6 (18)', validation: patternShouldPass ? { checkedRounds: 3, validRounds: 3, invalidRounds: 0, unverifiedRounds: 0, results: [] } : { checkedRounds: 3, validRounds: 2, invalidRounds: 1, unverifiedRounds: 0, results: [{ line: 'Vuelta 2: (1 pb, 1 aum) x 6 (18)', status: 'invalid', reason: 'La vuelta consume 12 puntos, pero la vuelta anterior terminó con 6.' }] } })
+        body: JSON.stringify({ pattern: 'Vuelta 1: 6 pb (6)\nVuelta 2: 6 aum (12)\nVuelta 3: (1 pb, 1 aum) x 6 (18)', validation: patternShouldPass ? { checkedRounds: 3, validRounds: 3, invalidRounds: 0, unverifiedRounds: 0, results: [] } : { checkedRounds: 3, validRounds: 2, invalidRounds: 1, unverifiedRounds: 0, results: [{ line: 'Vuelta 2: (1 pb, 1 aum) x 6 (18)', status: 'invalid', reason: 'La vuelta consume 12 puntos, pero la vuelta anterior terminó con 6.' }] } })
       });
     });
     await page.route('**/api/puntia/diagnose', route => route.fulfill({
