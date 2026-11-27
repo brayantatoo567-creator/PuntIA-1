@@ -1,1 +1,19 @@
-{"name":"puntia","version":"3.0.0","private":true,"type":"commonjs","scripts":{"start":"node server.js","test:panda":"node --test tests/panda-acceptance.test.cjs"},"dependencies":{"express":"^5.1.0","multer":"^2.0.2","openai":"^6.0.0"}}
+{
+  "name": "puntia",
+  "version": "3.1.0",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js",
+    "test": "npm run test:panda && node tests/pattern-math.cjs",
+    "test:panda": "node --test tests/panda-acceptance.test.cjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "multer": "^2.0.2",
+    "openai": "^6.0.0"
+  }
+}
